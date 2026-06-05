@@ -26,10 +26,12 @@ public class CanTransitionUseCase {
     ) {
 
         WorkflowExecution execution =
-                executionRepository.findById(executionId);
+                executionRepository.findById(executionId)
+                .orElseThrow(() -> new RuntimeException("Execution not found"));
 
         Workflow workflow =
-                workflowRepository.findById(execution.getWorkflowId());
+                workflowRepository.findById(execution.getWorkflowId())
+                .orElseThrow(() -> new RuntimeException("Workflow not found"));
 
         return workflow.allowsTransition(
                 execution.getCurrentState(),

@@ -25,7 +25,8 @@ public class StartWorkflowExecutionUseCase {
             WorkflowExecutionId executionId
     ) {
 
-        Workflow workflow = workflowRepository.findById(workflowId);
+        Workflow workflow = workflowRepository.findById(workflowId)
+        .orElseThrow(() -> new IllegalArgumentException("Workflow not found"));
 
         WorkflowExecution execution =
                 new WorkflowExecution(

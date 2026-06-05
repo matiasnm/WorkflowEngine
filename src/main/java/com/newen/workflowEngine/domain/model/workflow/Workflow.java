@@ -1,6 +1,8 @@
 package com.newen.workflowEngine.domain.model.workflow;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class Workflow {
     private final WorkflowId id;
@@ -16,7 +18,7 @@ public class Workflow {
         List<Transition> transitions,
         State initialState) {
         
-        validateTransitions(states, transitions, initialState);
+        validate(states, transitions, initialState);
 
         this.id = id;
         this.name = name;
@@ -25,24 +27,61 @@ public class Workflow {
         this.initialState = initialState;
     }
 
-    private void validateTransitions(List<State> states, List<Transition> transitions, State initialState) {
-        
-        //Hay estados definidos que no son alcanzables.?
+    private void validate(
+            List<State> states,
+            List<Transition> transitions,
+            State initialState
+    ) {
 
+        // 1. al menos un estado
+        if (states == null || states.isEmpty()) {
+            throw new IllegalArgumentException("Workflow must have at least one state");
+        }
+
+        // 2. initial state pertenece a states
         if (!states.contains(initialState)) {
             throw new IllegalArgumentException(
-            "Initial state must belong to workflow states"
+                    "Initial state must belong to workflow states"
             );
-}
+        }
+
+        // 3. estados duplicados
+        Set<State> uniqueStates = new HashSet<>(states);
+        if (uniqueStates.size() != states.size()) {
+            throw new IllegalArgumentException("Duplicate states are not allowed");
+        }
+
+        // 4. transiciones duplicadas
+        Set<String> seenTransitions = new HashSet<>();
+
         for (Transition transition : transitions) {
+
+            // 5. from debe existir en states
             if (!states.contains(transition.getFrom())) {
                 throw new IllegalArgumentException(
-                    String.format("Transition from state '%s' is not valid because it is not in the list of states.", transition.getFrom())
+                        "Transition 'from' state is not part of workflow states: " + transition.getFrom()
                 );
             }
+
+            // 6. to debe existir en states
             if (!states.contains(transition.getTo())) {
                 throw new IllegalArgumentException(
-                    String.format("Transition to state '%s' is not valid because it is not in the list of states.", transition.getTo())
+                        "Transition 'to' state is not part of workflow states: " + transition.getTo()
+                );
+            }
+
+            // 7. estado terminal no puede ser origen
+            if (transition.getFrom().terminal()) {
+                throw new IllegalArgumentException(
+                        "Terminal state cannot have outgoing transitions: " + transition.getFrom()
+                );
+            }
+
+            // 8. no duplicar transiciones
+            String key = transition.getFrom() + "->" + transition.getTo();
+            if (!seenTransitions.add(key)) {
+                throw new IllegalArgumentException(
+                        "Duplicate transition detected: " + key
                 );
             }
         }

@@ -20,7 +20,8 @@ public class GetHistoryUseCase {
     public List<StateChanged> execute(WorkflowExecutionId executionId) {
 
         WorkflowExecution execution =
-                executionRepository.findById(executionId);
+                executionRepository.findById(executionId)
+                .orElseThrow(() -> new RuntimeException("Execution not found"));
 
         return execution.getHistory();
     }

@@ -1,0 +1,48 @@
+package com.newen.workflowEngine.application.usecase.commands;
+
+import java.util.List;
+import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.Test;
+
+import com.newen.workflowEngine.domain.model.execution.WorkflowExecution;
+import com.newen.workflowEngine.domain.model.execution.WorkflowExecutionId;
+import com.newen.workflowEngine.domain.model.workflow.State;
+import com.newen.workflowEngine.domain.model.workflow.Transition;
+import com.newen.workflowEngine.domain.model.workflow.Workflow;
+import com.newen.workflowEngine.domain.model.workflow.WorkflowId;
+import com.newen.workflowEngine.infrastructure.repository.memory.InMemoryExecutionRepository;
+import com.newen.workflowEngine.infrastructure.repository.memory.InMemoryWorkflowRepository;
+
+class StartWorkflowExecutionUseCaseTest {
+
+    @Test
+    void should_start_workflow_execution_with_initial_state() {
+
+        State created = new State("CREATED", false);
+        State review = new State("REVIEW", false);
+
+        Workflow workflow = new Workflow(
+                new WorkflowId(UUID.randomUUID()),
+                "Workflow",
+                List.of(created, review),
+                List.of(new Transition(created, review)),
+                created
+        );
+
+        InMemoryWorkflowRepository workflowRepo = new InMemoryWorkflowRepository();
+        workflowRepo.save(workflow);
+
+        InMemoryExecutionRepository executionRepo = new InMemoryExecutionRepository();
+
+        StartWorkflowExecutionUseCase useCase =
+                new StartWorkflowExecutionUseCase(workflowRepo, executionRepo);
+
+        WorkflowExecution execution = useCase.execute(workflow.getId(), new WorkflowExecutionId(UUID.randomUUID()));
+
+        assertEquals(created, execution.getCurrentState());
+        assertEquals(workflow.getId(), execution.getWorkflowId());
+    }
+
+}

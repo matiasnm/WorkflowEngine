@@ -1,5 +1,6 @@
 package com.newen.workflowEngine.application.usecase.commands;
 
+import com.newen.workflowEngine.application.dto.ExecuteTransitionResult;
 import com.newen.workflowEngine.application.port.ExecutionRepository;
 import com.newen.workflowEngine.application.port.WorkflowRepository;
 import com.newen.workflowEngine.domain.event.StateChanged;
@@ -26,22 +27,30 @@ public class ExecuteTransitionUseCase {
         this.engine = engine;
     }
 
-    public StateChanged execute(
+    public ExecuteTransitionResult execute(
             WorkflowExecutionId executionId,
             State target
     ) {
 
         WorkflowExecution execution =
-                executionRepository.findById(executionId);
+                executionRepository.findById(executionId)
+                .orElseThrow(() -> new RuntimeException("Execution not found"));
 
         Workflow workflow =
-                workflowRepository.findById(execution.getWorkflowId());
+                workflowRepository.findById(execution.getWorkflowId())
+                .orElseThrow(() -> new RuntimeException("Workflow not found"));
 
         StateChanged event =
                 engine.transition(workflow, execution, target);
 
         executionRepository.save(execution);
+        
+        ExecuteTransitionResult result = new ExecuteTransitionResult(
+                execution.getId(),
+                event.getFrom(),
+                event.getTo()
+        );
 
-        return event;
+        return result;
     }
 }
