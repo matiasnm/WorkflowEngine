@@ -1,7 +1,14 @@
 # Workflow Engine (Mini Temporal-like System)
+![Java](https://img.shields.io/badge/Java-21-blue)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.1-green)
+![Architecture](https://img.shields.io/badge/Architecture-Hexagonal-orange)
+![DDD](https://img.shields.io/badge/DDD-Aggregates-purple)
+![CQRS](https://img.shields.io/badge/CQRS-Light-red)
+![Build Tool](https://img.shields.io/badge/Gradle-Kotlin_DSL-darkgreen)
 
-A lightweight workflow engine built with Spring Boot and Domain-Driven Design principles.  
-It models state machines with executions, transitions, and event history tracking.
+A lightweight workflow runtime engine inspired by Temporal and Camunda, built using Domain-Driven Design (DDD), Hexagonal Architecture and CQRS principles.
+
+> Educational and portfolio project focused on workflow orchestration, state machines and clean architecture.
 
 ---
 
