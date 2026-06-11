@@ -29,7 +29,7 @@ import com.newen.workflowEngine.infrastructure.persistence.repository.jpa.JpaWor
         JpaWorkflowPersistenceAdapter.class,
         JpaWorkflowEntityRepository.class
 })
-class JpaExecutionPersistenceAdapterTest {
+class JpaWorkflowExecutionPersistenceAdapterTest {
 
     @Autowired
     private WorkflowExecutionRepository executionRepository;
