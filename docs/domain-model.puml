@@ -1,0 +1,73 @@
+@startuml
+
+skinparam classAttributeIconSize 0
+hide circle
+
+' =========================
+' DOMAIN MODEL
+' =========================
+
+class Workflow {
+  - id: WorkflowId
+  - name: String
+  - states: List<State>
+  - transitions: List<Transition>
+  - initialState: State
+  --
+  + allowsTransition(from: State, to: State): boolean
+  + nextStates(current: State): List<State>
+}
+
+class State {
+  - name: String
+  - terminal: boolean
+}
+
+class Transition {
+  - from: State
+  - to: State
+}
+
+class WorkflowExecution {
+  - id: WorkflowExecutionId
+  - workflowId: WorkflowId
+  - currentState: State
+  - history: List<StateChanged>
+  --
+  + changeState(state: State): void
+  + addEvent(event: StateChanged): void
+}
+
+class StateChanged {
+  - executionId: WorkflowExecutionId
+  - from: State
+  - to: State
+  - timestamp: Instant
+}
+
+class WorkflowEngine {
+  + transition(workflow, execution, target): StateChanged
+}
+
+Workflow o-- State
+Workflow o-- Transition
+WorkflowExecution o-- StateChanged
+
+WorkflowEngine ..> Workflow
+WorkflowEngine ..> WorkflowExecution
+WorkflowEngine ..> StateChanged
+
+Transition --> State
+StateChanged --> State
+
+' =========================
+' VALUE OBJECT IDS
+' =========================
+
+class WorkflowId
+class WorkflowExecutionId
+
+Workflow --> WorkflowId
+WorkflowExecution --> WorkflowExecutionId
+
+@enduml
