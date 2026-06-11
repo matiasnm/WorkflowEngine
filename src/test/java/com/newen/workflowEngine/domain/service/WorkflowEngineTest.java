@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 
 import com.newen.workflowEngine.domain.event.StateChanged;
+import com.newen.workflowEngine.domain.exception.InvalidTransitionException;
 import com.newen.workflowEngine.domain.model.execution.WorkflowExecution;
 import com.newen.workflowEngine.domain.model.execution.WorkflowExecutionId;
 import com.newen.workflowEngine.domain.model.workflow.State;
@@ -89,7 +90,7 @@ public class WorkflowEngineTest {
         WorkflowEngine engine = new WorkflowEngine();
 
         assertThrows(
-                IllegalStateException.class,
+                InvalidTransitionException.class,
                 () -> engine.transition(
                         workflow,
                         execution,
@@ -130,7 +131,7 @@ public class WorkflowEngineTest {
         WorkflowEngine engine = new WorkflowEngine();
 
         assertThrows(
-                IllegalStateException.class,
+                InvalidTransitionException.class,
                 () -> engine.transition(workflow, execution, review)
         );
 
