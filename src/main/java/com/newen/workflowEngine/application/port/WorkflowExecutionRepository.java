@@ -5,7 +5,7 @@ import java.util.Optional;
 import com.newen.workflowEngine.domain.model.execution.WorkflowExecution;
 import com.newen.workflowEngine.domain.model.execution.WorkflowExecutionId;
 
-public interface ExecutionRepository {
+public interface WorkflowExecutionRepository {
 
     Optional<WorkflowExecution> findById(WorkflowExecutionId id);
     

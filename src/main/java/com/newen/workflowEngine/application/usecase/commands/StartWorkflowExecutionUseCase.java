@@ -4,7 +4,7 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
-import com.newen.workflowEngine.application.port.ExecutionRepository;
+import com.newen.workflowEngine.application.port.WorkflowExecutionRepository;
 import com.newen.workflowEngine.application.port.WorkflowRepository;
 import com.newen.workflowEngine.domain.exception.WorkflowNotFoundException;
 import com.newen.workflowEngine.domain.model.execution.WorkflowExecution;
@@ -16,11 +16,11 @@ import com.newen.workflowEngine.domain.model.workflow.WorkflowId;
 public class StartWorkflowExecutionUseCase {
 
     private final WorkflowRepository workflowRepository;
-    private final ExecutionRepository executionRepository;
+    private final WorkflowExecutionRepository executionRepository;
 
     public StartWorkflowExecutionUseCase(
             WorkflowRepository workflowRepository,
-            ExecutionRepository executionRepository
+            WorkflowExecutionRepository executionRepository
     ) {
         this.workflowRepository = workflowRepository;
         this.executionRepository = executionRepository;

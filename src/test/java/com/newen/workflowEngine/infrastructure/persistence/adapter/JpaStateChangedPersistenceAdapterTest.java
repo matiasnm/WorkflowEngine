@@ -8,8 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.context.annotation.Import;
 
-import com.newen.workflowEngine.application.port.ExecutionRepository;
 import com.newen.workflowEngine.application.port.StateChangedRepository;
+import com.newen.workflowEngine.application.port.WorkflowExecutionRepository;
 import com.newen.workflowEngine.application.port.WorkflowRepository;
 import com.newen.workflowEngine.domain.event.StateChanged;
 import com.newen.workflowEngine.domain.model.execution.WorkflowExecution;
@@ -18,28 +18,28 @@ import com.newen.workflowEngine.domain.model.workflow.State;
 import com.newen.workflowEngine.domain.model.workflow.Transition;
 import com.newen.workflowEngine.domain.model.workflow.Workflow;
 import com.newen.workflowEngine.domain.model.workflow.WorkflowId;
-import com.newen.workflowEngine.infrastructure.persistence.mapper.ExecutionMapper;
 import com.newen.workflowEngine.infrastructure.persistence.mapper.StateChangedMapper;
+import com.newen.workflowEngine.infrastructure.persistence.mapper.WorkflowExecutionMapper;
 import com.newen.workflowEngine.infrastructure.persistence.mapper.WorkflowMapper;
 import com.newen.workflowEngine.infrastructure.persistence.repository.jpa.JpaWorkflowEntityRepository;
 
 @DataJpaTest
 @Import({
-        JpaStateChangedAdapter.class,
+        JpaStateChangedPersistenceAdapter.class,
         StateChangedMapper.class,
-        JpaExcecutionPersistenceAdapter.class,
-        ExecutionMapper.class,
+        JpaWorkflowExecutionPersistenceAdapter.class,
+        WorkflowExecutionMapper.class,
         WorkflowMapper.class,
         JpaWorkflowPersistenceAdapter.class,
         JpaWorkflowEntityRepository.class
 })
-class JpaStateChangedAdapterTest {
+class JpaStateChangedPersistenceAdapterTest {
 
     @Autowired
     private StateChangedRepository stateChangedRepository;
 
     @Autowired
-    private ExecutionRepository executionRepository;
+    private WorkflowExecutionRepository executionRepository;
 
     @Autowired
     private WorkflowRepository workflowRepository;

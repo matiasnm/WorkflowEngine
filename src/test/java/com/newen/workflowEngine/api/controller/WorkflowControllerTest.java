@@ -20,9 +20,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.newen.workflowEngine.application.dto.ExecuteTransitionResult;
 import com.newen.workflowEngine.application.usecase.commands.ExecuteTransitionUseCase;
 import com.newen.workflowEngine.application.usecase.commands.StartWorkflowExecutionUseCase;
+import com.newen.workflowEngine.application.usecase.commands.dto.ExecuteTransitionResult;
 import com.newen.workflowEngine.application.usecase.queries.GetHistoryUseCase;
 import com.newen.workflowEngine.application.usecase.queries.GetNextStatesUseCase;
 import com.newen.workflowEngine.domain.event.StateChanged;

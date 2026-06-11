@@ -10,14 +10,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.newen.workflowEngine.api.dto.ExecutionCreatedResponse;
 import com.newen.workflowEngine.api.dto.HistoryItemResponse;
 import com.newen.workflowEngine.api.dto.NextStatesResponse;
 import com.newen.workflowEngine.api.dto.TransitionRequest;
 import com.newen.workflowEngine.api.dto.TransitionResponse;
-import com.newen.workflowEngine.application.dto.ExecuteTransitionResult;
+import com.newen.workflowEngine.api.dto.WorkflowExecutionCreatedResponse;
 import com.newen.workflowEngine.application.usecase.commands.ExecuteTransitionUseCase;
 import com.newen.workflowEngine.application.usecase.commands.StartWorkflowExecutionUseCase;
+import com.newen.workflowEngine.application.usecase.commands.dto.ExecuteTransitionResult;
 import com.newen.workflowEngine.application.usecase.queries.GetHistoryUseCase;
 import com.newen.workflowEngine.application.usecase.queries.GetNextStatesUseCase;
 import com.newen.workflowEngine.domain.event.StateChanged;
@@ -48,10 +48,10 @@ public class WorkflowController {
 
 
     @PostMapping("/workflows/{workflowId}/executions")
-    public ExecutionCreatedResponse start(
+    public WorkflowExecutionCreatedResponse start(
             @PathVariable("workflowId") UUID workflowId
     ) {
-        return new ExecutionCreatedResponse(
+        return new WorkflowExecutionCreatedResponse(
             startUseCase.execute(new WorkflowId(workflowId)).getId().value()
         );
     }

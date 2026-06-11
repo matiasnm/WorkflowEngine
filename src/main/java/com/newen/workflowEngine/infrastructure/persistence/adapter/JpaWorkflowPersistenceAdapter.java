@@ -8,16 +8,16 @@ import com.newen.workflowEngine.application.port.WorkflowRepository;
 import com.newen.workflowEngine.domain.model.workflow.Workflow;
 import com.newen.workflowEngine.domain.model.workflow.WorkflowId;
 import com.newen.workflowEngine.infrastructure.persistence.mapper.WorkflowMapper;
-import com.newen.workflowEngine.infrastructure.persistence.repository.jpa.SpringDataWorkflowRepository;
+import com.newen.workflowEngine.infrastructure.persistence.repository.jpa.JpaWorkflowRepository;
 
 @Component
 public class JpaWorkflowPersistenceAdapter implements WorkflowRepository {
 
-    private final SpringDataWorkflowRepository repository;
+    private final JpaWorkflowRepository repository;
     private final WorkflowMapper mapper;
 
     public JpaWorkflowPersistenceAdapter(
-        SpringDataWorkflowRepository repository, 
+        JpaWorkflowRepository repository, 
         WorkflowMapper mapper) {
         this.repository = repository;
         this.mapper = mapper;

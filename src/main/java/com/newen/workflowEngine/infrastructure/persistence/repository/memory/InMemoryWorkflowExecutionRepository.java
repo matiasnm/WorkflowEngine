@@ -7,14 +7,14 @@ import java.util.Optional;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
-import com.newen.workflowEngine.application.port.ExecutionRepository;
+import com.newen.workflowEngine.application.port.WorkflowExecutionRepository;
 import com.newen.workflowEngine.domain.model.execution.WorkflowExecution;
 import com.newen.workflowEngine.domain.model.execution.WorkflowExecutionId;
 
 @Profile("memory")
 @Repository
-public class InMemoryExecutionRepository
-        implements ExecutionRepository {
+public class InMemoryWorkflowExecutionRepository
+        implements WorkflowExecutionRepository {
 
     private final Map<WorkflowExecutionId, WorkflowExecution> storage =
             new HashMap<>();

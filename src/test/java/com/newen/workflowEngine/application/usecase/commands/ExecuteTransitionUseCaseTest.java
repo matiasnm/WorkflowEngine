@@ -6,7 +6,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 
-import com.newen.workflowEngine.application.dto.ExecuteTransitionResult;
+import com.newen.workflowEngine.application.usecase.commands.dto.ExecuteTransitionResult;
 import com.newen.workflowEngine.domain.model.execution.WorkflowExecution;
 import com.newen.workflowEngine.domain.model.execution.WorkflowExecutionId;
 import com.newen.workflowEngine.domain.model.workflow.State;
@@ -14,7 +14,7 @@ import com.newen.workflowEngine.domain.model.workflow.Transition;
 import com.newen.workflowEngine.domain.model.workflow.Workflow;
 import com.newen.workflowEngine.domain.model.workflow.WorkflowId;
 import com.newen.workflowEngine.domain.service.WorkflowEngine;
-import com.newen.workflowEngine.infrastructure.persistence.repository.memory.InMemoryExecutionRepository;
+import com.newen.workflowEngine.infrastructure.persistence.repository.memory.InMemoryWorkflowExecutionRepository;
 import com.newen.workflowEngine.infrastructure.persistence.repository.memory.InMemoryWorkflowRepository;
 
 
@@ -43,8 +43,8 @@ public class ExecuteTransitionUseCaseTest {
         InMemoryWorkflowRepository workflowRepo =
                 new InMemoryWorkflowRepository();
 
-        InMemoryExecutionRepository executionRepo =
-                new InMemoryExecutionRepository();
+        InMemoryWorkflowExecutionRepository executionRepo =
+                new InMemoryWorkflowExecutionRepository();
 
         workflowRepo.save(workflow);
         executionRepo.save(execution);

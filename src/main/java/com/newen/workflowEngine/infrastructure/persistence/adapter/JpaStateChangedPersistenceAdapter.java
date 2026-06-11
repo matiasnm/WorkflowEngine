@@ -8,20 +8,20 @@ import com.newen.workflowEngine.infrastructure.persistence.entity.StateEntity;
 import com.newen.workflowEngine.infrastructure.persistence.entity.WorkflowEntity;
 import com.newen.workflowEngine.infrastructure.persistence.entity.WorkflowExecutionEntity;
 import com.newen.workflowEngine.infrastructure.persistence.mapper.StateChangedMapper;
-import com.newen.workflowEngine.infrastructure.persistence.repository.jpa.SpringDataStateChangedRepository;
-import com.newen.workflowEngine.infrastructure.persistence.repository.jpa.SpringDataWorkflowExecutionRepository;
+import com.newen.workflowEngine.infrastructure.persistence.repository.jpa.JpaStateChangedRepository;
+import com.newen.workflowEngine.infrastructure.persistence.repository.jpa.JpaWorkflowExecutionRepository;
 
 @Component
-public class JpaStateChangedAdapter implements StateChangedRepository {
+public class JpaStateChangedPersistenceAdapter implements StateChangedRepository {
 
-    private final SpringDataStateChangedRepository repo;
+    private final JpaStateChangedRepository repo;
     private final StateChangedMapper mapper;
-    private final SpringDataWorkflowExecutionRepository executionRepo;
+    private final JpaWorkflowExecutionRepository executionRepo;
 
-    public JpaStateChangedAdapter(
-        SpringDataStateChangedRepository repo, 
+    public JpaStateChangedPersistenceAdapter(
+        JpaStateChangedRepository repo, 
         StateChangedMapper mapper,
-        SpringDataWorkflowExecutionRepository executionRepo) {
+        JpaWorkflowExecutionRepository executionRepo) {
         this.repo = repo;
         this.mapper = mapper;
         this.executionRepo = executionRepo;

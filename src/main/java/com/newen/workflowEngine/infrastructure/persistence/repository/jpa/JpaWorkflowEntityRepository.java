@@ -11,9 +11,9 @@ import com.newen.workflowEngine.infrastructure.persistence.repository.ports.Work
 @Repository
 public class JpaWorkflowEntityRepository implements WorkflowEntityRepository {
 
-    private final SpringDataWorkflowRepository repo;
+    private final JpaWorkflowRepository repo;
 
-    public JpaWorkflowEntityRepository(SpringDataWorkflowRepository repo) {
+    public JpaWorkflowEntityRepository(JpaWorkflowRepository repo) {
         this.repo = repo;
     }
 

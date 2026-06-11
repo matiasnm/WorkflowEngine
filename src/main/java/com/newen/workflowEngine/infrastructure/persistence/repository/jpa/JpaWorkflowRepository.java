@@ -6,6 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.newen.workflowEngine.infrastructure.persistence.entity.WorkflowEntity;
 
-public interface SpringDataWorkflowRepository
+public interface JpaWorkflowRepository
         extends JpaRepository<WorkflowEntity, UUID> {
 }

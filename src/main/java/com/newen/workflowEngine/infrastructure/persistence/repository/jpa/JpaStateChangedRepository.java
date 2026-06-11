@@ -6,5 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.newen.workflowEngine.infrastructure.persistence.entity.StateChangedEntity;
 
-public interface SpringDataStateChangedRepository
+public interface JpaStateChangedRepository
         extends JpaRepository<StateChangedEntity, UUID> { }

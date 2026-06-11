@@ -11,7 +11,7 @@ import com.newen.workflowEngine.domain.model.workflow.State;
 import com.newen.workflowEngine.domain.model.workflow.Transition;
 import com.newen.workflowEngine.domain.model.workflow.Workflow;
 import com.newen.workflowEngine.domain.model.workflow.WorkflowId;
-import com.newen.workflowEngine.infrastructure.persistence.repository.memory.InMemoryExecutionRepository;
+import com.newen.workflowEngine.infrastructure.persistence.repository.memory.InMemoryWorkflowExecutionRepository;
 import com.newen.workflowEngine.infrastructure.persistence.repository.memory.InMemoryWorkflowRepository;
 
 class StartWorkflowExecutionUseCaseTest {
@@ -33,7 +33,7 @@ class StartWorkflowExecutionUseCaseTest {
         InMemoryWorkflowRepository workflowRepo = new InMemoryWorkflowRepository();
         workflowRepo.save(workflow);
 
-        InMemoryExecutionRepository executionRepo = new InMemoryExecutionRepository();
+        InMemoryWorkflowExecutionRepository executionRepo = new InMemoryWorkflowExecutionRepository();
 
         StartWorkflowExecutionUseCase useCase =
                 new StartWorkflowExecutionUseCase(workflowRepo, executionRepo);

@@ -4,19 +4,19 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.newen.workflowEngine.application.port.ExecutionRepository;
+import com.newen.workflowEngine.application.port.WorkflowExecutionRepository;
 import com.newen.workflowEngine.domain.event.StateChanged;
-import com.newen.workflowEngine.domain.exception.ExecutionNotFoundException;
+import com.newen.workflowEngine.domain.exception.WorkflowExecutionNotFoundException;
 import com.newen.workflowEngine.domain.model.execution.WorkflowExecution;
 import com.newen.workflowEngine.domain.model.execution.WorkflowExecutionId;
 
 @Service
 public class GetHistoryUseCase {
 
-    private final ExecutionRepository executionRepository;
+    private final WorkflowExecutionRepository executionRepository;
 
     public GetHistoryUseCase(
-            ExecutionRepository executionRepository
+            WorkflowExecutionRepository executionRepository
     ) {
         this.executionRepository = executionRepository;
     }
@@ -25,7 +25,7 @@ public class GetHistoryUseCase {
 
         WorkflowExecution execution =
                 executionRepository.findById(executionId)
-                .orElseThrow(() -> new ExecutionNotFoundException("Execution not found"));
+                .orElseThrow(() -> new WorkflowExecutionNotFoundException("Execution not found"));
 
         return execution.getHistory();
     }

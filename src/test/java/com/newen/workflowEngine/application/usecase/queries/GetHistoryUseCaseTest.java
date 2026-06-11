@@ -11,7 +11,7 @@ import com.newen.workflowEngine.domain.model.execution.WorkflowExecution;
 import com.newen.workflowEngine.domain.model.execution.WorkflowExecutionId;
 import com.newen.workflowEngine.domain.model.workflow.State;
 import com.newen.workflowEngine.domain.model.workflow.WorkflowId;
-import com.newen.workflowEngine.infrastructure.persistence.repository.memory.InMemoryExecutionRepository;
+import com.newen.workflowEngine.infrastructure.persistence.repository.memory.InMemoryWorkflowExecutionRepository;
 
 public class GetHistoryUseCaseTest {
 
@@ -36,7 +36,7 @@ public class GetHistoryUseCaseTest {
     
         execution.addEvent(event);
     
-        InMemoryExecutionRepository executionRepo = new InMemoryExecutionRepository();
+        InMemoryWorkflowExecutionRepository executionRepo = new InMemoryWorkflowExecutionRepository();
         executionRepo.save(execution);
     
         GetHistoryUseCase useCase =

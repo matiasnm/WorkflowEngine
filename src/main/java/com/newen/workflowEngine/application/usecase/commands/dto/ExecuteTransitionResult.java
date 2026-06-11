@@ -1,4 +1,4 @@
-package com.newen.workflowEngine.application.dto;
+package com.newen.workflowEngine.application.usecase.commands.dto;
 
 import java.time.Instant;
 

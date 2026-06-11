@@ -14,7 +14,7 @@ import com.newen.workflowEngine.infrastructure.persistence.entity.WorkflowExecut
 
 
 @Component
-public class ExecutionMapper {
+public class WorkflowExecutionMapper {
 
 
     private State resolveState(Workflow workflow, String name) {

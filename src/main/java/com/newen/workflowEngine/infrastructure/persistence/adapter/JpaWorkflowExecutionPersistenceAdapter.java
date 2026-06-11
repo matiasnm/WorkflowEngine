@@ -4,29 +4,29 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Component;
 
-import com.newen.workflowEngine.application.port.ExecutionRepository;
+import com.newen.workflowEngine.application.port.WorkflowExecutionRepository;
 import com.newen.workflowEngine.domain.exception.WorkflowNotFoundException;
 import com.newen.workflowEngine.domain.model.execution.WorkflowExecution;
 import com.newen.workflowEngine.domain.model.execution.WorkflowExecutionId;
 import com.newen.workflowEngine.domain.model.workflow.Workflow;
 import com.newen.workflowEngine.infrastructure.persistence.entity.StateEntity;
 import com.newen.workflowEngine.infrastructure.persistence.entity.WorkflowEntity;
-import com.newen.workflowEngine.infrastructure.persistence.mapper.ExecutionMapper;
+import com.newen.workflowEngine.infrastructure.persistence.mapper.WorkflowExecutionMapper;
 import com.newen.workflowEngine.infrastructure.persistence.mapper.WorkflowMapper;
-import com.newen.workflowEngine.infrastructure.persistence.repository.jpa.SpringDataWorkflowExecutionRepository;
+import com.newen.workflowEngine.infrastructure.persistence.repository.jpa.JpaWorkflowExecutionRepository;
 import com.newen.workflowEngine.infrastructure.persistence.repository.ports.WorkflowEntityRepository;
 
 @Component
-public class JpaExcecutionPersistenceAdapter implements ExecutionRepository {
+public class JpaWorkflowExecutionPersistenceAdapter implements WorkflowExecutionRepository {
     
-    private final SpringDataWorkflowExecutionRepository repo;
-    private final ExecutionMapper mapper;
+    private final JpaWorkflowExecutionRepository repo;
+    private final WorkflowExecutionMapper mapper;
     private final WorkflowEntityRepository workflowEntityRepository;
     private final WorkflowMapper workflowMapper;
 
-    public JpaExcecutionPersistenceAdapter(
-        SpringDataWorkflowExecutionRepository repo, 
-        ExecutionMapper mapper, 
+    public JpaWorkflowExecutionPersistenceAdapter(
+        JpaWorkflowExecutionRepository repo, 
+        WorkflowExecutionMapper mapper, 
         WorkflowEntityRepository workflowEntityRepository, 
         WorkflowMapper workflowMapper) {
         this.repo = repo;
