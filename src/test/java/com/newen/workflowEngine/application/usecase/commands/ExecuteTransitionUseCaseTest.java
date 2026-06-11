@@ -14,8 +14,8 @@ import com.newen.workflowEngine.domain.model.workflow.Transition;
 import com.newen.workflowEngine.domain.model.workflow.Workflow;
 import com.newen.workflowEngine.domain.model.workflow.WorkflowId;
 import com.newen.workflowEngine.domain.service.WorkflowEngine;
-import com.newen.workflowEngine.infrastructure.repository.memory.InMemoryExecutionRepository;
-import com.newen.workflowEngine.infrastructure.repository.memory.InMemoryWorkflowRepository;
+import com.newen.workflowEngine.infrastructure.persistence.repository.memory.InMemoryExecutionRepository;
+import com.newen.workflowEngine.infrastructure.persistence.repository.memory.InMemoryWorkflowRepository;
 
 
 public class ExecuteTransitionUseCaseTest {

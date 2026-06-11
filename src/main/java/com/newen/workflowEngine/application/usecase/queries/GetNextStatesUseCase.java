@@ -2,13 +2,18 @@ package com.newen.workflowEngine.application.usecase.queries;
 
 import java.util.List;
 
+import org.springframework.stereotype.Service;
+
 import com.newen.workflowEngine.application.port.ExecutionRepository;
 import com.newen.workflowEngine.application.port.WorkflowRepository;
+import com.newen.workflowEngine.domain.exception.ExecutionNotFoundException;
+import com.newen.workflowEngine.domain.exception.WorkflowNotFoundException;
 import com.newen.workflowEngine.domain.model.execution.WorkflowExecution;
 import com.newen.workflowEngine.domain.model.execution.WorkflowExecutionId;
 import com.newen.workflowEngine.domain.model.workflow.State;
 import com.newen.workflowEngine.domain.model.workflow.Workflow;
 
+@Service
 public class GetNextStatesUseCase {
 
     private final WorkflowRepository workflowRepository;
@@ -26,11 +31,11 @@ public class GetNextStatesUseCase {
 
         WorkflowExecution execution =
                 executionRepository.findById(executionId)
-                .orElseThrow(() -> new RuntimeException("Execution not found"));
+                .orElseThrow(() -> new ExecutionNotFoundException("Execution not found"));
 
         Workflow workflow =
                 workflowRepository.findById(execution.getWorkflowId())
-                .orElseThrow(() -> new RuntimeException("Workflow not found"));
+                .orElseThrow(() -> new WorkflowNotFoundException("Workflow not found"));
 
         return workflow.nextStates(execution.getCurrentState());
     }

@@ -1,12 +1,18 @@
 package com.newen.workflowEngine.application.usecase.commands;
 
+import java.util.UUID;
+
+import org.springframework.stereotype.Service;
+
 import com.newen.workflowEngine.application.port.ExecutionRepository;
 import com.newen.workflowEngine.application.port.WorkflowRepository;
+import com.newen.workflowEngine.domain.exception.WorkflowNotFoundException;
 import com.newen.workflowEngine.domain.model.execution.WorkflowExecution;
 import com.newen.workflowEngine.domain.model.execution.WorkflowExecutionId;
 import com.newen.workflowEngine.domain.model.workflow.Workflow;
 import com.newen.workflowEngine.domain.model.workflow.WorkflowId;
 
+@Service
 public class StartWorkflowExecutionUseCase {
 
     private final WorkflowRepository workflowRepository;
@@ -21,16 +27,17 @@ public class StartWorkflowExecutionUseCase {
     }
 
     public WorkflowExecution execute(
-            WorkflowId workflowId,
-            WorkflowExecutionId executionId
+            WorkflowId workflowId
     ) {
 
         Workflow workflow = workflowRepository.findById(workflowId)
-        .orElseThrow(() -> new IllegalArgumentException("Workflow not found"));
+        .orElseThrow(() -> new WorkflowNotFoundException("Workflow not found"));
 
+        // Porque new WorkflowExecutionId?
+        // La identidad de un agregado siempre la genera el sistema, no el exterior
         WorkflowExecution execution =
                 new WorkflowExecution(
-                        executionId,
+                        new WorkflowExecutionId(UUID.randomUUID()),
                         workflow.getId(),
                         workflow.getInitialState()
                 );
