@@ -1,0 +1,4 @@
+# application-dev.yml
+logging:
+  level:
+    root: INFO

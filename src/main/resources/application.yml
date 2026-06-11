@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: workflow-engine
+
+  profiles:
+    group:
+      dev-jpa:
+        - dev
+        - jpa
+
+      dev-memory:
+        - dev
+        - memory
