@@ -3,6 +3,7 @@ package com.newen.workflowEngine.domain.service;
 import java.time.Instant;
 
 import com.newen.workflowEngine.domain.event.StateChanged;
+import com.newen.workflowEngine.domain.exception.InvalidTransitionException;
 import com.newen.workflowEngine.domain.model.execution.WorkflowExecution;
 import com.newen.workflowEngine.domain.model.workflow.State;
 import com.newen.workflowEngine.domain.model.workflow.Workflow;
@@ -16,7 +17,7 @@ public class WorkflowEngine {
             State target
     ) {
         if (!workflow.allowsTransition(execution.getCurrentState(), target)) {
-            throw new IllegalStateException("Invalid transition");
+            throw new InvalidTransitionException(execution.getCurrentState().name(), target.name());
         }
 
         State from = execution.getCurrentState();

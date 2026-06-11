@@ -43,8 +43,4 @@ public class WorkflowExecution {
         this.currentState = state;
     }
 
-    public void changeState(State newState) {
-        this.currentState = newState;
-    }
-
 }
