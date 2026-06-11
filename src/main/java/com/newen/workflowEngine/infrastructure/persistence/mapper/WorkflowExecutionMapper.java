@@ -47,8 +47,9 @@ public class WorkflowExecutionMapper {
             Workflow workflow
     ) {
 
-        State current = resolveState(
-            workflow,
+        WorkflowContext context = WorkflowContext.from(entity.getWorkflow());
+
+        State current = context.state(
             entity.getCurrentState().getName()
         );
 
@@ -58,17 +59,16 @@ public class WorkflowExecutionMapper {
                 current
         );
 
-        System.out.println(
-            "history size entity = "
-            + entity.getHistory().size()
-        );
         entity.getHistory().forEach(h -> {
 
-                State from = resolveState(workflow, h.getFrom().getName());
-                State to = resolveState(workflow, h.getTo().getName());
+                State from = context.state(h.getFrom().getName());
+                State to = context.state(h.getTo().getName());
+
                 execution.addEvent(new StateChanged(
                         execution.getId(),
-                        from, to, h.getTimestamp())
+                        from,
+                        to,
+                        h.getTimestamp())
                 );
         });
 
