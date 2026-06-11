@@ -1,6 +1,6 @@
 # Workflow Engine (Mini Temporal-like System)
 ![Java](https://img.shields.io/badge/Java-21-blue)
-![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.1-green)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.0.6-green)
 ![Architecture](https://img.shields.io/badge/Architecture-Hexagonal-orange)
 ![DDD](https://img.shields.io/badge/DDD-Aggregates-purple)
 ![CQRS](https://img.shields.io/badge/CQRS-Light-red)
@@ -16,29 +16,32 @@ A lightweight workflow runtime engine inspired by Temporal and Camunda, built us
 
 This project follows a simplified Clean Architecture + CQRS approach:
 ```
-application
+workflowEngine
 │
-├── usecase
-│   │
-│   ├── command
-│   │   - StartWorkflowExecutionUseCase
-│   │   - ExecuteTransitionUseCase
-│   │
-│   └── query
-│       - GetNextStatesUseCase
-│       - GetHistoryUseCase
+├── api
+│   ├── controller
+│   ├── dto
+│   └── exception
 │
-└── domain
+├── application
+│   ├── usecase
+│   ├── dto
+│   └── port
+│
+├── domain
+│   ├── model
+│   ├── event
+│   ├── service
+│   └── exception
+│
+└── infrastructure
+    ├── persistence
+    │   ├── adapter
+    │   ├── entity
+    │   ├── mapper
+    │   └── repository
     │
-    ├── event
-    │
-    ├── model
-    │   ├── workflow
-    │   │
-    │   └── execution
-    │ 
-    └── service
-        - WorkflowEngine
+    └── config
 ```
 
 ---
@@ -97,13 +100,19 @@ The system is designed for layered testing:
 - State validation
 - Event generation
 
-### 2. Application Tests
+### 2. Use Case Tests
 - Use case orchestration
-- Repository interactions (mocked)
 
-### 3. Integration Tests (future)
-- Spring Boot + Testcontainers
-- PostgreSQL persistence layer
+### 3. Persistance Adapters Tests
+- JPA adapters
+- Entity mapping
+- H2 database integration
+
+### 4. End-To-End Persitance Test
+- Workflow persistence
+- Execution persistence
+- Event persistence
+- Aggregate reconstruction
 
 ---
 
@@ -115,6 +124,9 @@ The system is designed for layered testing:
 - Engine as pure domain service
 - Use cases as system API
 - CQRS-light separation of reads and writes
+- Domain model independent from persistence
+- State modeled as Value Object in the domain
+- Persistence identity isolated in JPA entities
 
 ---
 
@@ -142,6 +154,13 @@ But implemented in a minimal, educational form for portfolio and system design e
 ## 🛠 Tech Stack
 
 - Java 21
-- Spring Boot (optional runtime layer)
-- JUnit (testing)
-- Future: PostgreSQL + Testcontainers
+- Spring Boot 4
+- Spring Data JPA
+- H2 Database (tests)
+- JUnit 5
+- Mockito
+- Gradle Kotlin DSL
+
+Planned:
+- PostgreSQL
+- Testcontainers
