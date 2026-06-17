@@ -41,10 +41,10 @@ public class ExecuteTransitionUseCaseTest {
         );
 
         InMemoryWorkflowRepository workflowRepo =
-                new InMemoryWorkflowRepository();
+        new InMemoryWorkflowRepository();
 
         InMemoryWorkflowExecutionRepository executionRepo =
-                new InMemoryWorkflowExecutionRepository();
+        new InMemoryWorkflowExecutionRepository();
 
         workflowRepo.save(workflow);
         executionRepo.save(execution);

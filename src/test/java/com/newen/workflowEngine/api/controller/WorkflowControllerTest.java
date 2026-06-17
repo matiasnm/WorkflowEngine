@@ -20,6 +20,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.newen.workflowEngine.application.usecase.commands.CreateWorkflowUseCase;
 import com.newen.workflowEngine.application.usecase.commands.ExecuteTransitionUseCase;
 import com.newen.workflowEngine.application.usecase.commands.StartWorkflowExecutionUseCase;
 import com.newen.workflowEngine.application.usecase.commands.dto.ExecuteTransitionResult;
@@ -48,6 +49,9 @@ class WorkflowControllerTest {
 
     @MockitoBean
     private GetHistoryUseCase historyUseCase;
+
+    @MockitoBean
+    private CreateWorkflowUseCase createUseCase;
 
     @Test
     void should_start_workflow_execution() throws Exception {

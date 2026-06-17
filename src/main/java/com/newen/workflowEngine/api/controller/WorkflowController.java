@@ -1,7 +1,9 @@
 package com.newen.workflowEngine.api.controller;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -10,11 +12,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.newen.workflowEngine.api.dto.CreateWorkflowRequest;
+import com.newen.workflowEngine.api.dto.CreateWorkflowResponse;
 import com.newen.workflowEngine.api.dto.HistoryItemResponse;
 import com.newen.workflowEngine.api.dto.NextStatesResponse;
+import com.newen.workflowEngine.api.dto.StateRequest;
 import com.newen.workflowEngine.api.dto.TransitionRequest;
 import com.newen.workflowEngine.api.dto.TransitionResponse;
 import com.newen.workflowEngine.api.dto.WorkflowExecutionCreatedResponse;
+import com.newen.workflowEngine.application.usecase.commands.CreateWorkflowUseCase;
 import com.newen.workflowEngine.application.usecase.commands.ExecuteTransitionUseCase;
 import com.newen.workflowEngine.application.usecase.commands.StartWorkflowExecutionUseCase;
 import com.newen.workflowEngine.application.usecase.commands.dto.ExecuteTransitionResult;
@@ -23,6 +29,8 @@ import com.newen.workflowEngine.application.usecase.queries.GetNextStatesUseCase
 import com.newen.workflowEngine.domain.event.StateChanged;
 import com.newen.workflowEngine.domain.model.execution.WorkflowExecutionId;
 import com.newen.workflowEngine.domain.model.workflow.State;
+import com.newen.workflowEngine.domain.model.workflow.Transition;
+import com.newen.workflowEngine.domain.model.workflow.Workflow;
 import com.newen.workflowEngine.domain.model.workflow.WorkflowId;
 
 @RestController
@@ -33,20 +41,59 @@ public class WorkflowController {
     private final ExecuteTransitionUseCase transitionUseCase;
     private final GetNextStatesUseCase nextStatesUseCase;
     private final GetHistoryUseCase historyUseCase;
+    private final CreateWorkflowUseCase createUseCase;
 
     public WorkflowController(
             StartWorkflowExecutionUseCase startUseCase,
             ExecuteTransitionUseCase transitionUseCase,
             GetNextStatesUseCase nextStatesUseCase,
-            GetHistoryUseCase historyUseCase
+            GetHistoryUseCase historyUseCase,
+            CreateWorkflowUseCase createUseCase
     ) {
         this.startUseCase = startUseCase;
         this.transitionUseCase = transitionUseCase;
         this.nextStatesUseCase = nextStatesUseCase;
         this.historyUseCase = historyUseCase;
+        this.createUseCase = createUseCase;
     }
 
+    @PostMapping("/workflows")
+    public CreateWorkflowResponse create(@RequestBody CreateWorkflowRequest request) {
 
+        Map<String, State> statesByName =
+                request.states()
+                        .stream()
+                        .collect(Collectors.toMap(
+                                StateRequest::name,
+                                s -> new State(
+                                        s.name(),
+                                        s.terminal()
+                                )
+                        ));
+
+        List<Transition> transitions =
+                request.transitions()
+                        .stream()
+                        .map(t -> new Transition(
+                                statesByName.get(t.from()),
+                                statesByName.get(t.to())
+                        ))
+                        .toList();
+
+        Workflow workflow =
+                createUseCase.execute(
+                        request.name(),
+                        List.copyOf(statesByName.values()),
+                        transitions,
+                        statesByName.get(request.initialState())
+                );
+
+        return new CreateWorkflowResponse(
+                workflow.getId().value()
+        );
+    }
+
+    
     @PostMapping("/workflows/{workflowId}/executions")
     public WorkflowExecutionCreatedResponse start(
             @PathVariable("workflowId") UUID workflowId

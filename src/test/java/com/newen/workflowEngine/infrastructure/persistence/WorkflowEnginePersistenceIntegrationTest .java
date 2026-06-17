@@ -10,7 +10,6 @@ import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 import org.springframework.context.annotation.Import;
 
-import com.newen.workflowEngine.application.port.StateChangedRepository;
 import com.newen.workflowEngine.application.port.WorkflowExecutionRepository;
 import com.newen.workflowEngine.application.port.WorkflowRepository;
 import com.newen.workflowEngine.domain.event.StateChanged;
@@ -21,23 +20,19 @@ import com.newen.workflowEngine.domain.model.workflow.Transition;
 import com.newen.workflowEngine.domain.model.workflow.Workflow;
 import com.newen.workflowEngine.domain.model.workflow.WorkflowId;
 import com.newen.workflowEngine.domain.service.WorkflowEngine;
-import com.newen.workflowEngine.infrastructure.persistence.adapter.JpaStateChangedPersistenceAdapter;
 import com.newen.workflowEngine.infrastructure.persistence.adapter.JpaWorkflowExecutionPersistenceAdapter;
 import com.newen.workflowEngine.infrastructure.persistence.adapter.JpaWorkflowPersistenceAdapter;
 import com.newen.workflowEngine.infrastructure.persistence.mapper.StateChangedMapper;
 import com.newen.workflowEngine.infrastructure.persistence.mapper.WorkflowExecutionMapper;
 import com.newen.workflowEngine.infrastructure.persistence.mapper.WorkflowMapper;
-import com.newen.workflowEngine.infrastructure.persistence.repository.jpa.JpaWorkflowEntityRepository;
 
 @DataJpaTest
 @Import({
         JpaWorkflowPersistenceAdapter.class,
         JpaWorkflowExecutionPersistenceAdapter.class,
-        JpaStateChangedPersistenceAdapter.class,
         WorkflowMapper.class,
         WorkflowExecutionMapper.class,
         StateChangedMapper.class,
-        JpaWorkflowEntityRepository.class
 })
 class WorkflowEnginePersistenceIntegrationTest {
 
@@ -46,9 +41,6 @@ class WorkflowEnginePersistenceIntegrationTest {
 
     @Autowired
     private WorkflowExecutionRepository executionRepository;
-
-    @Autowired
-    private StateChangedRepository stateChangedRepository;
 
     @Autowired
     private TestEntityManager em;
@@ -85,8 +77,6 @@ class WorkflowEnginePersistenceIntegrationTest {
                         created
                 );
 
-        executionRepository.save(execution);
-
         WorkflowEngine engine = new WorkflowEngine();
 
         StateChanged event =
@@ -97,9 +87,6 @@ class WorkflowEnginePersistenceIntegrationTest {
                 );
 
         executionRepository.save(execution);
-
-        stateChangedRepository.save(event);
-        System.out.println("EVENT SAVED");
 
         em.flush();
         em.clear();

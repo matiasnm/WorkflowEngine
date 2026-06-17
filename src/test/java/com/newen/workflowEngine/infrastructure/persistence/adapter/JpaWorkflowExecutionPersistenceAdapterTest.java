@@ -17,17 +17,17 @@ import com.newen.workflowEngine.domain.model.workflow.State;
 import com.newen.workflowEngine.domain.model.workflow.Transition;
 import com.newen.workflowEngine.domain.model.workflow.Workflow;
 import com.newen.workflowEngine.domain.model.workflow.WorkflowId;
+import com.newen.workflowEngine.infrastructure.persistence.mapper.StateChangedMapper;
 import com.newen.workflowEngine.infrastructure.persistence.mapper.WorkflowExecutionMapper;
 import com.newen.workflowEngine.infrastructure.persistence.mapper.WorkflowMapper;
-import com.newen.workflowEngine.infrastructure.persistence.repository.jpa.JpaWorkflowEntityRepository;
 
 @DataJpaTest
 @Import({
         JpaWorkflowExecutionPersistenceAdapter.class,
         WorkflowExecutionMapper.class,
+        StateChangedMapper.class,
         WorkflowMapper.class,
-        JpaWorkflowPersistenceAdapter.class,
-        JpaWorkflowEntityRepository.class
+        JpaWorkflowPersistenceAdapter.class
 })
 class JpaWorkflowExecutionPersistenceAdapterTest {
 
