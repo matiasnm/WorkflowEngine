@@ -6,12 +6,14 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 
+import com.newen.workflowEngine.application.facade.WorkflowTransitionFacade;
 import com.newen.workflowEngine.domain.model.execution.WorkflowExecution;
 import com.newen.workflowEngine.domain.model.execution.WorkflowExecutionId;
 import com.newen.workflowEngine.domain.model.workflow.State;
 import com.newen.workflowEngine.domain.model.workflow.Transition;
 import com.newen.workflowEngine.domain.model.workflow.Workflow;
 import com.newen.workflowEngine.domain.model.workflow.WorkflowId;
+import com.newen.workflowEngine.domain.service.WorkflowEngine;
 import com.newen.workflowEngine.infrastructure.persistence.repository.memory.InMemoryWorkflowExecutionRepository;
 import com.newen.workflowEngine.infrastructure.persistence.repository.memory.InMemoryWorkflowRepository;
 
@@ -47,11 +49,13 @@ public class GetNextStatesUseCaseTest {
     
         executionRepo.save(execution);
     
-        GetNextStatesUseCase useCase =
-                new GetNextStatesUseCase(
-                        workflowRepo,
-                        executionRepo
-                );
+        WorkflowTransitionFacade facade = new WorkflowTransitionFacade(
+                workflowRepo,
+                executionRepo,
+                new WorkflowEngine()
+        );
+        
+        GetNextStatesUseCase useCase = new GetNextStatesUseCase(facade);
             
         List<State> next =
                 useCase.execute(execution.getId());

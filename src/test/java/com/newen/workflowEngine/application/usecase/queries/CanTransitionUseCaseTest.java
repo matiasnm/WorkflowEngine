@@ -7,12 +7,14 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 
+import com.newen.workflowEngine.application.facade.WorkflowTransitionFacade;
 import com.newen.workflowEngine.domain.model.execution.WorkflowExecution;
 import com.newen.workflowEngine.domain.model.execution.WorkflowExecutionId;
 import com.newen.workflowEngine.domain.model.workflow.State;
 import com.newen.workflowEngine.domain.model.workflow.Transition;
 import com.newen.workflowEngine.domain.model.workflow.Workflow;
 import com.newen.workflowEngine.domain.model.workflow.WorkflowId;
+import com.newen.workflowEngine.domain.service.WorkflowEngine;
 import com.newen.workflowEngine.infrastructure.persistence.repository.memory.InMemoryWorkflowExecutionRepository;
 import com.newen.workflowEngine.infrastructure.persistence.repository.memory.InMemoryWorkflowRepository;
 
@@ -51,11 +53,13 @@ public class CanTransitionUseCaseTest {
     
         executionRepo.save(execution);
     
-        CanTransitionUseCase useCase =
-                new CanTransitionUseCase(
-                        workflowRepo,
-                        executionRepo
-                );
+        WorkflowTransitionFacade facade = new WorkflowTransitionFacade(
+                workflowRepo,
+                executionRepo,
+                new WorkflowEngine()
+        );
+
+        CanTransitionUseCase useCase = new CanTransitionUseCase(facade);
             
         boolean result =
                 useCase.execute(
@@ -99,11 +103,13 @@ public class CanTransitionUseCaseTest {
     
         executionRepo.save(execution);
     
-        CanTransitionUseCase useCase =
-                new CanTransitionUseCase(
-                        workflowRepo,
-                        executionRepo
-                );
+        WorkflowTransitionFacade facade = new WorkflowTransitionFacade(
+                workflowRepo,
+                executionRepo,
+                new WorkflowEngine()
+        );
+
+        CanTransitionUseCase useCase = new CanTransitionUseCase(facade);
             
         boolean result =
                 useCase.execute(
