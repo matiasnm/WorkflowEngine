@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 import com.newen.workflowEngine.application.port.WorkflowExecutionRepository;
 import com.newen.workflowEngine.application.port.WorkflowRepository;
 import com.newen.workflowEngine.application.usecase.commands.dto.ExecuteTransitionResult;
-import com.newen.workflowEngine.domain.event.StateChanged;
 import com.newen.workflowEngine.domain.exception.WorkflowExecutionNotFoundException;
 import com.newen.workflowEngine.domain.exception.WorkflowNotFoundException;
 import com.newen.workflowEngine.domain.model.execution.WorkflowExecution;
@@ -32,19 +31,20 @@ public class WorkflowTransitionFacade {
         this.engine = engine;
     }
 
-    
     private record Pair(Workflow workflow, WorkflowExecution execution) {}
 
-    
     public ExecuteTransitionResult transition(WorkflowExecutionId executionId, State target) {
+        
         Pair pair = loadExecutionAndWorkflow(executionId);
-        StateChanged event = engine.transition(pair.workflow(), pair.execution(), target);
-        executionRepository.save(pair.execution());
+
+        WorkflowEngine.TransitionResult result = engine.transition(pair.workflow(), pair.execution(), target);
+        executionRepository.save(result.execution());
+
         return new ExecuteTransitionResult(
-                pair.execution().getId(),
-                event.getFrom(),
-                event.getTo(),
-                event.getTimestamp()
+                result.execution().getId(),
+                result.event().getFrom(),
+                result.event().getTo(),
+                result.event().getTimestamp()
         );
     }
 

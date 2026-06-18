@@ -11,7 +11,9 @@ import com.newen.workflowEngine.domain.model.workflow.Workflow;
 
 public class WorkflowEngine {
 
-    public StateChanged transition(
+    public record TransitionResult(WorkflowExecution execution, StateChanged event) {}
+
+    public TransitionResult transition(
             Workflow workflow,
             WorkflowExecution execution,
             State target
@@ -22,8 +24,6 @@ public class WorkflowEngine {
 
         State from = execution.getCurrentState();
 
-        execution.setCurrentState(target);
-
         StateChanged event = new StateChanged(
                 execution.getId(),
                 from,
@@ -31,8 +31,8 @@ public class WorkflowEngine {
                 Instant.now()
         );
 
-        execution.addEvent(event);
-
-        return event;
+        WorkflowExecution updated = execution.withTransition(target, event);
+        
+        return new TransitionResult(updated, event);
     }
 }

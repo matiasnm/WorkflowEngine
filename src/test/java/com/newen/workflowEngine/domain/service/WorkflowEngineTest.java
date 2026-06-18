@@ -45,18 +45,17 @@ public class WorkflowEngineTest {
 
         WorkflowEngine engine = new WorkflowEngine();
 
-        StateChanged event =
-                engine.transition(workflow, execution, review);
+        var result = engine.transition(workflow, execution, review);
 
-        assertEquals(review, execution.getCurrentState());
+        assertEquals(review, result.execution().getCurrentState());
 
-        assertEquals(created, event.getFrom());
-        assertEquals(review, event.getTo());
+        assertEquals(created, result.event().getFrom());
+        assertEquals(review, result.event().getTo());
 
-        assertEquals(1, execution.getHistory().size());
+        assertEquals(1, result.execution().getHistory().size());
 
         StateChanged storedEvent =
-                execution.getHistory().getFirst();
+                result.execution().getHistory().getFirst();
 
         assertEquals(created, storedEvent.getFrom());
         assertEquals(review, storedEvent.getTo());
@@ -166,14 +165,14 @@ public class WorkflowEngineTest {
 
         WorkflowEngine engine = new WorkflowEngine();
 
-        engine.transition(workflow, execution, review);
-        engine.transition(workflow, execution, approved);
+        var firstResult = engine.transition(workflow, execution, review);
+        var secondResult = engine.transition(workflow, firstResult.execution(), approved);
 
-        assertEquals(approved, execution.getCurrentState());
-        assertEquals(2, execution.getHistory().size());
+        assertEquals(approved, secondResult.execution().getCurrentState());
+        assertEquals(2, secondResult.execution().getHistory().size());
 
-        StateChanged first = execution.getHistory().get(0);
-        StateChanged second = execution.getHistory().get(1);
+        StateChanged first = secondResult.execution().getHistory().get(0);
+        StateChanged second = secondResult.execution().getHistory().get(1);
 
         assertEquals(created, first.getFrom());
         assertEquals(review, first.getTo());

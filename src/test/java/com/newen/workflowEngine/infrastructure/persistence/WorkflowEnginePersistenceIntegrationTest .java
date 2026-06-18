@@ -79,14 +79,13 @@ class WorkflowEnginePersistenceIntegrationTest {
 
         WorkflowEngine engine = new WorkflowEngine();
 
-        StateChanged event =
-                engine.transition(
-                        loadedWorkflow,
-                        execution,
-                        review
-                );
+        var result = engine.transition(
+                loadedWorkflow,
+                execution,
+                review
+        );
 
-        executionRepository.save(execution);
+        executionRepository.save(result.execution());
 
         em.flush();
         em.clear();

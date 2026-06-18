@@ -50,28 +50,32 @@ public class WorkflowExecutionMapper {
     }
 
 
-     public WorkflowExecution toDomain(
-            WorkflowExecutionEntity entity,
-            Workflow workflow
+    public WorkflowExecution toDomain(
+        WorkflowExecutionEntity entity,
+        Workflow workflow
     ) {
         WorkflowContext context = WorkflowContext.from(entity.getWorkflow());
         State current = context.state(entity.getCurrentState().getName());
-        WorkflowExecution execution = new WorkflowExecution(
-                new WorkflowExecutionId(entity.getId()),
-                workflow.getId(),
-                current
-        );
-        entity.getHistory().forEach(h -> {
-            State from = context.state(h.getFrom().getName());
-            State to = context.state(h.getTo().getName());
-            execution.addEvent(new StateChanged(
-                    execution.getId(),
+
+        List<StateChanged> history = entity.getHistory().stream()
+            .map(h -> {
+                State from = context.state(h.getFrom().getName());
+                State to = context.state(h.getTo().getName());
+                return new StateChanged(
+                    new WorkflowExecutionId(entity.getId()),
                     from,
                     to,
-                    h.getTimestamp())
-            );
-        });
-        return execution;
+                    h.getTimestamp()
+                );
+        })
+        .collect(Collectors.toList());
+
+        return new WorkflowExecution(
+            new WorkflowExecutionId(entity.getId()),
+            workflow.getId(),
+            current,
+            history
+        );   
     }
 
 
