@@ -2,9 +2,11 @@ package com.newen.workflowEngine.api.controller;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -20,6 +22,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.newen.workflowEngine.api.mapper.WorkflowRequestMapper;
 import com.newen.workflowEngine.application.usecase.commands.CreateWorkflowUseCase;
 import com.newen.workflowEngine.application.usecase.commands.ExecuteTransitionUseCase;
 import com.newen.workflowEngine.application.usecase.commands.StartWorkflowExecutionUseCase;
@@ -30,6 +33,8 @@ import com.newen.workflowEngine.domain.event.StateChanged;
 import com.newen.workflowEngine.domain.model.execution.WorkflowExecution;
 import com.newen.workflowEngine.domain.model.execution.WorkflowExecutionId;
 import com.newen.workflowEngine.domain.model.workflow.State;
+import com.newen.workflowEngine.domain.model.workflow.Transition;
+import com.newen.workflowEngine.domain.model.workflow.Workflow;
 import com.newen.workflowEngine.domain.model.workflow.WorkflowId;
 
 @WebMvcTest(WorkflowController.class)
@@ -52,6 +57,84 @@ class WorkflowControllerTest {
 
     @MockitoBean
     private CreateWorkflowUseCase createUseCase;
+
+    @MockitoBean
+    private WorkflowRequestMapper workflowMapper;
+
+
+    @Test
+    void should_create_workflow() throws Exception {
+        // Arrange
+        UUID workflowUuid = UUID.randomUUID();
+        Map<String, State> statesByName = Map.of(
+                "CREATED", new State("CREATED", false),
+                "REVIEW", new State("REVIEW", false)
+        );
+        List<Transition> transitions = List.of(
+                new Transition(statesByName.get("CREATED"), statesByName.get("REVIEW"))
+        );
+        Mockito.when(workflowMapper.buildStateMap(Mockito.any()))
+                .thenReturn(statesByName);
+        Mockito.when(workflowMapper.buildTransitions(Mockito.any(), Mockito.any()))
+                .thenReturn(transitions);
+        Workflow workflow = new Workflow(
+                new WorkflowId(workflowUuid),
+                "test-workflow",
+                List.copyOf(statesByName.values()),
+                transitions,
+                statesByName.get("CREATED")
+        );
+        Mockito.when(
+                createUseCase.execute(
+                        Mockito.anyString(),
+                        Mockito.anyList(),
+                        Mockito.anyList(),
+                        Mockito.any(State.class)
+                )
+        ).thenReturn(workflow);
+        String requestBody = """
+                {
+                    "name": "test-workflow",
+                    "states": [
+                        {"name": "CREATED", "terminal": false},
+                        {"name": "REVIEW", "terminal": false}
+                    ],
+                    "transitions": [
+                        {"from": "CREATED", "to": "REVIEW"}
+                    ],
+                    "initialState": "CREATED"
+                }
+                """;
+        // Act & Assert
+        mockMvc.perform(
+                post("/workflows")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody)
+        )
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.workflowId").value(workflowUuid.toString()));
+        // Verify use case was called with expected arguments
+        ArgumentCaptor<String> nameCaptor = ArgumentCaptor.forClass(String.class);
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<List<State>> statesCaptor = ArgumentCaptor.forClass(List.class);
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<List<Transition>> transitionsCaptor = ArgumentCaptor.forClass(List.class);
+        ArgumentCaptor<State> initialStateCaptor = ArgumentCaptor.forClass(State.class);
+        Mockito.verify(createUseCase).execute(
+                nameCaptor.capture(),
+                statesCaptor.capture(),
+                transitionsCaptor.capture(),
+                initialStateCaptor.capture()
+        );
+        assertEquals("test-workflow", nameCaptor.getValue());
+        assertEquals(2, statesCaptor.getValue().size());
+        assertTrue(statesCaptor.getValue().contains(new State("CREATED", false)));
+        assertTrue(statesCaptor.getValue().contains(new State("REVIEW", false)));
+        assertEquals(1, transitionsCaptor.getValue().size());
+        assertEquals("CREATED", initialStateCaptor.getValue().name());
+        assertEquals(false, initialStateCaptor.getValue().terminal());
+    }
 
     @Test
     void should_start_workflow_execution() throws Exception {

@@ -3,7 +3,6 @@ package com.newen.workflowEngine.api.controller;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,10 +15,10 @@ import com.newen.workflowEngine.api.dto.CreateWorkflowRequest;
 import com.newen.workflowEngine.api.dto.CreateWorkflowResponse;
 import com.newen.workflowEngine.api.dto.HistoryItemResponse;
 import com.newen.workflowEngine.api.dto.NextStatesResponse;
-import com.newen.workflowEngine.api.dto.StateRequest;
 import com.newen.workflowEngine.api.dto.TransitionRequest;
 import com.newen.workflowEngine.api.dto.TransitionResponse;
 import com.newen.workflowEngine.api.dto.WorkflowExecutionCreatedResponse;
+import com.newen.workflowEngine.api.mapper.WorkflowRequestMapper;
 import com.newen.workflowEngine.application.usecase.commands.CreateWorkflowUseCase;
 import com.newen.workflowEngine.application.usecase.commands.ExecuteTransitionUseCase;
 import com.newen.workflowEngine.application.usecase.commands.StartWorkflowExecutionUseCase;
@@ -42,55 +41,35 @@ public class WorkflowController {
     private final GetNextStatesUseCase nextStatesUseCase;
     private final GetHistoryUseCase historyUseCase;
     private final CreateWorkflowUseCase createUseCase;
+    private final WorkflowRequestMapper workflowMapper;
 
     public WorkflowController(
             StartWorkflowExecutionUseCase startUseCase,
             ExecuteTransitionUseCase transitionUseCase,
             GetNextStatesUseCase nextStatesUseCase,
             GetHistoryUseCase historyUseCase,
-            CreateWorkflowUseCase createUseCase
+            CreateWorkflowUseCase createUseCase,
+            WorkflowRequestMapper workflowMapper 
     ) {
         this.startUseCase = startUseCase;
         this.transitionUseCase = transitionUseCase;
         this.nextStatesUseCase = nextStatesUseCase;
         this.historyUseCase = historyUseCase;
         this.createUseCase = createUseCase;
+        this.workflowMapper = workflowMapper; 
     }
 
     @PostMapping("/workflows")
     public CreateWorkflowResponse create(@RequestBody CreateWorkflowRequest request) {
-
-        Map<String, State> statesByName =
-                request.states()
-                        .stream()
-                        .collect(Collectors.toMap(
-                                StateRequest::name,
-                                s -> new State(
-                                        s.name(),
-                                        s.terminal()
-                                )
-                        ));
-
-        List<Transition> transitions =
-                request.transitions()
-                        .stream()
-                        .map(t -> new Transition(
-                                statesByName.get(t.from()),
-                                statesByName.get(t.to())
-                        ))
-                        .toList();
-
-        Workflow workflow =
-                createUseCase.execute(
-                        request.name(),
-                        List.copyOf(statesByName.values()),
-                        transitions,
-                        statesByName.get(request.initialState())
-                );
-
-        return new CreateWorkflowResponse(
-                workflow.getId().value()
+        Map<String, State> statesByName = workflowMapper.buildStateMap(request);
+        List<Transition> transitions = workflowMapper.buildTransitions(request, statesByName);
+        Workflow workflow = createUseCase.execute(
+                request.name(),
+                List.copyOf(statesByName.values()),
+                transitions,
+                statesByName.get(request.initialState())
         );
+        return new CreateWorkflowResponse(workflow.getId().value());
     }
 
     
