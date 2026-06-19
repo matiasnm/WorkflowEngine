@@ -12,43 +12,47 @@ A lightweight workflow runtime engine inspired by Temporal and Camunda, built us
 
 ---
 
-## 🧠 Architecture Overview
+## Project Structure
 
-This project follows a simplified Clean Architecture + CQRS approach:
 ```
 workflowEngine
+├── backend/
+│   ├── api
+│   │   ├── controller
+│   │   ├── dto
+│   │   ├── exception
+│   │   └── mapper
+│   │
+│   ├── application
+│   │   ├── facade
+│   │   └── usecase
+│   │       ├── commands
+│   │       └── queries
+│   │
+│   ├── domain
+│   │   ├── event
+│   │   ├── exception
+│   │   ├── model
+│   │   └── service
+│   │
+│   └── infrastructure
+│       ├── persistence
+│       │   ├── adapter
+│       │   ├── entity
+│       │   ├── mapper
+│       │   └── repository
+│       │
+│       └── config
 │
-├── api
-│   ├── controller
-│   ├── dto
-│   ├── exception
-│   └── mapper
-│
-├── application
-│   ├── facade
-│   └── usecase
-│       ├── commands
-│       └── queries
-│
-├── domain
-│   ├── event
-│   ├── exception
-│   ├── model
-│   └── service
-│
-└── infrastructure
-    ├── persistence
-    │   ├── adapter
-    │   ├── entity
-    │   ├── mapper
-    │   └── repository
-    │
-    └── config
+├── frontend/             ← Angular UI (upcoming)
+├── docs/
+├── docker-compose.yml    ← PostgreSQL 16 for local dev
+└── ...config files
 ```
 
 ---
 
-## ⚙️ Core Concepts
+## Core Concepts
 
 ### Workflow
 Defines the **rules of the system**:
@@ -70,19 +74,23 @@ Pure domain service that:
 
 ---
 
-## 🔄 CQRS Model
+## CQRS Model
 
 ### Commands (write operations)
+- CreateWorkflow
 - StartWorkflowExecution
 - ExecuteTransition
 
 ### Queries (read operations)
+- ListWorkflows
+- GetWorkflow
+- GetExecution
 - GetNextStates
 - GetHistory
 
 ---
 
-## 🚀 Main Capabilities
+## Main Capabilities
 
 - Define workflows with states and transitions
 - Start executions from a workflow
@@ -93,7 +101,47 @@ Pure domain service that:
 
 ---
 
-## 🧪 Testing Strategy
+## Running the Project
+
+### Prerequisites
+- Java 21+
+- Docker Desktop (for PostgreSQL via Testcontainers or local dev)
+
+### Profiles
+
+| Profile | Database | Schema | Use case |
+|---------|----------|--------|----------|
+| `dev-jpa` (default) | H2 (embedded, in-memory) | Hibernate DDL `update` | Fast unit tests, dev without Docker |
+| `dev-pg` | PostgreSQL 16 (Docker) | Flyway migrations + Hibernate `validate` | Local dev matching production |
+| `dev-memory` | None | None | Controller/service tests with in-memory repos |
+
+### Start PostgreSQL (for dev-pg)
+
+```bash
+docker compose up -d
+```
+
+### Run the backend
+
+```bash
+cd backend
+./gradlew bootRun --spring.profiles.active=dev-pg
+```
+
+Or from the IDE, set `--spring.profiles.active=dev-pg` in the run configuration.
+
+### Run tests
+
+```bash
+cd backend
+./gradlew test
+```
+
+Tests use H2 by default (profile `dev-jpa`). The Testcontainers integration test (`WorkflowEnginePgIntegrationTest`) requires Docker Desktop running.
+
+---
+
+## Testing Strategy
 
 The system is designed for layered testing:
 
@@ -104,21 +152,21 @@ The system is designed for layered testing:
 
 ### 2. Use Case Tests
 - Use case orchestration
+- Mocked repositories
 
-### 3. Persistance Adapters Tests
-- JPA adapters
-- Entity mapping
-- H2 database integration
+### 3. Persistence Adapter Tests
+- JPA adapters (via @DataJpaTest + H2)
+- Flyway migrations validated in PostgreSQL profile
 
-### 4. End-To-End Persitance Test
-- Workflow persistence
-- Execution persistence
-- Event persistence
-- Aggregate reconstruction
+### 4. End-To-End Test
+- Full HTTP lifecycle (create workflow → start execution → transition → query history)
+
+### 5. PostgreSQL Integration Test
+- Testcontainers-based, validates persistence against real PostgreSQL
 
 ---
 
-## 🧩 Design Principles
+## Design Principles
 
 - Domain-driven design (DDD)
 - Clean Architecture separation
@@ -130,20 +178,22 @@ The system is designed for layered testing:
 - State modeled as Value Object with stable `code` identity
 - State references by code (not generated IDs) for stable cross-environment identity
 - Persistence identity isolated in JPA entities
+- Schema managed by Flyway migrations (PostgreSQL), Hibernate DDL for H2 tests
 
 ---
 
-## 📌 Example Flow
+## Example Flow
 
-1. Start workflow execution
-2. Query available next states
-3. Execute a transition
-4. Store event in execution history
-5. Query execution history
+1. Create workflow definition (POST /workflows)
+2. List available workflows (GET /workflows)
+3. Start workflow execution (POST /workflows/{id}/executions)
+4. Query available next states (GET /executions/{id}/next-states)
+5. Execute a transition (POST /executions/{id}/transition)
+6. Query execution history (GET /executions/{id}/history)
 
 ---
 
-## 🎯 Goal
+## Goal
 
 This project is a **mini workflow runtime engine**, inspired by systems like:
 - Temporal
@@ -154,16 +204,15 @@ But implemented in a minimal, educational form for portfolio and system design e
 
 ---
 
-## 🛠 Tech Stack
+## Tech Stack
 
 - Java 21
 - Spring Boot 4
 - Spring Data JPA
+- PostgreSQL 16 (production + local dev)
+- Flyway (schema migrations)
 - H2 Database (tests)
-- JUnit 5
-- Mockito
+- Testcontainers (PostgreSQL integration test)
+- JUnit 5 + Mockito
 - Gradle Kotlin DSL
-
-Planned:
-- PostgreSQL
-- Testcontainers
+- Angular (upcoming)
