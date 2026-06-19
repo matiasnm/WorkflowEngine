@@ -2,6 +2,7 @@ package com.newen.workflowEngine.infrastructure.persistence.entity;
 
 import java.util.UUID;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
@@ -15,6 +16,7 @@ public class TransitionEntity {
 
     @Id
     @GeneratedValue
+    @Column(updatable = false)
     private UUID id;
 
     @ManyToOne

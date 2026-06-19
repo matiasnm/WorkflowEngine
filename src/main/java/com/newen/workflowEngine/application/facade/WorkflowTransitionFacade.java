@@ -3,6 +3,7 @@ package com.newen.workflowEngine.application.facade;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.newen.workflowEngine.application.port.WorkflowExecutionRepository;
 import com.newen.workflowEngine.application.port.WorkflowRepository;
@@ -33,6 +34,7 @@ public class WorkflowTransitionFacade {
 
     private record Pair(Workflow workflow, WorkflowExecution execution) {}
 
+    @Transactional
     public ExecuteTransitionResult transition(WorkflowExecutionId executionId, String targetStateCode) {
         
         Pair pair = loadExecutionAndWorkflow(executionId);
@@ -54,12 +56,14 @@ public class WorkflowTransitionFacade {
     }
 
 
+    @Transactional(readOnly = true)
     public List<State> nextStates(WorkflowExecutionId executionId) {
         Pair pair = loadExecutionAndWorkflow(executionId);
         return pair.workflow().nextStates(pair.execution().getCurrentState());
     }
 
 
+    @Transactional(readOnly = true)
     public boolean canTransition(WorkflowExecutionId executionId, String targetStateCode) {
         Pair pair = loadExecutionAndWorkflow(executionId);
         State target = pair.workflow().getStates().stream()

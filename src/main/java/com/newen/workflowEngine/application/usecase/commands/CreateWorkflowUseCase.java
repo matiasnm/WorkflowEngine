@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.newen.workflowEngine.application.port.WorkflowRepository;
 import com.newen.workflowEngine.domain.model.workflow.State;
@@ -22,6 +23,7 @@ public class CreateWorkflowUseCase {
         this.workflowRepository = workflowRepository;
     }
 
+    @Transactional
     public Workflow execute(
             String name,
             List<State> states,

@@ -16,11 +16,13 @@ public class StateEntity {
 
     @Id
     @GeneratedValue
+    @Column(updatable = false)
     private UUID id;
 
     @Column(nullable = false, unique = true)
     private String code;
-    
+
+    @Column(nullable = false)
     private String name;
 
     private boolean terminal;

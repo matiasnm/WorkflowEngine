@@ -3,6 +3,7 @@ package com.newen.workflowEngine.application.usecase.commands;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.newen.workflowEngine.application.port.WorkflowExecutionRepository;
 import com.newen.workflowEngine.application.port.WorkflowRepository;
@@ -26,6 +27,7 @@ public class StartWorkflowExecutionUseCase {
         this.executionRepository = executionRepository;
     }
 
+    @Transactional
     public WorkflowExecution execute(
             WorkflowId workflowId
     ) {

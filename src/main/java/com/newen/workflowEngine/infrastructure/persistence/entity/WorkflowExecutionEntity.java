@@ -19,13 +19,14 @@ import jakarta.persistence.Table;
 public class WorkflowExecutionEntity {
 
     @Id
+    @Column(updatable = false, nullable = false)
     private UUID id;
 
     @ManyToOne
-    @JoinColumn(name = "workflow_id")
+    @JoinColumn(name = "workflow_id", nullable = false)
     private WorkflowEntity workflow;
 
-    @Column(name = "current_state_code")
+    @Column(name = "current_state_code", nullable = false)
     private String currentStateCode;
 
     @OneToMany(

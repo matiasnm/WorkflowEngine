@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
@@ -17,8 +18,10 @@ import jakarta.persistence.Table;
 public class WorkflowEntity {
 
     @Id
+    @Column(updatable = false, nullable = false)
     private UUID id;
 
+    @Column(nullable = false)
     private String name;
 
     @ManyToOne

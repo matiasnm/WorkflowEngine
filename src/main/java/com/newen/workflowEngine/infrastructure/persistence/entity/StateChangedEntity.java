@@ -17,18 +17,20 @@ public class StateChangedEntity {
 
     @Id
     @GeneratedValue
+    @Column(updatable = false)
     private UUID id;
 
     @ManyToOne
-    @JoinColumn(name = "execution_id")
+    @JoinColumn(name = "execution_id", nullable = false)
     private WorkflowExecutionEntity execution;
 
-    @Column(name = "from_state_code")
+    @Column(name = "from_state_code", nullable = false)
     private String fromStateCode;
 
-    @Column(name = "to_state_code")
+    @Column(name = "to_state_code", nullable = false)
     private String toStateCode;
 
+    @Column(nullable = false)
     private Instant timestamp;
 
     

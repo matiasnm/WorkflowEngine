@@ -3,6 +3,7 @@ package com.newen.workflowEngine.application.usecase.queries;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.newen.workflowEngine.application.port.WorkflowExecutionRepository;
 import com.newen.workflowEngine.domain.event.StateChanged;
@@ -21,6 +22,7 @@ public class GetHistoryUseCase {
         this.executionRepository = executionRepository;
     }
 
+    @Transactional(readOnly = true)
     public List<StateChanged> execute(WorkflowExecutionId executionId) {
 
         WorkflowExecution execution =
