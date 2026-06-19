@@ -5,6 +5,8 @@
 ![DDD](https://img.shields.io/badge/DDD-Aggregates-purple)
 ![CQRS](https://img.shields.io/badge/CQRS-Light-red)
 ![Build Tool](https://img.shields.io/badge/Gradle-Kotlin_DSL-darkgreen)
+![Angular](https://img.shields.io/badge/Angular-19-red)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue)
 
 A lightweight workflow runtime engine inspired by Temporal and Camunda, built using Domain-Driven Design (DDD), Hexagonal Architecture and CQRS principles.
 
@@ -44,7 +46,32 @@ workflowEngine
 │       │
 │       └── config
 │
-├── frontend/             ← Angular UI (upcoming)
+├── frontend/
+│   ├── projects/
+│   │   ├── workflow-engine/      ← Reusable Angular library (ng-packagr)
+│   │   │   ├── src/lib/
+│   │   │   │   ├── models/           ← Domain TypeScript interfaces
+│   │   │   │   ├── config/           ← Injection token (provideWorkflowEngine)
+│   │   │   │   ├── services/         ← API clients (WorkflowApiService, ExecutionApiService)
+│   │   │   │   └── components/       ← Standalone UI components
+│   │   │   │       ├── workflow-list/
+│   │   │   │       ├── workflow-detail/
+│   │   │   │       ├── execution-detail/
+│   │   │   │       └── execution-history/
+│   │   │   └── public-api.ts         ← Barrel exports
+│   │   │
+│   │   └── shell/                   ← Demo SPA consuming the library
+│   │       └── src/app/
+│   │           ├── app.config.ts     ← provideWorkflowEngine({ apiBaseUrl: ... })
+│   │           ├── app.routes.ts     ← Lazy-loaded routes
+│   │           └── *-page.component  ← Routing page wrappers
+│   │
+│   ├── angular.json
+│   ├── package.json
+│   └── docs/
+│       ├── CONTEXT.md               ← Domain glossary & architecture decisions
+│       └── slices/                  ← MVP implementation slices
+│
 ├── docs/
 ├── docker-compose.yml    ← PostgreSQL 16 for local dev
 └── ...config files
@@ -106,6 +133,7 @@ Pure domain service that:
 ### Prerequisites
 - Java 21+
 - Docker Desktop (for PostgreSQL via Testcontainers or local dev)
+- Node.js 20+ and npm (for Angular frontend)
 
 ### Profiles
 
@@ -130,14 +158,34 @@ cd backend
 
 Or from the IDE, set `--spring.profiles.active=dev-pg` in the run configuration.
 
+### Run the frontend
+
+```bash
+cd frontend
+npm install
+ng serve      # serves the shell demo app at http://localhost:4200
+```
+
 ### Run tests
 
+#### Backend tests
 ```bash
 cd backend
 ./gradlew test
 ```
-
 Tests use H2 by default (profile `dev-jpa`). The Testcontainers integration test (`WorkflowEnginePgIntegrationTest`) requires Docker Desktop running.
+
+#### Frontend tests
+```bash
+cd frontend
+ng test       # Karma unit tests (library + shell)
+```
+
+Or run tests for a specific project:
+```bash
+ng test workflow-engine   # library tests only
+ng test shell             # shell app tests only
+```
 
 ---
 
@@ -168,28 +216,46 @@ The system is designed for layered testing:
 
 ## Design Principles
 
+### Backend (Java/Spring)
 - Domain-driven design (DDD)
-- Clean Architecture separation
+- Clean Architecture / Hexagonal Architecture
 - Reference-by-ID between aggregates
 - Engine as pure domain service
 - Use cases as system API
 - CQRS-light separation of reads and writes
 - Domain model independent from persistence
 - State modeled as Value Object with stable `code` identity
-- State references by code (not generated IDs) for stable cross-environment identity
 - Persistence identity isolated in JPA entities
 - Schema managed by Flyway migrations (PostgreSQL), Hibernate DDL for H2 tests
+
+### Frontend (Angular)
+- **Library architecture**: reusable `workflow-engine` library + `shell` demo SPA
+- **Standalone components**: no NgModules, all components lazy-loadable
+- **Autonomous components**: components fetch their own data via API
+- **Signals-based state**: loading/error/data managed with `signal()`, `computed()` for derived state
+- **Pessimistic updates**: transition buttons show spinner + disable until API responds
+- **CSS Custom Properties**: `--we-*` design system, host app overrides via `:root`
+- **Error resilience**: inline error messages + `@Output() errorEvent` for host app integration
 
 ---
 
 ## Example Flow
 
+### Via API (backend)
 1. Create workflow definition (POST /workflows)
 2. List available workflows (GET /workflows)
 3. Start workflow execution (POST /workflows/{id}/executions)
 4. Query available next states (GET /executions/{id}/next-states)
 5. Execute a transition (POST /executions/{id}/transition)
 6. Query execution history (GET /executions/{id}/history)
+
+### Via UI (frontend)
+1. Open `http://localhost:4200` — see workflow list with cards
+2. Click a workflow — see states table + transitions list
+3. Click "Start Execution" — navigates to execution view
+4. See current state displayed prominently
+5. Click a transition button — state updates + timeline refreshes
+6. Reach terminal state — see completion message
 
 ---
 
@@ -206,13 +272,12 @@ But implemented in a minimal, educational form for portfolio and system design e
 
 ## Tech Stack
 
-- Java 21
-- Spring Boot 4
-- Spring Data JPA
-- PostgreSQL 16 (production + local dev)
-- Flyway (schema migrations)
-- H2 Database (tests)
-- Testcontainers (PostgreSQL integration test)
-- JUnit 5 + Mockito
-- Gradle Kotlin DSL
-- Angular (upcoming)
+| Layer | Technology |
+|-------|-----------|
+| **Backend** | Java 21 + Spring Boot 4 |
+| **Persistence** | Spring Data JPA, PostgreSQL 16, Flyway, H2 (tests) |
+| **Backend Testing** | JUnit 5, Mockito, Testcontainers |
+| **Build** | Gradle Kotlin DSL |
+| **Frontend** | Angular 19, TypeScript 5.7, RxJS 7 |
+| **Frontend Testing** | Jasmine, Karma, HttpClientTestingController |
+| **UI Design** | CSS Custom Properties (`--we-*` system), standalone components |
