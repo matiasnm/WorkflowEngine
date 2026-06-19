@@ -9,6 +9,8 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
-      # Fase 1: Hibernate genera el schema automáticamente
-      # Fase 2: cambiar a "validate" cuando Flyway tome el control
-      ddl-auto: update
+      ddl-auto: validate
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration

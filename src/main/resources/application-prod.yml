@@ -1,0 +1,16 @@
+# application-prod.yml — Production PostgreSQL
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/workflow
+    driver-class-name: org.postgresql.Driver
+    username: workflow
+    password: workflow
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: validate
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
