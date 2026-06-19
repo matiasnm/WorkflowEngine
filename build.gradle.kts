@@ -32,7 +32,6 @@ dependencies {
 
     // ===== DOCUMENTATION =====
 
-
     // ===== DEV =====
     developmentOnly("org.springframework.boot:spring-boot-devtools")
 
