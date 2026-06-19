@@ -1,0 +1,19 @@
+/* WorkflowEngine - CSS Custom Properties (tema)
+ * La host app puede sobrescribir cualquier variable en su propio :root.
+ */
+
+:root {
+  --we-primary: #1976d2;
+  --we-primary-hover: #1565c0;
+  --we-danger: #d32f2f;
+  --we-success: #388e3c;
+  --we-warning: #f57c00;
+  --we-bg: #ffffff;
+  --we-bg-secondary: #f5f5f5;
+  --we-text: #212121;
+  --we-text-secondary: #757575;
+  --we-border: #e0e0e0;
+  --we-border-radius: 8px;
+  --we-spacing: 16px;
+  --we-font-family: system-ui, -apple-system, sans-serif;
+}

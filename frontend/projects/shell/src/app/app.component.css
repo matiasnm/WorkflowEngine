@@ -1,0 +1,7 @@
+.shell-container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: var(--we-spacing, 16px);
+  font-family: var(--we-font-family, system-ui, -apple-system, sans-serif);
+  color: var(--we-text, #212121);
+}
