@@ -1,7 +1,9 @@
 package com.newen.workflowEngine.api.dto;
 
+import jakarta.validation.constraints.NotBlank;
+
 public record StateRequest(
-    String code,
-    String name,
+    @NotBlank String code,
+    @NotBlank String name,
     boolean terminal
 ) {}

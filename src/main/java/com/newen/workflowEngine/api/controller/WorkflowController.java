@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -60,7 +61,7 @@ public class WorkflowController {
     }
 
     @PostMapping("/workflows")
-    public CreateWorkflowResponse create(@RequestBody CreateWorkflowRequest request) {
+    public CreateWorkflowResponse create(@Valid @RequestBody CreateWorkflowRequest request) {
         Map<String, State> statesByCode = workflowMapper.buildStateMap(request);
         List<Transition> transitions = workflowMapper.buildTransitions(request, statesByCode);
         Workflow workflow = createUseCase.execute(
@@ -86,7 +87,7 @@ public class WorkflowController {
     @PostMapping("/executions/{executionId}/transition")
     public TransitionResponse transition(
             @PathVariable("executionId") UUID executionId,
-            @RequestBody TransitionRequest request
+            @Valid @RequestBody TransitionRequest request
     ) {
         ExecuteTransitionResult result = transitionUseCase.execute(
             new WorkflowExecutionId(executionId), 

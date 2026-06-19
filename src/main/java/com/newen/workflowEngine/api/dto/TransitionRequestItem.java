@@ -1,6 +1,8 @@
 package com.newen.workflowEngine.api.dto;
 
+import jakarta.validation.constraints.NotBlank;
+
 public record TransitionRequestItem(
-        String from,
-        String to
+    @NotBlank String from,
+    @NotBlank String to
 ) { }
