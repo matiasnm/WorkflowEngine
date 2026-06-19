@@ -3,6 +3,7 @@ package com.newen.workflowEngine.infrastructure.persistence.entity;
 import java.time.Instant;
 import java.util.UUID;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
@@ -22,16 +23,15 @@ public class StateChangedEntity {
     @JoinColumn(name = "execution_id")
     private WorkflowExecutionEntity execution;
 
-    @ManyToOne
-    @JoinColumn(name = "from_state_id")
-    private StateEntity from;
+    @Column(name = "from_state_code")
+    private String fromStateCode;
 
-    @ManyToOne
-    @JoinColumn(name = "to_state_id")
-    private StateEntity to;
+    @Column(name = "to_state_code")
+    private String toStateCode;
 
     private Instant timestamp;
 
+    
     public UUID getId() {
         return id;
     }
@@ -48,28 +48,28 @@ public class StateChangedEntity {
         this.execution = execution;
     }
 
-    public StateEntity getFrom() {
-        return from;
-    }
-
-    public void setFrom(StateEntity from) {
-        this.from = from;
-    }
-
-    public StateEntity getTo() {
-        return to;
-    }
-
-    public void setTo(StateEntity to) {
-        this.to = to;
-    }
-
     public Instant getTimestamp() {
         return timestamp;
     }
 
     public void setTimestamp(Instant timestamp) {
         this.timestamp = timestamp;
+    }
+
+    public String getFromStateCode() {
+        return fromStateCode;
+    }
+
+    public void setFromStateCode(String fromStateCode) {
+        this.fromStateCode = fromStateCode;
+    }
+
+    public String getToStateCode() {
+        return toStateCode;
+    }
+
+    public void setToStateCode(String toStateCode) {
+        this.toStateCode = toStateCode;
     }
 
 }

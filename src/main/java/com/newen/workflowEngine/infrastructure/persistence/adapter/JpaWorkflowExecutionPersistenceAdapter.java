@@ -5,39 +5,35 @@ import java.util.Optional;
 import org.springframework.stereotype.Component;
 
 import com.newen.workflowEngine.application.port.WorkflowExecutionRepository;
-import com.newen.workflowEngine.domain.exception.StateNotFoundInWorkflowException;
-import com.newen.workflowEngine.domain.exception.WorkflowNotFoundException;
 import com.newen.workflowEngine.domain.model.execution.WorkflowExecution;
 import com.newen.workflowEngine.domain.model.execution.WorkflowExecutionId;
 import com.newen.workflowEngine.domain.model.workflow.Workflow;
-import com.newen.workflowEngine.infrastructure.persistence.entity.StateEntity;
 import com.newen.workflowEngine.infrastructure.persistence.entity.WorkflowEntity;
 import com.newen.workflowEngine.infrastructure.persistence.mapper.WorkflowExecutionMapper;
 import com.newen.workflowEngine.infrastructure.persistence.mapper.WorkflowMapper;
 import com.newen.workflowEngine.infrastructure.persistence.repository.jpa.JpaWorkflowExecutionRepository;
-import com.newen.workflowEngine.infrastructure.persistence.repository.jpa.JpaWorkflowRepository;
+
+import jakarta.persistence.EntityManager;
 
 @Component
 public class JpaWorkflowExecutionPersistenceAdapter implements WorkflowExecutionRepository {
-    
     private final JpaWorkflowExecutionRepository repo;
     private final WorkflowExecutionMapper mapper;
-    private final JpaWorkflowRepository workflowRepo;
     private final WorkflowMapper workflowMapper;
-
+    private final EntityManager entityManager;
+    
     public JpaWorkflowExecutionPersistenceAdapter(
             JpaWorkflowExecutionRepository repo,
             WorkflowExecutionMapper mapper,
-            JpaWorkflowRepository workflowRepo,
-            WorkflowMapper workflowMapper) {
+            WorkflowMapper workflowMapper,
+            EntityManager entityManager
+    ) {
         this.repo = repo;
         this.mapper = mapper;
-        this.workflowRepo = workflowRepo;
         this.workflowMapper = workflowMapper;
+        this.entityManager = entityManager;
     }
-
-
-     @Override
+    @Override
     public Optional<WorkflowExecution> findById(WorkflowExecutionId id) {
         return repo.findById(id.value())
                 .map(e -> {
@@ -45,22 +41,13 @@ public class JpaWorkflowExecutionPersistenceAdapter implements WorkflowExecution
                     return mapper.toDomain(e, workflow);
                 });
     }
-
-
     @Override
     public void save(WorkflowExecution execution) {
-        WorkflowEntity workflowEntity =
-                workflowRepo.findById(execution.getWorkflowId().value())
-                    .orElseThrow(() -> new WorkflowNotFoundException("Workflow not found"));
-        
-                    String currentName = execution.getCurrentState().name();
-        StateEntity current =
-                workflowEntity.getStates().stream()
-                        .filter(s -> s.getName().equals(currentName))
-                        .findFirst()
-                        .orElseThrow(() -> new StateNotFoundInWorkflowException(("State not found: " + currentName)));
-        
-        repo.save(mapper.toEntity(execution, workflowEntity, current));
+        // getReference() → JPA proxy, NO database query, just the ID
+        WorkflowEntity workflowRef = entityManager.getReference(
+                WorkflowEntity.class,
+                execution.getWorkflowId().value()
+        );
+        repo.save(mapper.toEntity(execution, workflowRef));
     }
-
 }

@@ -22,9 +22,9 @@ public class WorkflowEngineTest {
     @Test
     void should_transition_to_next_valid_state_and_record_event() {
 
-        State created = new State("CREATED", false);
-        State review = new State("REVIEW", false);
-        State approved = new State("APPROVED", true);
+        State created = new State("created", "CREATED", false);
+        State review = new State("review", "REVIEW", false);
+        State approved = new State("approved", "APPROVED", true);
 
         Workflow workflow = new Workflow(
                 new WorkflowId(UUID.randomUUID()),
@@ -65,9 +65,9 @@ public class WorkflowEngineTest {
     @Test
     void should_throw_exception_when_transition_is_not_allowed() {
 
-        State created = new State("CREATED", false);
-        State review = new State("REVIEW", false);
-        State approved = new State("APPROVED", true);
+        State created = new State("created", "CREATED", false);
+        State review = new State("review", "REVIEW", false);
+        State approved = new State("approved", "APPROVED", true);
 
         Workflow workflow = new Workflow(
                 new WorkflowId(UUID.randomUUID()),
@@ -106,9 +106,9 @@ public class WorkflowEngineTest {
     @Test
     void should_not_allow_transition_from_terminal_state() {
 
-        State created = new State("CREATED", false);
-        State review = new State("REVIEW", false);
-        State approved = new State("APPROVED", true);
+        State created = new State("created", "CREATED", false);
+        State review = new State("review", "REVIEW", false);
+        State approved = new State("approved", "APPROVED", true);
 
         Workflow workflow = new Workflow(
                 new WorkflowId(UUID.randomUUID()),
@@ -142,9 +142,9 @@ public class WorkflowEngineTest {
     @Test
     void should_support_multiple_sequential_transitions() {
 
-        State created = new State("CREATED", false);
-        State review = new State("REVIEW", false);
-        State approved = new State("APPROVED", true);
+        State created = new State("created", "CREATED", false);
+        State review = new State("review", "REVIEW", false);
+        State approved = new State("approved", "APPROVED", true);
 
         Workflow workflow = new Workflow(
                 new WorkflowId(UUID.randomUUID()),

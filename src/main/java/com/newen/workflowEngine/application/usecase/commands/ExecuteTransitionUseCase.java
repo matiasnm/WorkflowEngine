@@ -5,7 +5,6 @@ import org.springframework.stereotype.Service;
 import com.newen.workflowEngine.application.facade.WorkflowTransitionFacade;
 import com.newen.workflowEngine.application.usecase.commands.dto.ExecuteTransitionResult;
 import com.newen.workflowEngine.domain.model.execution.WorkflowExecutionId;
-import com.newen.workflowEngine.domain.model.workflow.State;
 
 @Service
 public class ExecuteTransitionUseCase {
@@ -20,9 +19,9 @@ public class ExecuteTransitionUseCase {
 
     public ExecuteTransitionResult execute(
             WorkflowExecutionId executionId,
-            State target
+            String targetStateCode
     ) {
-        return facade.transition(executionId, target);
+        return facade.transition(executionId, targetStateCode);
     }
 
 }

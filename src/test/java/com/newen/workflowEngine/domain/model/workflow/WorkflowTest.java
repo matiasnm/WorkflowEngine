@@ -13,8 +13,8 @@ class WorkflowTest {
     @Test
     void should_create_valid_workflow() {
 
-        State created = new State("CREATED", false);
-        State review = new State("REVIEW", false);
+        State created = new State("created", "CREATED", false);
+        State review = new State("review", "REVIEW", false);
 
         Workflow workflow = new Workflow(
                 new WorkflowId(UUID.randomUUID()),
@@ -35,7 +35,7 @@ class WorkflowTest {
     @Test
     void should_fail_when_states_are_empty() {
 
-        State created = new State("CREATED", false);
+        State created = new State("created", "CREATED", false);
 
         assertThrows(
                 IllegalArgumentException.class,
@@ -52,8 +52,8 @@ class WorkflowTest {
     @Test
     void should_fail_when_initial_state_not_in_states() {
 
-        State created = new State("CREATED", false);
-        State review = new State("REVIEW", false);
+        State created = new State("created", "CREATED", false);
+        State review = new State("review", "REVIEW", false);
 
         assertThrows(
                 IllegalArgumentException.class,
@@ -70,8 +70,8 @@ class WorkflowTest {
     @Test
     void should_fail_when_duplicate_states_exist() {
 
-        State created1 = new State("CREATED", false);
-        State created2 = new State("CREATED", false);
+        State created1 = new State("created", "CREATED", false);
+        State created2 = new State("created", "CREATED", false);
 
         assertThrows(
                 IllegalArgumentException.class,
@@ -88,9 +88,9 @@ class WorkflowTest {
     @Test
     void should_fail_when_transition_has_unknown_from_state() {
 
-        State created = new State("CREATED", false);
-        State review = new State("REVIEW", false);
-        State external = new State("EXTERNAL", false);
+        State created = new State("created", "CREATED", false);
+        State review = new State("review", "REVIEW", false);
+        State external = new State("external", "EXTERNAL", false);
 
         assertThrows(
                 IllegalArgumentException.class,
@@ -109,9 +109,9 @@ class WorkflowTest {
     @Test
     void should_fail_when_transition_has_unknown_to_state() {
 
-        State created = new State("CREATED", false);
-        State review = new State("REVIEW", false);
-        State external = new State("EXTERNAL", false);
+        State created = new State("created", "CREATED", false);
+        State review = new State("review", "REVIEW", false);
+        State external = new State("external", "EXTERNAL", false);
 
         assertThrows(
                 IllegalArgumentException.class,
@@ -130,9 +130,9 @@ class WorkflowTest {
     @Test
     void should_fail_when_terminal_state_has_outgoing_transitions() {
 
-        State created = new State("CREATED", false);
-        State review = new State("REVIEW", false);
-        State approved = new State("APPROVED", true);
+        State created = new State("created", "CREATED", false);
+        State review = new State("review", "REVIEW", false);
+        State approved = new State("approved", "APPROVED", true);
 
         assertThrows(
                 IllegalArgumentException.class,
@@ -151,8 +151,8 @@ class WorkflowTest {
     @Test
     void should_fail_when_duplicate_transitions_exist() {
 
-        State created = new State("CREATED", false);
-        State review = new State("REVIEW", false);
+        State created = new State("created", "CREATED", false);
+        State review = new State("review", "REVIEW", false);
 
         assertThrows(
                 IllegalArgumentException.class,

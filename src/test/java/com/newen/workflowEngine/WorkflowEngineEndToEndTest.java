@@ -37,29 +37,32 @@ class WorkflowEngineEndToEndTest {
           "name": "Admission Workflow",
           "states": [
             {
+              "code": "created",
               "name": "CREATED",
               "terminal": false
             },
             {
+              "code": "review",
               "name": "REVIEW",
               "terminal": false
             },
             {
+              "code": "approved",
               "name": "APPROVED",
               "terminal": true
             }
           ],
           "transitions": [
             {
-              "from": "CREATED",
-              "to": "REVIEW"
+              "from": "created",
+              "to": "review"
             },
             {
-              "from": "REVIEW",
-              "to": "APPROVED"
+              "from": "review",
+              "to": "approved"
             }
           ],
-          "initialState": "CREATED"
+          "initialState": "created"
         }
         """;
 
@@ -108,10 +111,7 @@ class WorkflowEngineEndToEndTest {
 
         String transitionJson = """
         {
-          "targetState": {
-            "name": "REVIEW",
-            "terminal": false
-          }
+          "targetStateCode": "review"
         }
         """;
 
@@ -122,9 +122,13 @@ class WorkflowEngineEndToEndTest {
                         .content(transitionJson)
         )
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.previousState")
+        .andExpect(jsonPath("$.previousStateCode")
+                .value("created"))
+        .andExpect(jsonPath("$.previousStateName")
                 .value("CREATED"))
-        .andExpect(jsonPath("$.currentState")
+        .andExpect(jsonPath("$.currentStateCode")
+                .value("review"))
+        .andExpect(jsonPath("$.currentStateName")
                 .value("REVIEW"));
 
         // HISTORY
@@ -135,9 +139,13 @@ class WorkflowEngineEndToEndTest {
         )
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.length()").value(1))
-        .andExpect(jsonPath("$[0].fromState")
+        .andExpect(jsonPath("$[0].fromStateCode")
+                .value("created"))
+        .andExpect(jsonPath("$[0].fromStateName")
                 .value("CREATED"))
-        .andExpect(jsonPath("$[0].toState")
+        .andExpect(jsonPath("$[0].toStateCode")
+                .value("review"))
+        .andExpect(jsonPath("$[0].toStateName")
                 .value("REVIEW"));
     }
 }

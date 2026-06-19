@@ -19,8 +19,8 @@ class StartWorkflowExecutionUseCaseTest {
     @Test
     void should_start_workflow_execution_with_initial_state() {
 
-        State created = new State("CREATED", false);
-        State review = new State("REVIEW", false);
+        State created = new State("created", "CREATED", false);
+        State review = new State("review", "REVIEW", false);
 
         Workflow workflow = new Workflow(
                 new WorkflowId(UUID.randomUUID()),

@@ -18,8 +18,8 @@ public class GetHistoryUseCaseTest {
     @Test
     void should_return_execution_history() {
     
-        State created = new State("CREATED", false);
-        State review = new State("REVIEW", false);
+        State created = new State("created", "CREATED", false);
+        State review = new State("review", "REVIEW", false);
     
         WorkflowExecution execution = new WorkflowExecution(
                 new WorkflowExecutionId(UUID.randomUUID()),
@@ -34,7 +34,7 @@ public class GetHistoryUseCaseTest {
                 java.time.Instant.now()
         );
     
-        execution.addEvent(event);
+        execution = execution.withTransition(review, event);
     
         InMemoryWorkflowExecutionRepository executionRepo = new InMemoryWorkflowExecutionRepository();
         executionRepo.save(execution);

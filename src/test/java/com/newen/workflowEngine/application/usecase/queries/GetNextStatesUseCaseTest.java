@@ -22,8 +22,8 @@ public class GetNextStatesUseCaseTest {
     @Test
     void should_return_next_states_of_execution() {
     
-        State created = new State("CREATED", false);
-        State review = new State("REVIEW", false);
+        State created = new State("created", "CREATED", false);
+        State review = new State("review", "REVIEW", false);
     
         Workflow workflow = new Workflow(
                 new WorkflowId(UUID.randomUUID()),

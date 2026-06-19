@@ -2,6 +2,7 @@ package com.newen.workflowEngine.infrastructure.persistence.entity;
 
 import java.util.UUID;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
@@ -16,6 +17,9 @@ public class StateEntity {
     @Id
     @GeneratedValue
     private UUID id;
+
+    @Column(nullable = false, unique = true)
+    private String code;
     
     private String name;
 
@@ -27,6 +31,10 @@ public class StateEntity {
 
     public UUID getId() {
         return id;
+    }
+
+    public String getCode() { 
+        return code; 
     }
 
     public String getName() {
@@ -43,6 +51,10 @@ public class StateEntity {
 
     public void setId(UUID id) {
         this.id = id;
+    }
+
+    public void setCode(String code) { 
+        this.code = code; 
     }
 
     public void setName(String name) {

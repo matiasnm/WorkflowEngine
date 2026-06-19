@@ -61,13 +61,13 @@ public class WorkflowController {
 
     @PostMapping("/workflows")
     public CreateWorkflowResponse create(@RequestBody CreateWorkflowRequest request) {
-        Map<String, State> statesByName = workflowMapper.buildStateMap(request);
-        List<Transition> transitions = workflowMapper.buildTransitions(request, statesByName);
+        Map<String, State> statesByCode = workflowMapper.buildStateMap(request);
+        List<Transition> transitions = workflowMapper.buildTransitions(request, statesByCode);
         Workflow workflow = createUseCase.execute(
                 request.name(),
-                List.copyOf(statesByName.values()),
+                List.copyOf(statesByCode.values()),
                 transitions,
-                statesByName.get(request.initialState())
+                statesByCode.get(request.initialState())
         );
         return new CreateWorkflowResponse(workflow.getId().value());
     }
@@ -90,12 +90,14 @@ public class WorkflowController {
     ) {
         ExecuteTransitionResult result = transitionUseCase.execute(
             new WorkflowExecutionId(executionId), 
-            request.targetState()
+            request.targetStateCode()
         );
 
         return new TransitionResponse(
             result.executionId().value(),
+            result.previousState().code(),
             result.previousState().name(),
+            result.currentState().code(),
             result.currentState().name(),
             result.timestamp()
         );
@@ -108,7 +110,7 @@ public class WorkflowController {
     ) {
         List<State> statesList =  nextStatesUseCase.execute(new WorkflowExecutionId(executionId));
         List<NextStatesResponse> list = statesList.stream()
-            .map(state -> new NextStatesResponse(state.name()))
+            .map(state -> new NextStatesResponse(state.code(), state.name()))
             .toList();
         return list;
     }
@@ -121,7 +123,9 @@ public class WorkflowController {
         List<StateChanged> stateChanges = historyUseCase.execute(new WorkflowExecutionId(executionId));
         return stateChanges.stream()
             .map(change -> new HistoryItemResponse(
+                change.getFrom().code(),
                 change.getFrom().name(),
+                change.getTo().code(),
                 change.getTo().name(),
                 change.getTimestamp()))
             .toList();

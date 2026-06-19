@@ -40,8 +40,8 @@ class JpaWorkflowExecutionPersistenceAdapterTest {
     @Test
     void should_persist_and_reconstruct_execution() {
 
-        State created = new State("CREATED", false);
-        State review = new State("REVIEW", false);
+        State created = new State("created", "CREATED", false);
+        State review = new State("review", "REVIEW", false);
 
         Workflow workflow = new Workflow(
                 new WorkflowId(UUID.randomUUID()),

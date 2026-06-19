@@ -25,12 +25,12 @@ public class WorkflowMapper {
         
         List<Transition> transitions = entity.getTransitions().stream()
                 .map(t -> new Transition(
-                        context.state(t.getFrom().getName()),
-                        context.state(t.getTo().getName())
+                        context.state(t.getFrom().getCode()),
+                        context.state(t.getTo().getCode())
                 ))
                 .toList();
 
-        State initial = context.state(entity.getInitialState().getName());
+        State initial = context.state(entity.getInitialState().getCode());
 
         return new Workflow(
                 new WorkflowId(entity.getId()),
@@ -54,6 +54,7 @@ public class WorkflowMapper {
         List<StateEntity> states = workflow.getStates().stream()
                 .map(s -> {
                     StateEntity se = new StateEntity();
+                    se.setCode(s.code());
                     se.setName(s.name());
                     se.setTerminal(s.terminal());
                     se.setWorkflow(entity);

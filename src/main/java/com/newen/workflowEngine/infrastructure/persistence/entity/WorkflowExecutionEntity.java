@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.UUID;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
@@ -24,9 +25,8 @@ public class WorkflowExecutionEntity {
     @JoinColumn(name = "workflow_id")
     private WorkflowEntity workflow;
 
-    @ManyToOne
-    @JoinColumn(name = "current_state_id")
-    private StateEntity currentState;
+    @Column(name = "current_state_code")
+    private String currentStateCode;
 
     @OneToMany(
         mappedBy = "execution",
@@ -51,12 +51,12 @@ public class WorkflowExecutionEntity {
         this.workflow = workflow;
     }
 
-    public StateEntity getCurrentState() {
-        return currentState;
+    public String getCurrentStateCode() {
+        return currentStateCode;
     }
 
-    public void setCurrentState(StateEntity currentState) {
-        this.currentState = currentState;
+    public void setCurrentStateCode(String currentStateCode) {
+        this.currentStateCode = currentStateCode;
     }
 
     public List<StateChangedEntity> getHistory() {

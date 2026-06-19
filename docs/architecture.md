@@ -175,11 +175,16 @@ WorkflowExecution (new, same id)  ──── save() ──► UPDATE same row
 
 ### Domain
 
-State is modeled as a Value Object:
+State is modeled as a Value Object with a stable identity:
 
 ```java
-State(name, terminal)
+State(code, name, terminal)
 ```
+
+- **`code`** is an immutable, set-once identifier (e.g. `"created"`, `"in_review"`).  
+  It is the stable key that execution entities use to reference a state.
+- **`name`** is a mutable display label (e.g. `"CREATED"`, `"IN REVIEW"`).  
+  It can change without affecting referential integrity.
 
 ### Persistence
 
@@ -189,33 +194,47 @@ State is stored as an entity:
 StateEntity
 ```
 
-with a generated UUID.
+with:
+- a generated UUID primary key (`id`)
+- a `code` column (unique, not null) used as the foreign-key target by execution entities
 
 ### Identity Strategy
 
-Domain identity:
+| Concern | Domain Identity | Persistence Identity |
+|---|---|---|
+| Workflow | `WorkflowId` | `WorkflowEntity.id` |
+| WorkflowExecution | `WorkflowExecutionId` | `WorkflowExecutionEntity.id` |
+| State | (none — value object) | `StateEntity.id` (PK), `StateEntity.code` (FK target) |
+| Transition | (none — value object) | `TransitionEntity.id` |
+| StateChanged | (none — event) | `StateChangedEntity.id` |
+
+### State Reference Strategy (Stable Code)
+
+Execution entities reference states by **`State.code`** (a stable string) rather than by `StateEntity.id` (a generated UUID):
 
 ```text
-WorkflowId
-WorkflowExecutionId
+WorkflowExecutionEntity.current_state_code  →  state.code
+StateChangedEntity.from_state_code          →  state.code
+StateChangedEntity.to_state_code            →  state.code
 ```
 
-Persistence identity:
+Benefits:
+- Codes are human-readable and stable across environments.
+- References survive database resets (UUIDs would change).
+- The domain model can be serialized/deserialized without a full state lookup.
 
-```text
-StateEntity.id
-TransitionEntity.id
-StateChangedEntity.id
-```
+Downside:
+- Renaming a code is expensive (requires updating all references).  
+  This is acceptable because codes are designed to be permanent identifiers.
 
 ### State Reconstruction
 
-Because State has no domain identifier, persistence reconstructs domain references using:
+The persistence layer reconstructs domain `State` objects using `StateEntity.code`:
 
 ```text
-State.name
+StateEntity.code  ──►  State(code, name, terminal)
 ```
 
-through WorkflowContext.
+via `WorkflowContext`, which builds a `Map<String, State>` keyed by code during aggregate load.
 
 This keeps the domain model immutable and persistence-agnostic.

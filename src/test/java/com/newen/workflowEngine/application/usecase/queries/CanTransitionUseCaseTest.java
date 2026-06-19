@@ -24,8 +24,8 @@ public class CanTransitionUseCaseTest {
     @Test
     void should_return_true_when_transition_is_allowed() {
     
-        State created = new State("CREATED", false);
-        State review = new State("REVIEW", false);
+        State created = new State("created", "CREATED", false);
+        State review = new State("review", "REVIEW", false);
     
         Workflow workflow = new Workflow(
                 new WorkflowId(UUID.randomUUID()),
@@ -64,7 +64,7 @@ public class CanTransitionUseCaseTest {
         boolean result =
                 useCase.execute(
                         execution.getId(),
-                        review
+                        "review"
                 );
             
         assertTrue(result);
@@ -73,9 +73,9 @@ public class CanTransitionUseCaseTest {
     @Test
     void should_return_false_when_transition_is_not_allowed() {
     
-        State created = new State("CREATED", false);
-        State review = new State("REVIEW", false);
-        State approved = new State("APPROVED", true);
+        State created = new State("created", "CREATED", false);
+        State review = new State("review", "REVIEW", false);
+        State approved = new State("approved", "APPROVED", true);
     
         Workflow workflow = new Workflow(
                 new WorkflowId(UUID.randomUUID()),
@@ -114,7 +114,7 @@ public class CanTransitionUseCaseTest {
         boolean result =
                 useCase.execute(
                         execution.getId(),
-                        approved
+                        "approved"
                 );
             
         assertFalse(result);

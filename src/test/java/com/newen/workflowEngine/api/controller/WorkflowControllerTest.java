@@ -66,23 +66,23 @@ class WorkflowControllerTest {
     void should_create_workflow() throws Exception {
         // Arrange
         UUID workflowUuid = UUID.randomUUID();
-        Map<String, State> statesByName = Map.of(
-                "CREATED", new State("CREATED", false),
-                "REVIEW", new State("REVIEW", false)
+        Map<String, State> statesByCode = Map.of(
+                "created", new State("created", "CREATED", false),
+                "review", new State("review", "REVIEW", false)
         );
         List<Transition> transitions = List.of(
-                new Transition(statesByName.get("CREATED"), statesByName.get("REVIEW"))
+                new Transition(statesByCode.get("created"), statesByCode.get("review"))
         );
         Mockito.when(workflowMapper.buildStateMap(Mockito.any()))
-                .thenReturn(statesByName);
+                .thenReturn(statesByCode);
         Mockito.when(workflowMapper.buildTransitions(Mockito.any(), Mockito.any()))
                 .thenReturn(transitions);
         Workflow workflow = new Workflow(
                 new WorkflowId(workflowUuid),
                 "test-workflow",
-                List.copyOf(statesByName.values()),
+                List.copyOf(statesByCode.values()),
                 transitions,
-                statesByName.get("CREATED")
+                statesByCode.get("created")
         );
         Mockito.when(
                 createUseCase.execute(
@@ -96,13 +96,13 @@ class WorkflowControllerTest {
                 {
                     "name": "test-workflow",
                     "states": [
-                        {"name": "CREATED", "terminal": false},
-                        {"name": "REVIEW", "terminal": false}
+                        {"code": "created", "name": "CREATED", "terminal": false},
+                        {"code": "review", "name": "REVIEW", "terminal": false}
                     ],
                     "transitions": [
-                        {"from": "CREATED", "to": "REVIEW"}
+                        {"from": "created", "to": "review"}
                     ],
-                    "initialState": "CREATED"
+                    "initialState": "created"
                 }
                 """;
         // Act & Assert
@@ -129,8 +129,8 @@ class WorkflowControllerTest {
         );
         assertEquals("test-workflow", nameCaptor.getValue());
         assertEquals(2, statesCaptor.getValue().size());
-        assertTrue(statesCaptor.getValue().contains(new State("CREATED", false)));
-        assertTrue(statesCaptor.getValue().contains(new State("REVIEW", false)));
+        assertTrue(statesCaptor.getValue().contains(new State("created", "CREATED", false)));
+        assertTrue(statesCaptor.getValue().contains(new State("review", "REVIEW", false)));
         assertEquals(1, transitionsCaptor.getValue().size());
         assertEquals("CREATED", initialStateCaptor.getValue().name());
         assertEquals(false, initialStateCaptor.getValue().terminal());
@@ -144,7 +144,7 @@ class WorkflowControllerTest {
         WorkflowExecution execution = new WorkflowExecution(
                 new WorkflowExecutionId(UUID.randomUUID()),
                 new WorkflowId(workflowUuid),
-                new State("CREATED", false)
+                new State("created", "CREATED", false)
         );
 
         Mockito.when(
@@ -178,24 +178,21 @@ class WorkflowControllerTest {
         ExecuteTransitionResult result =
                 new ExecuteTransitionResult(
                         new WorkflowExecutionId(executionUuid),
-                        new State("CREATED", false),
-                        new State("REVIEW", false),
+                        new State("created", "CREATED", false),
+                        new State("review", "REVIEW", false),
                         timestamp
                 );
             
         Mockito.when(
                 executeUseCase.execute(
                         Mockito.any(WorkflowExecutionId.class),
-                        Mockito.any(State.class)
+                        Mockito.anyString()
                 )
         ).thenReturn(result);
     
         String requestBody = """
                 {
-                  "targetState": {
-                    "name": "REVIEW",
-                    "terminal": false
-                  }
+                  "targetStateCode": "review"
                 }
                 """;
     
@@ -206,8 +203,10 @@ class WorkflowControllerTest {
         )
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.executionId").value(executionUuid.toString()))
-        .andExpect(jsonPath("$.previousState").value("CREATED"))
-        .andExpect(jsonPath("$.currentState").value("REVIEW"))
+        .andExpect(jsonPath("$.previousStateCode").value("created"))
+        .andExpect(jsonPath("$.previousStateName").value("CREATED"))
+        .andExpect(jsonPath("$.currentStateCode").value("review"))
+        .andExpect(jsonPath("$.currentStateName").value("REVIEW"))
         .andExpect(jsonPath("$.timestamp").exists())
         .andReturn();
 
@@ -216,8 +215,8 @@ class WorkflowControllerTest {
         ArgumentCaptor<WorkflowExecutionId> executionCaptor =
                 ArgumentCaptor.forClass(WorkflowExecutionId.class);
     
-        ArgumentCaptor<State> stateCaptor =
-                ArgumentCaptor.forClass(State.class);
+        ArgumentCaptor<String> stateCaptor =
+                ArgumentCaptor.forClass(String.class);
     
         Mockito.verify(executeUseCase).execute(
                 executionCaptor.capture(),
@@ -230,13 +229,8 @@ class WorkflowControllerTest {
         );
     
         assertEquals(
-                "REVIEW",
-                stateCaptor.getValue().name()
-        );
-    
-        assertEquals(
-                false,
-                stateCaptor.getValue().terminal()
+                "review",
+                stateCaptor.getValue()
         );
     }
 
@@ -246,8 +240,8 @@ class WorkflowControllerTest {
         UUID executionId = UUID.randomUUID();
     
         List<State> states = List.of(
-                new State("REVIEW", false),
-                new State("APPROVED", true)
+                new State("review", "REVIEW", false),
+                new State("approved", "APPROVED", true)
         );
     
         Mockito.when(
@@ -260,8 +254,10 @@ class WorkflowControllerTest {
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.length()").value(2))
-        .andExpect(jsonPath("$[0].states").value("REVIEW"))
-        .andExpect(jsonPath("$[1].states").value("APPROVED"));
+        .andExpect(jsonPath("$[0].code").value("review"))
+        .andExpect(jsonPath("$[0].name").value("REVIEW"))
+        .andExpect(jsonPath("$[1].code").value("approved"))
+        .andExpect(jsonPath("$[1].name").value("APPROVED"));
     
         ArgumentCaptor<WorkflowExecutionId> captor =
                 ArgumentCaptor.forClass(WorkflowExecutionId.class);
@@ -279,14 +275,14 @@ class WorkflowControllerTest {
         List<StateChanged> history = List.of(
                 new StateChanged(
                         new WorkflowExecutionId(executionId),
-                        new State("CREATED", false),
-                        new State("REVIEW", false),
+                        new State("created", "CREATED", false),
+                        new State("review", "REVIEW", false),
                         Instant.parse("2026-06-06T10:00:00Z")
                 ),
                 new StateChanged(
                         new WorkflowExecutionId(executionId),
-                        new State("REVIEW", false),
-                        new State("APPROVED", true),
+                        new State("review", "REVIEW", false),
+                        new State("approved", "APPROVED", true),
                         Instant.parse("2026-06-06T11:00:00Z")
                 )
         );
@@ -301,10 +297,14 @@ class WorkflowControllerTest {
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.length()").value(2))
-        .andExpect(jsonPath("$[0].fromState").value("CREATED"))
-        .andExpect(jsonPath("$[0].toState").value("REVIEW"))
-        .andExpect(jsonPath("$[1].fromState").value("REVIEW"))
-        .andExpect(jsonPath("$[1].toState").value("APPROVED"));
+        .andExpect(jsonPath("$[0].fromStateCode").value("created"))
+        .andExpect(jsonPath("$[0].fromStateName").value("CREATED"))
+        .andExpect(jsonPath("$[0].toStateCode").value("review"))
+        .andExpect(jsonPath("$[0].toStateName").value("REVIEW"))
+        .andExpect(jsonPath("$[1].fromStateCode").value("review"))
+        .andExpect(jsonPath("$[1].fromStateName").value("REVIEW"))
+        .andExpect(jsonPath("$[1].toStateCode").value("approved"))
+        .andExpect(jsonPath("$[1].toStateName").value("APPROVED"));
 
         ArgumentCaptor<WorkflowExecutionId> captor =
                 ArgumentCaptor.forClass(WorkflowExecutionId.class);

@@ -20,8 +20,8 @@ public class WorkflowRequestMapper {
     public Map<String, State> buildStateMap(CreateWorkflowRequest request) {
         return request.states().stream()
                 .collect(Collectors.toMap(
-                        StateRequest::name,
-                        s -> new State(s.name(), s.terminal())
+                        StateRequest::code,
+                        s -> new State(s.code(), s.name(), s.terminal())
                 ));
     }
     public List<Transition> buildTransitions(

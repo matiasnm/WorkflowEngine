@@ -5,7 +5,9 @@ import java.util.UUID;
 
 public record TransitionResponse(
     UUID executionId,
-    String previousState,
-    String currentState,
+    String previousStateCode,
+    String previousStateName,
+    String currentStateCode,
+    String currentStateName,
     Instant timestamp
 ) {}

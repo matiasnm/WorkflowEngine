@@ -11,37 +11,29 @@ import com.newen.workflowEngine.infrastructure.persistence.entity.WorkflowEntity
 
 final class WorkflowContext {
 
-    private final Map<String, State> statesByName;
+    private final Map<String, State> statesByCode;
 
     private WorkflowContext(Map<String, State> statesByName) {
-        this.statesByName = statesByName;
+        this.statesByCode = statesByName;
     }
 
     static WorkflowContext from(WorkflowEntity entity) {
-
         Map<String, State> states = entity.getStates().stream()
-                .collect(Collectors.toMap(
-                        StateEntity::getName,
-                        s -> new State(
-                                s.getName(),
-                                s.isTerminal()
-                        )
-                ));
-
+            .collect(Collectors.toMap(
+                    StateEntity::getCode,
+                    s -> new State(s.getCode(), s.getName(), s.isTerminal())
+            ));
         return new WorkflowContext(states);
     }
 
-    State state(String name) {
-        State state = statesByName.get(name);
 
-        if (state == null) {
-            throw new StateNotFoundInWorkflowException(name);
-        }
-
+    State state(String code) {
+        State state = statesByCode.get(code);
+        if (state == null) throw new StateNotFoundInWorkflowException(code);
         return state;
     }
 
     List<State> states() {
-        return List.copyOf(statesByName.values());
+        return List.copyOf(statesByCode.values());
     }
 }

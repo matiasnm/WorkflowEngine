@@ -8,6 +8,7 @@ Table workflow {
 Table state {
   id uuid [pk]
   workflow_id uuid
+  code varchar [note: stable identifier, FK target for execution entities]
   name varchar
   terminal boolean
 }
@@ -22,34 +23,28 @@ Table transition {
 Table workflow_execution {
   id uuid [pk]
   workflow_id uuid
-  current_state_id uuid
+  current_state_code varchar
 }
 
 Table state_changed {
   id uuid [pk]
   execution_id uuid
-  from_state_id uuid
-  to_state_id uuid
+  from_state_code varchar
+  to_state_code varchar
   timestamp timestamp
 }
-
 
 Ref: state.workflow_id > workflow.id
 
 Ref: transition.workflow_id > workflow.id
-
 Ref: transition.from_state_id > state.id
-
 Ref: transition.to_state_id > state.id
 
 Ref: workflow.initial_state_id > state.id
 
 Ref: workflow_execution.workflow_id > workflow.id
-
-Ref: workflow_execution.current_state_id > state.id
+Ref: workflow_execution.current_state_code > state.code
 
 Ref: state_changed.execution_id > workflow_execution.id
-
-Ref: state_changed.from_state_id > state.id
-
-Ref: state_changed.to_state_id > state.id
+Ref: state_changed.from_state_code > state.code
+Ref: state_changed.to_state_code > state.code

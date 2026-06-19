@@ -24,8 +24,8 @@ public class ExecuteTransitionUseCaseTest {
     @Test
     void should_execute_valid_transition_and_return_result() {
 
-        State created = new State("CREATED", false);
-        State review = new State("REVIEW", false);
+        State created = new State("created", "CREATED", false);
+        State review = new State("review", "REVIEW", false);
 
         Workflow workflow = new Workflow(
                 new WorkflowId(UUID.randomUUID()),
@@ -61,7 +61,7 @@ public class ExecuteTransitionUseCaseTest {
         ExecuteTransitionUseCase useCase = new ExecuteTransitionUseCase(facade);
 
         ExecuteTransitionResult result =
-                useCase.execute(execution.getId(), review);
+                useCase.execute(execution.getId(), "review");
 
         WorkflowExecution updated =
                 executionRepo.findById(execution.getId())

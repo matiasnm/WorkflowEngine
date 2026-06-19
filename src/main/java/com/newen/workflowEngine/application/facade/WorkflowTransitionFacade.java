@@ -33,9 +33,14 @@ public class WorkflowTransitionFacade {
 
     private record Pair(Workflow workflow, WorkflowExecution execution) {}
 
-    public ExecuteTransitionResult transition(WorkflowExecutionId executionId, State target) {
+    public ExecuteTransitionResult transition(WorkflowExecutionId executionId, String targetStateCode) {
         
         Pair pair = loadExecutionAndWorkflow(executionId);
+
+        State target = pair.workflow().getStates().stream()
+                .filter(s -> s.code().equals(targetStateCode))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Invalid state code: " + targetStateCode));
 
         WorkflowEngine.TransitionResult result = engine.transition(pair.workflow(), pair.execution(), target);
         executionRepository.save(result.execution());
@@ -55,8 +60,12 @@ public class WorkflowTransitionFacade {
     }
 
 
-    public boolean canTransition(WorkflowExecutionId executionId, State target) {
+    public boolean canTransition(WorkflowExecutionId executionId, String targetStateCode) {
         Pair pair = loadExecutionAndWorkflow(executionId);
+        State target = pair.workflow().getStates().stream()
+                .filter(s -> s.code().equals(targetStateCode))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Invalid state code: " + targetStateCode));
         return pair.workflow().allowsTransition(pair.execution().getCurrentState(), target);
     }
 
