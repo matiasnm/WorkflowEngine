@@ -16,12 +16,12 @@ import com.newen.workflowEngine.api.dto.CreateWorkflowResponse;
 import com.newen.workflowEngine.api.dto.ExecutionResponse;
 import com.newen.workflowEngine.api.dto.HistoryItemResponse;
 import com.newen.workflowEngine.api.dto.NextStatesResponse;
-import com.newen.workflowEngine.api.dto.StateResponse;
 import com.newen.workflowEngine.api.dto.TransitionRequest;
 import com.newen.workflowEngine.api.dto.TransitionResponse;
 import com.newen.workflowEngine.api.dto.WorkflowDetailResponse;
 import com.newen.workflowEngine.api.dto.WorkflowExecutionCreatedResponse;
 import com.newen.workflowEngine.api.dto.WorkflowSummaryResponse;
+import com.newen.workflowEngine.api.mapper.ExecutionResponseMapper;
 import com.newen.workflowEngine.api.mapper.WorkflowRequestMapper;
 import com.newen.workflowEngine.api.mapper.WorkflowResponseMapper;
 import com.newen.workflowEngine.application.usecase.commands.CreateWorkflowUseCase;
@@ -56,6 +56,7 @@ public class WorkflowController {
     private final GetExecutionUseCase getExecutionUseCase;
     private final WorkflowRequestMapper workflowRequestMapper;
     private final WorkflowResponseMapper workflowResponseMapper;
+    private final ExecutionResponseMapper executionResponseMapper;
 
     public WorkflowController(
             StartWorkflowExecutionUseCase startUseCase,
@@ -67,7 +68,8 @@ public class WorkflowController {
             GetWorkflowUseCase getWorkflowUseCase,
             GetExecutionUseCase getExecutionUseCase,
             WorkflowRequestMapper workflowRequestMapper,
-            WorkflowResponseMapper workflowResponseMapper
+            WorkflowResponseMapper workflowResponseMapper,
+            ExecutionResponseMapper executionResponseMapper
     ) {
         this.startUseCase = startUseCase;
         this.transitionUseCase = transitionUseCase;
@@ -79,6 +81,7 @@ public class WorkflowController {
         this.getExecutionUseCase = getExecutionUseCase;
         this.workflowRequestMapper = workflowRequestMapper;
         this.workflowResponseMapper = workflowResponseMapper;
+        this.executionResponseMapper = executionResponseMapper;
     }
 
 
@@ -100,11 +103,7 @@ public class WorkflowController {
     @GetMapping("/executions/{executionId}")
     public ExecutionResponse getExecution(@PathVariable("executionId") UUID executionId) {
         var execution = getExecutionUseCase.execute(new WorkflowExecutionId(executionId));
-        var current = execution.getCurrentState();
-        return new ExecutionResponse(
-                execution.getId().value(),
-                execution.getWorkflowId().value(),
-                new StateResponse(current.code(), current.name(), current.terminal()));
+        return executionResponseMapper.toExecutionResponse(execution);
     }
 
 

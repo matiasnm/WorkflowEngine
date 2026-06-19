@@ -22,6 +22,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.newen.workflowEngine.api.dto.ExecutionResponse;
+import com.newen.workflowEngine.api.dto.StateResponse;
+import com.newen.workflowEngine.api.mapper.ExecutionResponseMapper;
 import com.newen.workflowEngine.api.mapper.WorkflowRequestMapper;
 import com.newen.workflowEngine.api.mapper.WorkflowResponseMapper;
 import com.newen.workflowEngine.application.usecase.commands.CreateWorkflowUseCase;
@@ -76,6 +79,9 @@ class WorkflowControllerTest {
 
     @MockitoBean
     private WorkflowResponseMapper workflowResponseMapper;
+
+    @MockitoBean
+    private ExecutionResponseMapper executionResponseMapper;
 
 
     @Test
@@ -329,6 +335,42 @@ class WorkflowControllerTest {
 
         assertEquals(executionId, captor.getValue().value());
     }
-    
+
+    @Test
+    void should_return_execution_state() throws Exception {
+
+        UUID executionId = UUID.randomUUID();
+        UUID workflowId = UUID.randomUUID();
+
+        WorkflowExecution execution = new WorkflowExecution(
+                new WorkflowExecutionId(executionId),
+                new WorkflowId(workflowId),
+                new State("review", "REVIEW", false)
+        );
+
+        ExecutionResponse expectedResponse = new ExecutionResponse(
+                executionId, workflowId,
+                new StateResponse("review", "REVIEW", false)
+        );
+
+        Mockito.when(
+                getExecutionUseCase.execute(Mockito.any(WorkflowExecutionId.class))
+        ).thenReturn(execution);
+
+        Mockito.when(
+                executionResponseMapper.toExecutionResponse(execution)
+        ).thenReturn(expectedResponse);
+
+        mockMvc.perform(
+                get("/executions/{executionId}", executionId)
+        )
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(executionId.toString()))
+        .andExpect(jsonPath("$.workflowId").value(workflowId.toString()))
+        .andExpect(jsonPath("$.currentState.code").value("review"))
+        .andExpect(jsonPath("$.currentState.name").value("REVIEW"));
+    }
+
 
 }
