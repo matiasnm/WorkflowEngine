@@ -37,6 +37,12 @@ workflowEngine
 │   │   ├── model
 │   │   └── service
 │   │
+│   ├── docs/                         ← Backend-specific docs
+│   │   ├── architecture.md
+│   │   ├── database.dbml
+│   │   ├── domain-model.puml
+│   │   └── schema.sql
+│   │
 │   └── infrastructure
 │       ├── persistence
 │       │   ├── adapter
@@ -68,11 +74,15 @@ workflowEngine
 │   │
 │   ├── angular.json
 │   ├── package.json
-│   └── docs/
+│   └── docs/                        ← Frontend-specific docs
 │       ├── CONTEXT.md               ← Domain glossary & architecture decisions
+│       ├── mvp.md                   ← Frontend MVP scope
 │       └── slices/                  ← MVP implementation slices
 │
-├── docs/
+├── docs/                            ← Cross-cutting docs (root level)
+│   ├── mvp.md
+│   ├── roadmap.md
+│   └── features/                    ← Feature specs (back + front)
 ├── docker-compose.yml    ← PostgreSQL 16 for local dev
 └── ...config files
 ```
