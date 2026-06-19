@@ -8,6 +8,10 @@ spring:
         - dev
         - jpa
 
+      dev-pg:
+        - dev
+        - pg
+
       dev-memory:
         - dev
         - memory

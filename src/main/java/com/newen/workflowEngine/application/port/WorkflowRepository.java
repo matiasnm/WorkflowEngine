@@ -1,5 +1,6 @@
 package com.newen.workflowEngine.application.port;
 
+import java.util.List;
 import java.util.Optional;
 
 import com.newen.workflowEngine.domain.model.workflow.Workflow;
@@ -10,4 +11,6 @@ public interface WorkflowRepository {
     Optional<Workflow> findById(WorkflowId id);
 
     void save(Workflow workflow);
+
+    List<Workflow> findAll();
 }

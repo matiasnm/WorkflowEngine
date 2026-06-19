@@ -23,12 +23,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.newen.workflowEngine.api.mapper.WorkflowRequestMapper;
+import com.newen.workflowEngine.api.mapper.WorkflowResponseMapper;
 import com.newen.workflowEngine.application.usecase.commands.CreateWorkflowUseCase;
 import com.newen.workflowEngine.application.usecase.commands.ExecuteTransitionUseCase;
 import com.newen.workflowEngine.application.usecase.commands.StartWorkflowExecutionUseCase;
 import com.newen.workflowEngine.application.usecase.commands.dto.ExecuteTransitionResult;
+import com.newen.workflowEngine.application.usecase.queries.GetExecutionUseCase;
 import com.newen.workflowEngine.application.usecase.queries.GetHistoryUseCase;
 import com.newen.workflowEngine.application.usecase.queries.GetNextStatesUseCase;
+import com.newen.workflowEngine.application.usecase.queries.GetWorkflowUseCase;
+import com.newen.workflowEngine.application.usecase.queries.ListWorkflowsUseCase;
 import com.newen.workflowEngine.domain.event.StateChanged;
 import com.newen.workflowEngine.domain.model.execution.WorkflowExecution;
 import com.newen.workflowEngine.domain.model.execution.WorkflowExecutionId;
@@ -59,7 +63,19 @@ class WorkflowControllerTest {
     private CreateWorkflowUseCase createUseCase;
 
     @MockitoBean
-    private WorkflowRequestMapper workflowMapper;
+    private ListWorkflowsUseCase listWorkflowsUseCase;
+
+    @MockitoBean
+    private GetWorkflowUseCase getWorkflowUseCase;
+
+    @MockitoBean
+    private GetExecutionUseCase getExecutionUseCase;
+
+    @MockitoBean
+    private WorkflowRequestMapper workflowRequestMapper;
+
+    @MockitoBean
+    private WorkflowResponseMapper workflowResponseMapper;
 
 
     @Test
@@ -73,9 +89,9 @@ class WorkflowControllerTest {
         List<Transition> transitions = List.of(
                 new Transition(statesByCode.get("created"), statesByCode.get("review"))
         );
-        Mockito.when(workflowMapper.buildStateMap(Mockito.any()))
+        Mockito.when(workflowRequestMapper.buildStateMap(Mockito.any()))
                 .thenReturn(statesByCode);
-        Mockito.when(workflowMapper.buildTransitions(Mockito.any(), Mockito.any()))
+        Mockito.when(workflowRequestMapper.buildTransitions(Mockito.any(), Mockito.any()))
                 .thenReturn(transitions);
         Workflow workflow = new Workflow(
                 new WorkflowId(workflowUuid),

@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,24 +13,34 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.newen.workflowEngine.api.dto.CreateWorkflowRequest;
 import com.newen.workflowEngine.api.dto.CreateWorkflowResponse;
+import com.newen.workflowEngine.api.dto.ExecutionResponse;
 import com.newen.workflowEngine.api.dto.HistoryItemResponse;
 import com.newen.workflowEngine.api.dto.NextStatesResponse;
+import com.newen.workflowEngine.api.dto.StateResponse;
 import com.newen.workflowEngine.api.dto.TransitionRequest;
 import com.newen.workflowEngine.api.dto.TransitionResponse;
+import com.newen.workflowEngine.api.dto.WorkflowDetailResponse;
 import com.newen.workflowEngine.api.dto.WorkflowExecutionCreatedResponse;
+import com.newen.workflowEngine.api.dto.WorkflowSummaryResponse;
 import com.newen.workflowEngine.api.mapper.WorkflowRequestMapper;
+import com.newen.workflowEngine.api.mapper.WorkflowResponseMapper;
 import com.newen.workflowEngine.application.usecase.commands.CreateWorkflowUseCase;
 import com.newen.workflowEngine.application.usecase.commands.ExecuteTransitionUseCase;
 import com.newen.workflowEngine.application.usecase.commands.StartWorkflowExecutionUseCase;
 import com.newen.workflowEngine.application.usecase.commands.dto.ExecuteTransitionResult;
+import com.newen.workflowEngine.application.usecase.queries.GetExecutionUseCase;
 import com.newen.workflowEngine.application.usecase.queries.GetHistoryUseCase;
 import com.newen.workflowEngine.application.usecase.queries.GetNextStatesUseCase;
+import com.newen.workflowEngine.application.usecase.queries.GetWorkflowUseCase;
+import com.newen.workflowEngine.application.usecase.queries.ListWorkflowsUseCase;
 import com.newen.workflowEngine.domain.event.StateChanged;
 import com.newen.workflowEngine.domain.model.execution.WorkflowExecutionId;
 import com.newen.workflowEngine.domain.model.workflow.State;
 import com.newen.workflowEngine.domain.model.workflow.Transition;
 import com.newen.workflowEngine.domain.model.workflow.Workflow;
 import com.newen.workflowEngine.domain.model.workflow.WorkflowId;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping
@@ -42,7 +51,11 @@ public class WorkflowController {
     private final GetNextStatesUseCase nextStatesUseCase;
     private final GetHistoryUseCase historyUseCase;
     private final CreateWorkflowUseCase createUseCase;
-    private final WorkflowRequestMapper workflowMapper;
+    private final ListWorkflowsUseCase listWorkflowsUseCase;
+    private final GetWorkflowUseCase getWorkflowUseCase;
+    private final GetExecutionUseCase getExecutionUseCase;
+    private final WorkflowRequestMapper workflowRequestMapper;
+    private final WorkflowResponseMapper workflowResponseMapper;
 
     public WorkflowController(
             StartWorkflowExecutionUseCase startUseCase,
@@ -50,20 +63,55 @@ public class WorkflowController {
             GetNextStatesUseCase nextStatesUseCase,
             GetHistoryUseCase historyUseCase,
             CreateWorkflowUseCase createUseCase,
-            WorkflowRequestMapper workflowMapper 
+            ListWorkflowsUseCase listWorkflowsUseCase,
+            GetWorkflowUseCase getWorkflowUseCase,
+            GetExecutionUseCase getExecutionUseCase,
+            WorkflowRequestMapper workflowRequestMapper,
+            WorkflowResponseMapper workflowResponseMapper
     ) {
         this.startUseCase = startUseCase;
         this.transitionUseCase = transitionUseCase;
         this.nextStatesUseCase = nextStatesUseCase;
         this.historyUseCase = historyUseCase;
         this.createUseCase = createUseCase;
-        this.workflowMapper = workflowMapper; 
+        this.listWorkflowsUseCase = listWorkflowsUseCase;
+        this.getWorkflowUseCase = getWorkflowUseCase;
+        this.getExecutionUseCase = getExecutionUseCase;
+        this.workflowRequestMapper = workflowRequestMapper;
+        this.workflowResponseMapper = workflowResponseMapper;
     }
+
+
+    @GetMapping("/workflows")
+    public List<WorkflowSummaryResponse> listWorkflows() {
+        return listWorkflowsUseCase.execute().stream()
+                .map(workflowResponseMapper::toSummary)
+                .toList();
+    }
+
+
+    @GetMapping("/workflows/{workflowId}")
+    public WorkflowDetailResponse getWorkflow(@PathVariable("workflowId") UUID workflowId) {
+        Workflow workflow = getWorkflowUseCase.execute(new WorkflowId(workflowId));
+        return workflowResponseMapper.toDetail(workflow);
+    }
+
+
+    @GetMapping("/executions/{executionId}")
+    public ExecutionResponse getExecution(@PathVariable("executionId") UUID executionId) {
+        var execution = getExecutionUseCase.execute(new WorkflowExecutionId(executionId));
+        var current = execution.getCurrentState();
+        return new ExecutionResponse(
+                execution.getId().value(),
+                execution.getWorkflowId().value(),
+                new StateResponse(current.code(), current.name(), current.terminal()));
+    }
+
 
     @PostMapping("/workflows")
     public CreateWorkflowResponse create(@Valid @RequestBody CreateWorkflowRequest request) {
-        Map<String, State> statesByCode = workflowMapper.buildStateMap(request);
-        List<Transition> transitions = workflowMapper.buildTransitions(request, statesByCode);
+        Map<String, State> statesByCode = workflowRequestMapper.buildStateMap(request);
+        List<Transition> transitions = workflowRequestMapper.buildTransitions(request, statesByCode);
         Workflow workflow = createUseCase.execute(
                 request.name(),
                 List.copyOf(statesByCode.values()),

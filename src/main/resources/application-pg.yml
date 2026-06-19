@@ -1,0 +1,14 @@
+# application-pg.yml — PostgreSQL local via Docker
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/workflow
+    driver-class-name: org.postgresql.Driver
+    username: workflow
+    password: workflow
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      # Fase 1: Hibernate genera el schema automáticamente
+      # Fase 2: cambiar a "validate" cuando Flyway tome el control
+      ddl-auto: update

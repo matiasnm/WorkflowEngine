@@ -1,6 +1,7 @@
 package com.newen.workflowEngine.infrastructure.persistence.repository.memory;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -27,5 +28,10 @@ public class InMemoryWorkflowRepository
     @Override
     public void save(Workflow workflow) {
         storage.put(workflow.getId(), workflow);
+    }
+
+    @Override
+    public List<Workflow> findAll() {
+        return List.copyOf(storage.values());
     }
 }
