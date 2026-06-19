@@ -1,5 +1,6 @@
 package com.newen.workflowEngine.infrastructure.persistence.adapter;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Component;
@@ -8,6 +9,7 @@ import com.newen.workflowEngine.application.port.WorkflowExecutionRepository;
 import com.newen.workflowEngine.domain.model.execution.WorkflowExecution;
 import com.newen.workflowEngine.domain.model.execution.WorkflowExecutionId;
 import com.newen.workflowEngine.domain.model.workflow.Workflow;
+import com.newen.workflowEngine.domain.model.workflow.WorkflowId;
 import com.newen.workflowEngine.infrastructure.persistence.entity.WorkflowEntity;
 import com.newen.workflowEngine.infrastructure.persistence.mapper.WorkflowExecutionMapper;
 import com.newen.workflowEngine.infrastructure.persistence.mapper.WorkflowMapper;
@@ -40,6 +42,15 @@ public class JpaWorkflowExecutionPersistenceAdapter implements WorkflowExecution
                     Workflow workflow = workflowMapper.toDomain(e.getWorkflow());
                     return mapper.toDomain(e, workflow);
                 });
+    }
+    @Override
+    public List<WorkflowExecution> findByWorkflowId(WorkflowId workflowId) {
+        return repo.findByWorkflow_Id(workflowId.value()).stream()
+                .map(entity -> {
+                    Workflow workflow = workflowMapper.toDomain(entity.getWorkflow());
+                    return mapper.toDomain(entity, workflow);
+                })
+                .toList();
     }
     @Override
     public void save(WorkflowExecution execution) {

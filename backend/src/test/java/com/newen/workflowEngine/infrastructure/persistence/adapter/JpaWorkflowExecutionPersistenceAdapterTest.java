@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -36,6 +37,57 @@ class JpaWorkflowExecutionPersistenceAdapterTest {
 
     @Autowired
     private WorkflowRepository workflowRepository;
+
+    @Test
+    void should_find_executions_by_workflowId() {
+        // Arrange
+        State created = new State("created", "CREATED", false);
+        State review = new State("review", "REVIEW", false);
+
+        Workflow workflow = new Workflow(
+                new WorkflowId(UUID.randomUUID()),
+                "Test Workflow",
+                List.of(created, review),
+                List.of(new Transition(created, review)),
+                created
+        );
+
+        workflowRepository.save(workflow);
+        Workflow loadedWorkflow =
+                workflowRepository.findById(workflow.getId()).orElseThrow();
+
+        WorkflowExecution exec1 = new WorkflowExecution(
+                new WorkflowExecutionId(UUID.randomUUID()),
+                loadedWorkflow.getId(),
+                created
+        );
+        WorkflowExecution exec2 = new WorkflowExecution(
+                new WorkflowExecutionId(UUID.randomUUID()),
+                loadedWorkflow.getId(),
+                created
+        );
+
+        executionRepository.save(exec1);
+        executionRepository.save(exec2);
+
+        // Act
+        var results = executionRepository.findByWorkflowId(loadedWorkflow.getId());
+
+        // Assert
+        assertEquals(2, results.size());
+    }
+
+    @Test
+    void should_return_empty_list_when_no_executions_for_workflowId() {
+        // Arrange
+        var unknownId = new WorkflowId(UUID.randomUUID());
+
+        // Act
+        var results = executionRepository.findByWorkflowId(unknownId);
+
+        // Assert
+        assertTrue(results.isEmpty());
+    }
 
     @Test
     void should_persist_and_reconstruct_execution() {
