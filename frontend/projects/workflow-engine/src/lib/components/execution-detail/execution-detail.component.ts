@@ -1,4 +1,4 @@
-import { Component, input, Output, EventEmitter, signal, inject, OnInit } from '@angular/core';
+import { Component, input, Output, EventEmitter, signal, inject, OnInit, ViewChild } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { forkJoin } from 'rxjs';
 import { ExecutionApiService } from '../../services/execution-api.service';
@@ -561,6 +561,9 @@ export class ExecutionDetailComponent implements OnInit {
   readonly transitioning = signal<string | null>(null);
   readonly transitionError = signal<string | null>(null);
 
+  /** Reference to the child history component, so we can refresh it after a transition. */
+  @ViewChild(ExecutionHistoryComponent) private readonly historyComponent?: ExecutionHistoryComponent;
+
   /** Derived: truncated execution ID for display ("a1b2...") */
   get truncatedId(): string {
     const id = this.executionId();
@@ -620,6 +623,9 @@ export class ExecutionDetailComponent implements OnInit {
 
         // Re-fetch execution + next states for accurate data
         this.refreshExecutionAndStates();
+
+        // Refresh history to include the new StateChanged event
+        this.historyComponent?.loadHistory();
 
         this.transitioning.set(null);
       },

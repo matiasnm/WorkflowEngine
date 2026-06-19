@@ -518,7 +518,8 @@ export class ExecutionHistoryComponent implements OnInit {
     this.loadHistory();
   }
 
-  protected loadHistory(): void {
+  /** Reloads history from the API. Public so the parent can call it after a transition. */
+  loadHistory(): void {
     this.loading.set(true);
     this.error.set(null);
 
