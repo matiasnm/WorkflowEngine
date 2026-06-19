@@ -21,18 +21,20 @@ workflowEngine
 ├── api
 │   ├── controller
 │   ├── dto
-│   └── exception
+│   ├── exception
+│   └── mapper
 │
 ├── application
-│   ├── usecase
-│   ├── dto
-│   └── port
+│   ├── facade
+│   └── usecase
+│       ├── commands
+│       └── queries
 │
 ├── domain
-│   ├── model
 │   ├── event
-│   ├── service
-│   └── exception
+│   ├── exception
+│   ├── model
+│   └── service
 │
 └── infrastructure
     ├── persistence
@@ -125,7 +127,8 @@ The system is designed for layered testing:
 - Use cases as system API
 - CQRS-light separation of reads and writes
 - Domain model independent from persistence
-- State modeled as Value Object in the domain
+- State modeled as Value Object with stable `code` identity
+- State references by code (not generated IDs) for stable cross-environment identity
 - Persistence identity isolated in JPA entities
 
 ---
