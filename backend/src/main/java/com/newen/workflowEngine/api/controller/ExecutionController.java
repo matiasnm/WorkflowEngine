@@ -22,6 +22,7 @@ import com.newen.workflowEngine.application.usecase.commands.dto.ExecuteTransiti
 import com.newen.workflowEngine.application.usecase.queries.GetExecutionUseCase;
 import com.newen.workflowEngine.application.usecase.queries.GetHistoryUseCase;
 import com.newen.workflowEngine.application.usecase.queries.GetNextStatesUseCase;
+import com.newen.workflowEngine.application.usecase.queries.ListExecutionsUseCase;
 import com.newen.workflowEngine.domain.event.StateChanged;
 import com.newen.workflowEngine.domain.model.execution.WorkflowExecutionId;
 import com.newen.workflowEngine.domain.model.workflow.State;
@@ -37,6 +38,7 @@ public class ExecutionController {
     private final GetNextStatesUseCase nextStatesUseCase;
     private final GetHistoryUseCase historyUseCase;
     private final GetExecutionUseCase getExecutionUseCase;
+    private final ListExecutionsUseCase listExecutionsUseCase;
     private final ExecutionResponseMapper executionResponseMapper;
 
     public ExecutionController(
@@ -45,6 +47,7 @@ public class ExecutionController {
             GetNextStatesUseCase nextStatesUseCase,
             GetHistoryUseCase historyUseCase,
             GetExecutionUseCase getExecutionUseCase,
+            ListExecutionsUseCase listExecutionsUseCase,
             ExecutionResponseMapper executionResponseMapper
     ) {
         this.startUseCase = startUseCase;
@@ -52,6 +55,7 @@ public class ExecutionController {
         this.nextStatesUseCase = nextStatesUseCase;
         this.historyUseCase = historyUseCase;
         this.getExecutionUseCase = getExecutionUseCase;
+        this.listExecutionsUseCase = listExecutionsUseCase;
         this.executionResponseMapper = executionResponseMapper;
     }
 
@@ -63,6 +67,17 @@ public class ExecutionController {
         return new WorkflowExecutionCreatedResponse(
             startUseCase.execute(new WorkflowId(workflowId)).getId().value()
         );
+    }
+
+
+    @GetMapping("/workflows/{workflowId}/executions")
+    public List<ExecutionResponse> listExecutions(
+            @PathVariable("workflowId") UUID workflowId
+    ) {
+        return listExecutionsUseCase.execute(new WorkflowId(workflowId))
+                .stream()
+                .map(executionResponseMapper::toExecutionResponse)
+                .toList();
     }
 
 

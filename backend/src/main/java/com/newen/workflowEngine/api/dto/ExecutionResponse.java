@@ -1,5 +1,6 @@
 package com.newen.workflowEngine.api.dto;
 
+import java.time.Instant;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -8,5 +9,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 public record ExecutionResponse(
     UUID id,
     UUID workflowId,
-    StateResponse currentState
+    StateResponse currentState,
+    Instant currentStateSince
 ) {}

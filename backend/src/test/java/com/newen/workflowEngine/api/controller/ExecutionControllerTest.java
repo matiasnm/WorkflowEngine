@@ -28,6 +28,7 @@ import com.newen.workflowEngine.application.usecase.commands.dto.ExecuteTransiti
 import com.newen.workflowEngine.application.usecase.queries.GetExecutionUseCase;
 import com.newen.workflowEngine.application.usecase.queries.GetHistoryUseCase;
 import com.newen.workflowEngine.application.usecase.queries.GetNextStatesUseCase;
+import com.newen.workflowEngine.application.usecase.queries.ListExecutionsUseCase;
 import com.newen.workflowEngine.domain.event.StateChanged;
 import com.newen.workflowEngine.domain.model.execution.WorkflowExecution;
 import com.newen.workflowEngine.domain.model.execution.WorkflowExecutionId;
@@ -56,6 +57,9 @@ class ExecutionControllerTest {
     private GetExecutionUseCase getExecutionUseCase;
 
     @MockitoBean
+    private ListExecutionsUseCase listExecutionsUseCase;
+
+    @MockitoBean
     private ExecutionResponseMapper executionResponseMapper;
 
 
@@ -82,6 +86,43 @@ class ExecutionControllerTest {
 
 
     @Test
+    void should_list_executions() throws Exception {
+        // Arrange
+        UUID workflowId = UUID.randomUUID();
+        UUID executionId = UUID.randomUUID();
+        Instant now = Instant.now();
+        List<WorkflowExecution> executions = List.of(
+                new WorkflowExecution(
+                        new WorkflowExecutionId(executionId),
+                        new WorkflowId(workflowId),
+                        new State("created", "CREATED", false)
+                )
+        );
+        ExecutionResponse mockResponse = new ExecutionResponse(
+                executionId,
+                workflowId,
+                new StateResponse("created", "CREATED", false),
+                now
+        );
+
+        when(listExecutionsUseCase.execute(any(WorkflowId.class))).thenReturn(executions);
+        when(executionResponseMapper.toExecutionResponse(any(WorkflowExecution.class)))
+                .thenReturn(mockResponse);
+
+        // Act & Assert
+        mockMvc.perform(
+                get("/workflows/{workflowId}/executions", workflowId)
+        )
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[0].id").value(executionId.toString()))
+        .andExpect(jsonPath("$[0].workflowId").value(workflowId.toString()))
+        .andExpect(jsonPath("$[0].currentState.code").value("created"))
+        .andExpect(jsonPath("$[0].currentStateSince").isNotEmpty());
+    }
+
+
+    @Test
     void should_get_execution() throws Exception {
         // Arrange
         UUID workflowId = UUID.randomUUID();
@@ -95,7 +136,8 @@ class ExecutionControllerTest {
         ExecutionResponse mockResponse = new ExecutionResponse(
                 executionId,
                 workflowId,
-                new StateResponse(currentState.code(), currentState.name(), currentState.terminal())
+                new StateResponse(currentState.code(), currentState.name(), currentState.terminal()),
+                null
         );
 
         when(getExecutionUseCase.execute(any(WorkflowExecutionId.class))).thenReturn(execution);
