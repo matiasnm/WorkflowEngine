@@ -16,7 +16,9 @@ public class WorkflowResponseMapper {
     public WorkflowSummaryResponse toSummary(Workflow workflow) {
         return new WorkflowSummaryResponse(
                 workflow.getId().value(),
-                workflow.getName()
+                workflow.getName(),
+                workflow.getStates().size(),
+                workflow.getTransitions().size()
         );
     }
     

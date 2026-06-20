@@ -7,5 +7,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record WorkflowSummaryResponse(
     UUID id,
-    String name
+    String name,
+    int statesCount,
+    int transitionsCount
 ) {}
