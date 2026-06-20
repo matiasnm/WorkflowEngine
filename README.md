@@ -75,12 +75,15 @@ workflowEngine
 │   │       └── src/app/
 │   │           ├── app.config.ts     ← provideWorkflowEngine({ apiBaseUrl: ... })
 │   │           ├── app.routes.ts     ← Lazy-loaded routes
+│   │           ├── error.service.ts  ← Global error toast state
+│   │           ├── error-toast.component.ts ← Toast notification UI
 │   │           └── *-page.component  ← Routing page wrappers
 │   │
 │   ├── angular.json
 │   ├── package.json
 │   └── docs/                        ← Frontend-specific docs
-│       └── mvp.md                   ← Frontend MVP scope
+│       ├── mvp.md                   ← Frontend MVP scope
+│       └── architecture-deepening.md ← Architecture improvement roadmap
 │
 ├── docs/                            ← Cross-cutting docs (root level)
 │   ├── CONTEXT.md                   ← Domain glossary & architecture decisions
@@ -143,6 +146,10 @@ Pure domain service that:
 - **Paginated execution list** (`?page=0&size=20`)
 - **Domain event publishing** via `EventPublisher` hexagonal port + Spring Events adapter
 - **OpenAPI / Swagger UI** auto-generated docs at `/swagger-ui.html`
+- **Create workflow form** — define states, transitions, and initial state via UI
+- **Search/filter workflows** — client-side filtering by name
+- **Skeleton loading states** — shimmer placeholders during async data fetch
+- **Global error toast** — shell-level error notifications with auto-dismiss
 
 ---
 
@@ -253,7 +260,9 @@ The system is designed for layered testing:
 - **Signals-based state**: loading/error/data managed with `signal()`, `computed()` for derived state
 - **Pessimistic updates**: transition buttons show spinner + disable until API responds
 - **CSS Custom Properties**: `--we-*` design system, host app overrides via `:root`
-- **Error resilience**: inline error messages + `@Output() errorEvent` for host app integration
+- **Skeleton loading**: shimmer-based skeleton placeholders during data fetch for perceived performance
+- **Error resilience**: inline error messages + `@Output() errorEvent` for host app integration + global error toast
+- **Client-side search**: computed signal for instant client-side filtering of workflow list
 
 ---
 
@@ -268,12 +277,14 @@ The system is designed for layered testing:
 6. Query execution history (GET /executions/{id}/history)
 
 ### Via UI (frontend)
-1. Open `http://localhost:4200` — see workflow list with cards
-2. Click a workflow — see states table + transitions list
-3. Click "Start Execution" — navigates to execution view
-4. See current state displayed prominently
-5. Click a transition button — state updates + timeline refreshes
-6. Reach terminal state — see completion message
+1. Open `http://localhost:4200` — see workflow list with skeleton loading, then cards
+2. Search/filter workflows by name using the search input
+3. Click **"+ New Workflow"** — fill form with states, transitions, initial state
+4. Click a workflow card — see states table + transitions list
+5. Click **"Start Execution"** — navigates to execution view
+6. See current state displayed prominently with available transitions
+7. Click a transition button — state updates + timeline refreshes
+8. Reach terminal state — see completion message
 
 ---
 

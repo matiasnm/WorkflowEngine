@@ -38,9 +38,9 @@
 - [x] ADR: event publishing strategy (Spring Events vs Kafka)
 
 ### Frontend polish
-- [ ] Skeleton loading components (reusable shimmer pattern)
-- [ ] Shell-level error handling (global toast/snackbar)
-- [ ] Workflow list search/filter — [spec](features/frontend-polish.md)
+- [x] Skeleton loading components (reusable shimmer pattern)
+- [x] Shell-level error handling (global toast/snackbar)
+- [x] Workflow list search/filter — [spec](features/frontend-polish.md)
 
 ---
 
