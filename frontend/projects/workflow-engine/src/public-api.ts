@@ -23,5 +23,7 @@ export * from './lib/components/execution-list/execution-list.component';
 export * from './lib/components/workflow-create/workflow-create.component';
 export * from './lib/components/start-execution/start-execution.component';
 
+export * from './lib/components/all-executions/all-executions.component';
+
 // Shared UI atom components
 export * from './lib/components/ui';

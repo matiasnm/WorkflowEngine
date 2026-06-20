@@ -1,4 +1,34 @@
 <shell-error-toast />
+<nav class="shell-nav">
+  <a class="shell-nav__brand" routerLink="/">
+    <span class="shell-nav__icon" aria-hidden="true">⚡</span>
+    <span class="shell-nav__title">Workflow Engine</span>
+  </a>
+  <div class="shell-nav__links">
+    <a
+      class="shell-nav__link"
+      routerLink="/"
+      routerLinkActive="shell-nav__link--active"
+      [routerLinkActiveOptions]="{ exact: true }"
+    >
+      Workflows
+    </a>
+    <a
+      class="shell-nav__link"
+      routerLink="/executions"
+      routerLinkActive="shell-nav__link--active"
+    >
+      Executions
+    </a>
+    <a
+      class="shell-nav__link"
+      routerLink="/workflows/new"
+      routerLinkActive="shell-nav__link--active"
+    >
+      + Create
+    </a>
+  </div>
+</nav>
 <main class="shell-container">
   <router-outlet />
 </main>

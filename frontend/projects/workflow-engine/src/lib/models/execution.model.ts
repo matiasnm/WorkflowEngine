@@ -35,3 +35,11 @@ export interface ExecutionPageResponse {
   totalElements: number;
   totalPages: number;
 }
+
+export interface AllExecutionResponse {
+  id: string;
+  workflowId: string;
+  workflowName: string;
+  currentState: import('./workflow.model').StateDefinition;
+  currentStateSince?: string;
+}

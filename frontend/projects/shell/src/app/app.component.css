@@ -1,3 +1,63 @@
+.shell-nav {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 0 24px;
+  height: 56px;
+  background: var(--we-bg, #ffffff);
+  border-bottom: 1px solid var(--we-border, #e0e0e0);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  font-family: var(--we-font-family, system-ui, -apple-system, sans-serif);
+}
+
+.shell-nav__brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: var(--we-text, #212121);
+  font-weight: 700;
+  font-size: 1.05rem;
+  margin-right: auto;
+}
+
+.shell-nav__icon {
+  font-size: 1.2rem;
+}
+
+.shell-nav__links {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.shell-nav__link {
+  padding: 8px 16px;
+  border-radius: var(--we-border-radius, 8px);
+  text-decoration: none;
+  color: var(--we-text-secondary, #757575);
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: background 0.15s, color 0.15s;
+}
+
+.shell-nav__link:hover {
+  background: var(--we-bg-secondary, #f5f5f5);
+  color: var(--we-text, #212121);
+}
+
+.shell-nav__link--active {
+  color: var(--we-primary, #1976d2);
+  background: rgba(25, 118, 210, 0.08);
+  font-weight: 600;
+}
+
+.shell-nav__link--active:hover {
+  background: rgba(25, 118, 210, 0.12);
+}
+
 .shell-container {
   max-width: 960px;
   margin: 0 auto;

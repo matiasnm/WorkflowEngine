@@ -17,6 +17,11 @@ export const routes: Routes = [
     title: 'Workflow Detail',
   },
   {
+    path: 'executions',
+    loadComponent: () => import('./executions-page.component').then(m => m.ExecutionsPageComponent),
+    title: 'Executions',
+  },
+  {
     path: 'executions/:id',
     loadComponent: () => import('./execution-detail-page.component').then(m => m.ExecutionDetailPageComponent),
     title: 'Execution Detail',

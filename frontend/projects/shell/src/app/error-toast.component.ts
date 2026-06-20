@@ -23,7 +23,7 @@ import { ErrorService } from './error.service';
   styles: [`
     .shell-error-toast-container {
       position: fixed;
-      top: 16px;
+      bottom: 16px;
       right: 16px;
       z-index: 9999;
       display: flex;
@@ -49,11 +49,11 @@ import { ErrorService } from './error.service';
     @keyframes shell-toast-in {
       from {
         opacity: 0;
-        transform: translateX(100%);
+        transform: translateY(100%);
       }
       to {
         opacity: 1;
-        transform: translateX(0);
+        transform: translateY(0);
       }
     }
 

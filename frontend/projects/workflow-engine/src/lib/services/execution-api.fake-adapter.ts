@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable, of, throwError } from 'rxjs';
-import { ExecutionResponse, TransitionResponse, HistoryItem, NextStatesResponse } from '../models';
+import { ExecutionResponse, TransitionResponse, HistoryItem, NextStatesResponse, AllExecutionResponse } from '../models';
 import { ExecutionApiPort } from './execution-api.port';
 
 /**
@@ -161,6 +161,17 @@ export class ExecutionApiFakeAdapter implements ExecutionApiPort {
     }
     return of(results);
   }
+
+  listAllExecutions(): Observable<AllExecutionResponse[]> {
+    const results: AllExecutionResponse[] = [];
+    for (const execution of this.executions.values()) {
+      results.push({
+        ...execution,
+        workflowName: WORKFLOW_NAME_MAP.get(execution.workflowId) ?? 'unknown-workflow',
+      });
+    }
+    return of(results);
+  }
 }
 
 // ── Default seed data ──
@@ -220,6 +231,13 @@ const DETAIL_STATES: Record<string, { name: string; terminal: boolean }> = {
   delivered: { name: 'DELIVERED', terminal: true },
   cancelled: { name: 'CANCELLED', terminal: true },
 };
+
+/**
+ * Workflow name lookup for default seed data.
+ */
+const WORKFLOW_NAME_MAP: Map<string, string> = new Map([
+  ['d290f1ee-6c54-4b01-90e6-d701748f0851', 'simple-approval'],
+]);
 
 /**
  * Allowed next-state transitions for each state code (default seed data).
