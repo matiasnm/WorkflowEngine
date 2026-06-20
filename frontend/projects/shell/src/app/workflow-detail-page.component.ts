@@ -11,6 +11,7 @@ import { WorkflowDetailComponent } from 'workflow-engine';
     <we-workflow-detail
       [workflowId]="workflowId"
       (executionCreated)="onExecutionCreated($event)"
+      (executionSelected)="onExecutionSelected($event)"
       (back)="onBack()"
     />
   `,
@@ -25,6 +26,10 @@ export class WorkflowDetailPageComponent {
   }
 
   onExecutionCreated(executionId: string): void {
+    this.router.navigate(['/executions', executionId]);
+  }
+
+  onExecutionSelected(executionId: string): void {
     this.router.navigate(['/executions', executionId]);
   }
 

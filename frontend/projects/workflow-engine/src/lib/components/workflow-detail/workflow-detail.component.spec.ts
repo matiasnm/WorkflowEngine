@@ -31,7 +31,7 @@ describe('WorkflowDetailComponent', () => {
 
   beforeEach(async () => {
     const wfSpy = jasmine.createSpyObj('WorkflowApiService', ['getWorkflow']);
-    const execSpy = jasmine.createSpyObj('ExecutionApiService', ['startExecution']);
+    const execSpy = jasmine.createSpyObj('ExecutionApiService', ['startExecution', 'listExecutions']);
 
     await TestBed.configureTestingModule({
       imports: [WorkflowDetailComponent],
@@ -46,6 +46,8 @@ describe('WorkflowDetailComponent', () => {
   });
 
   function createComponent(): void {
+    // Ensure child ExecutionListComponent has a valid observable return
+    executionApiSpy.listExecutions.and.returnValue(of([]));
     fixture = TestBed.createComponent(WorkflowDetailComponent);
     component = fixture.componentInstance;
     fixture.componentRef.setInput('workflowId', 'uuid-1');

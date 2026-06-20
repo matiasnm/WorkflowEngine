@@ -2,11 +2,12 @@ import { Component, input, Output, EventEmitter, signal, inject, OnInit } from '
 import { WorkflowApiService } from '../../services/workflow-api.service';
 import { ExecutionApiService } from '../../services/execution-api.service';
 import { WorkflowDetail } from '../../models';
+import { ExecutionListComponent } from '../execution-list/execution-list.component';
 
 @Component({
   selector: 'we-workflow-detail',
   standalone: true,
-  imports: [],
+  imports: [ExecutionListComponent],
   template: `
     <div class="we-workflow-detail">
       <!-- Header with back button -->
@@ -110,6 +111,16 @@ import { WorkflowDetail } from '../../models';
               </div>
             }
           </div>
+
+          <!-- Executions list -->
+          <section class="we-workflow-detail__executions">
+            <h3 class="we-workflow-detail__section-title">Executions</h3>
+            <we-execution-list
+              [workflowId]="workflowId()"
+              (executionSelected)="onExecutionSelected($event)"
+              (errorEvent)="errorEvent.emit($event)"
+            />
+          </section>
         }
       }
     </div>
@@ -414,6 +425,9 @@ export class WorkflowDetailComponent implements OnInit {
   /** Emitted when an execution is successfully created, with the execution UUID. */
   @Output() executionCreated = new EventEmitter<string>();
 
+  /** Emitted when the user clicks an execution in the list. */
+  @Output() executionSelected = new EventEmitter<string>();
+
   /** Emitted when the user clicks back. */
   @Output() back = new EventEmitter<void>();
 
@@ -449,6 +463,10 @@ export class WorkflowDetailComponent implements OnInit {
         this.loading.set(false);
       },
     });
+  }
+
+  protected onExecutionSelected(executionId: string): void {
+    this.executionSelected.emit(executionId);
   }
 
   protected startExecution(): void {

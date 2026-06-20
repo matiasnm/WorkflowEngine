@@ -19,7 +19,7 @@ describe('WorkflowDetailPageComponent', () => {
           { path: 'workflows/:id', component: WorkflowDetailPageComponent },
         ]),
         { provide: WorkflowApiService, useValue: { getWorkflow: () => of({ id: 'wf-1', name: 'test', states: [], transitions: [], initialState: '' }) } },
-        { provide: ExecutionApiService, useValue: { startExecution: () => of({}) } },
+        { provide: ExecutionApiService, useValue: { startExecution: () => of({}), listExecutions: () => of([]) } },
       ],
     }).compileComponents();
 
