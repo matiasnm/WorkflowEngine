@@ -1,14 +1,14 @@
 import { Component, input, Output, EventEmitter, signal, computed, inject, DestroyRef, effect } from '@angular/core';
 import { WorkflowApiPort, WORKFLOW_API_PORT } from '../../services/workflow-api.port';
-import { ExecutionApiPort, EXECUTION_API_PORT } from '../../services/execution-api.port';
 import { asyncData, AsyncDataResult } from '../../util';
 import { WorkflowDetail } from '../../models';
 import { ExecutionListComponent } from '../execution-list/execution-list.component';
+import { StartExecutionComponent } from '../start-execution/start-execution.component';
 
 @Component({
   selector: 'we-workflow-detail',
   standalone: true,
-  imports: [ExecutionListComponent],
+  imports: [ExecutionListComponent, StartExecutionComponent],
   template: `
     <div class="we-workflow-detail">
       <!-- Header with back button -->
@@ -91,26 +91,13 @@ import { ExecutionListComponent } from '../execution-list/execution-list.compone
             </div>
           </section>
 
-          <!-- Start Execution button -->
+          <!-- Start Execution -->
           <div class="we-workflow-detail__actions">
-            <button
-              class="we-btn we-btn--start"
-              [disabled]="startingExecution()"
-              (click)="startExecution()"
-            >
-              @if (startingExecution()) {
-                <span class="we-spinner" aria-hidden="true"></span>
-                <span>Starting…</span>
-              } @else {
-                <span>▶ Start Execution</span>
-              }
-            </button>
-            @if (executionError(); as execErr) {
-              <div class="we-workflow-detail__exec-error" role="alert">
-                <span class="we-error-icon" aria-hidden="true">⚠</span>
-                <span class="we-error-text">{{ execErr }}</span>
-              </div>
-            }
+            <we-start-execution
+              [workflowId]="workflowId()"
+              (executionCreated)="onExecutionCreated($event)"
+              (errorEvent)="errorEvent.emit($event)"
+            />
           </div>
 
           <!-- Executions list -->
@@ -355,70 +342,10 @@ import { ExecutionListComponent } from '../execution-list/execution-list.compone
       flex-direction: column;
       gap: 8px;
     }
-
-    .we-btn--start {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 24px;
-      border: none;
-      border-radius: var(--we-border-radius, 8px);
-      background: var(--we-primary, #1976d2);
-      color: #ffffff;
-      font-size: 0.95rem;
-      font-weight: 600;
-      cursor: pointer;
-      font-family: inherit;
-      transition: background 0.15s, opacity 0.15s;
-      align-self: flex-start;
-    }
-
-    .we-btn--start:hover:not(:disabled) {
-      background: var(--we-primary-hover, #1565c0);
-    }
-
-    .we-btn--start:disabled {
-      opacity: 0.7;
-      cursor: not-allowed;
-    }
-
-    .we-btn--start:focus-visible {
-      outline: 2px solid var(--we-primary, #1976d2);
-      outline-offset: 2px;
-    }
-
-    /* ── Spinner ── */
-    .we-spinner {
-      display: inline-block;
-      width: 16px;
-      height: 16px;
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      border-top-color: #ffffff;
-      border-radius: 50%;
-      animation: we-spin 0.6s linear infinite;
-    }
-
-    @keyframes we-spin {
-      to { transform: rotate(360deg); }
-    }
-
-    /* ── Execution error ── */
-    .we-workflow-detail__exec-error {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 12px;
-      background: #fff3f3;
-      border: 1px solid var(--we-danger, #d32f2f);
-      border-radius: var(--we-border-radius, 8px);
-      color: var(--we-danger, #d32f2f);
-      font-size: 0.85rem;
-    }
   `],
 })
 export class WorkflowDetailComponent {
   private readonly workflowApi = inject(WORKFLOW_API_PORT);
-  private readonly executionApi = inject(EXECUTION_API_PORT);
   private readonly destroyRef = inject(DestroyRef);
 
   /** Required workflow ID to load detail for. */
@@ -448,9 +375,6 @@ export class WorkflowDetailComponent {
   /** The resolved workflow detail data, or null while loading. */
   readonly workflowData = computed(() => this.wfAsync()?.data() ?? null);
 
-  readonly startingExecution = signal(false);
-  readonly executionError = signal<string | null>(null);
-
   constructor() {
     effect(() => {
       const id = this.workflowId();
@@ -478,22 +402,8 @@ export class WorkflowDetailComponent {
     this.executionSelected.emit(executionId);
   }
 
-  protected startExecution(): void {
-    this.startingExecution.set(true);
-    this.executionError.set(null);
-
-    this.executionApi.startExecution(this.workflowId()).subscribe({
-      next: (response) => {
-        this.executionCreated.emit(response.executionId);
-        this.startingExecution.set(false);
-      },
-      error: (err) => {
-        const message = 'Failed to start execution.';
-        this.executionError.set(message);
-        this.errorEvent.emit(message);
-        this.startingExecution.set(false);
-      },
-    });
+  protected onExecutionCreated(executionId: string): void {
+    this.executionCreated.emit(executionId);
   }
 
   protected goBack(): void {
