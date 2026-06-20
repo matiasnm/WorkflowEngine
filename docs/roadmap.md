@@ -23,9 +23,6 @@
 ## v0.3 — Create Workflow UI
 
 - [ ] Create workflow form — [spec](features/workflow-create.md)
-  - [ ] [Slice 1 — API Foundation](features/slices/slice-1-api-foundation.md) (model + service)
-  - [ ] [Slice 2 — Full Create Workflow Component](features/slices/slice-2-create-workflow-component.md)
-  - [ ] [Slice 3 — Shell Integration](features/slices/slice-3-shell-integration.md)
 
 ---
 
