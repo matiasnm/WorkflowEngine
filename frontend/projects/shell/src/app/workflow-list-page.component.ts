@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { WorkflowListComponent } from 'workflow-engine';
+import { ErrorService } from './error.service';
 
 @Component({
   selector: 'shell-workflow-list-page',
@@ -12,6 +13,7 @@ import { WorkflowListComponent } from 'workflow-engine';
         <we-workflow-list
           title="Workflows"
           (workflowSelected)="onWorkflowSelected($event)"
+          (errorEvent)="onError($event)"
         />
         <a
           class="shell-btn shell-btn--primary"
@@ -69,8 +71,13 @@ import { WorkflowListComponent } from 'workflow-engine';
 })
 export class WorkflowListPageComponent {
   private readonly router = inject(Router);
+  private readonly errorService = inject(ErrorService);
 
   onWorkflowSelected(id: string): void {
     this.router.navigate(['/workflows', id]);
+  }
+
+  onError(message: string): void {
+    this.errorService.addError(message);
   }
 }

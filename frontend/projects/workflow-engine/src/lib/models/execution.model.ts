@@ -27,3 +27,11 @@ export interface NextStatesResponse {
   code: string;
   name: string;
 }
+
+export interface ExecutionPageResponse {
+  content: ExecutionResponse[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+}

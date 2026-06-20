@@ -16,4 +16,8 @@
   --we-border-radius: 8px;
   --we-spacing: 16px;
   --we-font-family: system-ui, -apple-system, sans-serif;
+
+  /* Skeleton/shimmer loading colors */
+  --we-skeleton-base: #e0e0e0;
+  --we-skeleton-shine: #f0f0f0;
 }

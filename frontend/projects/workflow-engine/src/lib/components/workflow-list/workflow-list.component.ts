@@ -1,11 +1,12 @@
-import { Component, input, Output, EventEmitter, signal, inject, OnInit } from '@angular/core';
+import { Component, input, Output, EventEmitter, signal, computed, inject, OnInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { WorkflowApiService } from '../../services/workflow-api.service';
 import { WorkflowSummary } from '../../models';
 
 @Component({
   selector: 'we-workflow-list',
   standalone: true,
-  imports: [],
+  imports: [FormsModule],
   template: `
     <div class="we-workflow-list">
       @if (title(); as t) {
@@ -35,28 +36,50 @@ import { WorkflowSummary } from '../../models';
         </div>
       }
 
-      <!-- Empty state -->
+      <!-- Success state (with data): workflow cards with search -->
+      @if (!loading() && !error() && workflows().length > 0) {
+        <!-- Search input -->
+        <div class="we-workflow-list__search">
+          <input
+            class="we-input we-input--search"
+            type="search"
+            placeholder="Search workflows..."
+            [ngModel]="searchQuery()"
+            (ngModelChange)="searchQuery.set($event)"
+            aria-label="Search workflows"
+          />
+        </div>
+
+        <!-- Filtered empty state -->
+        @if (filteredWorkflows().length === 0) {
+          <div class="we-workflow-list__search-empty">
+            <p>No workflows match '{{ searchQuery() }}'</p>
+          </div>
+        }
+
+        <!-- Workflow cards -->
+        @if (filteredWorkflows().length > 0) {
+          <div class="we-workflow-list__cards">
+            @for (wf of filteredWorkflows(); track wf.id) {
+              <button
+                class="we-workflow-card"
+                (click)="selectWorkflow(wf.id)"
+                [attr.aria-label]="'View workflow ' + wf.name"
+              >
+                <span class="we-workflow-card__name">{{ wf.name }}</span>
+                <span class="we-workflow-card__summary">
+                  {{ wf.statesCount ?? '?' }} states · {{ wf.transitionsCount ?? '?' }} transitions
+                </span>
+              </button>
+            }
+          </div>
+        }
+      }
+
+      <!-- Empty state (no workflows at all) -->
       @if (!loading() && !error() && workflows().length === 0) {
         <div class="we-workflow-list__empty">
           <p>No workflows found. Create one via the API.</p>
-        </div>
-      }
-
-      <!-- Success state: workflow cards -->
-      @if (!loading() && !error() && workflows().length > 0) {
-        <div class="we-workflow-list__cards">
-          @for (wf of workflows(); track wf.id) {
-            <button
-              class="we-workflow-card"
-              (click)="selectWorkflow(wf.id)"
-              [attr.aria-label]="'View workflow ' + wf.name"
-            >
-              <span class="we-workflow-card__name">{{ wf.name }}</span>
-              <span class="we-workflow-card__summary">
-                {{ wf.statesCount ?? '?' }} states · {{ wf.transitionsCount ?? '?' }} transitions
-              </span>
-            </button>
-          }
         </div>
       }
     </div>
@@ -74,6 +97,42 @@ import { WorkflowSummary } from '../../models';
       font-weight: 600;
       color: var(--we-text, #212121);
       margin: 0 0 var(--we-spacing, 16px);
+    }
+
+    /* ── Search input ── */
+    .we-workflow-list__search {
+      margin-bottom: var(--we-spacing-md, 16px);
+    }
+
+    .we-input--search {
+      width: 100%;
+      max-width: 400px;
+      padding: 8px 12px;
+      border: 1px solid var(--we-border-color, #ccc);
+      border-radius: var(--we-border-radius, 4px);
+      font-family: inherit;
+      font-size: 0.9rem;
+      box-sizing: border-box;
+    }
+
+    .we-input--search:focus {
+      outline: none;
+      border-color: var(--we-primary, #1976d2);
+      box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.12);
+    }
+
+    .we-workflow-list__search-empty {
+      text-align: center;
+      padding: 32px 16px;
+      color: var(--we-text-secondary, #757575);
+      border: 1px dashed var(--we-border, #e0e0e0);
+      border-radius: var(--we-border-radius, 8px);
+      margin-bottom: var(--we-spacing, 16px);
+    }
+
+    .we-workflow-list__search-empty p {
+      margin: 0;
+      font-size: 0.95rem;
     }
 
     /* ── Skeleton / Shimmer ── */
@@ -238,6 +297,16 @@ export class WorkflowListComponent implements OnInit {
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
   readonly workflows = signal<WorkflowSummary[]>([]);
+  readonly searchQuery = signal<string>('');
+
+  /** Computed: client-side filtered workflows by name (case-insensitive). */
+  readonly filteredWorkflows = computed(() => {
+    const query = this.searchQuery().toLowerCase();
+    if (!query) return this.workflows();
+    return this.workflows().filter(w =>
+      w.name.toLowerCase().includes(query)
+    );
+  });
 
   ngOnInit(): void {
     this.loadWorkflows();

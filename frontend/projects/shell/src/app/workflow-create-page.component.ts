@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { WorkflowCreateComponent } from 'workflow-engine';
+import { ErrorService } from './error.service';
 
 @Component({
   selector: 'shell-workflow-create-page',
@@ -16,6 +17,7 @@ import { WorkflowCreateComponent } from 'workflow-engine';
 })
 export class WorkflowCreatePageComponent {
   private readonly router = inject(Router);
+  private readonly errorService = inject(ErrorService);
 
   onWorkflowCreated(workflowId: string): void {
     this.router.navigate(['/workflows', workflowId]);
@@ -25,8 +27,7 @@ export class WorkflowCreatePageComponent {
     this.router.navigate(['/']);
   }
 
-  onError(_error: string): void {
-    // In a production app, this could show a toast notification.
-    // For the shell app, the inline error in the component is sufficient.
+  onError(message: string): void {
+    this.errorService.addError(message);
   }
 }

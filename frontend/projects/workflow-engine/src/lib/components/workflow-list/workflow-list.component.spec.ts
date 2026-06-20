@@ -4,6 +4,7 @@ import { Subject, of, throwError } from 'rxjs';
 import { WorkflowListComponent } from './workflow-list.component';
 import { WorkflowApiService } from '../../services/workflow-api.service';
 import { WorkflowSummary } from '../../models';
+import { FormsModule } from '@angular/forms';
 
 describe('WorkflowListComponent', () => {
   let component: WorkflowListComponent;
@@ -208,6 +209,112 @@ describe('WorkflowListComponent', () => {
 
       expect(emitted).toEqual(['Failed to load workflows.']);
       sub.unsubscribe();
+    });
+  });
+
+  // ═══════════════════════════════════════════════════════════
+  //  SEARCH / FILTER
+  // ═══════════════════════════════════════════════════════════
+
+  describe('search/filter', () => {
+    beforeEach(() => {
+      apiServiceSpy.listWorkflows.and.returnValue(of(mockWorkflows));
+      createComponent();
+      fixture.detectChanges();
+    });
+
+    it('should render search input in the component', () => {
+      const searchInput = fixture.nativeElement.querySelector('.we-input--search');
+      expect(searchInput).toBeTruthy();
+      expect(searchInput.getAttribute('type')).toBe('search');
+      expect(searchInput.getAttribute('aria-label')).toBe('Search workflows');
+      expect(searchInput.getAttribute('placeholder')).toBe('Search workflows...');
+    });
+
+    it('should show all workflows when search query is empty', () => {
+      const cards = fixture.nativeElement.querySelectorAll('.we-workflow-card');
+      expect(cards.length).toBe(2);
+    });
+
+    it('should filter workflows by name (case-insensitive)', () => {
+      // Type a search query
+      const searchInput = fixture.nativeElement.querySelector('.we-input--search');
+      searchInput.value = 'simple';
+      searchInput.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+
+      const cards = fixture.nativeElement.querySelectorAll('.we-workflow-card');
+      expect(cards.length).toBe(1);
+      expect(cards[0].textContent).toContain('simple-approval');
+    });
+
+    it('should show "No workflows match" message when no matches', () => {
+      const searchInput = fixture.nativeElement.querySelector('.we-input--search');
+      searchInput.value = 'nonexistent';
+      searchInput.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+
+      const cards = fixture.nativeElement.querySelectorAll('.we-workflow-card');
+      expect(cards.length).toBe(0);
+
+      const emptyMsg = fixture.nativeElement.querySelector('.we-workflow-list__search-empty');
+      expect(emptyMsg).toBeTruthy();
+      expect(emptyMsg.textContent).toContain("No workflows match 'nonexistent'");
+    });
+
+    it('should be case-insensitive (uppercase query matches lowercase name)', () => {
+      const searchInput = fixture.nativeElement.querySelector('.we-input--search');
+      searchInput.value = 'SIMple';
+      searchInput.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+
+      const cards = fixture.nativeElement.querySelectorAll('.we-workflow-card');
+      expect(cards.length).toBe(1);
+      expect(cards[0].textContent).toContain('simple-approval');
+    });
+
+    it('should show all workflows when search is cleared', () => {
+      // First, filter to one result
+      const searchInput = fixture.nativeElement.querySelector('.we-input--search');
+      searchInput.value = 'simple';
+      searchInput.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelectorAll('.we-workflow-card').length).toBe(1);
+
+      // Clear search
+      searchInput.value = '';
+      searchInput.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+
+      const cards = fixture.nativeElement.querySelectorAll('.we-workflow-card');
+      expect(cards.length).toBe(2);
+    });
+
+    it('should preserve search query state across loading transition', () => {
+      // Set a search query first
+      const searchInput = fixture.nativeElement.querySelector('.we-input--search');
+      searchInput.value = 'simple';
+      searchInput.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+      expect(component.searchQuery()).toBe('simple');
+
+      // Simulate reload (loading → success transition)
+      component.loading.set(true);
+      fixture.detectChanges();
+
+      // Loading state hides cards — that's expected
+      expect(fixture.nativeElement.querySelector('.we-workflow-list__skeleton')).toBeTruthy();
+
+      // Complete loading
+      component.loading.set(false);
+      fixture.detectChanges();
+
+      // Search query should still be 'simple'
+      expect(component.searchQuery()).toBe('simple');
+      // Filter should still apply
+      const cards = fixture.nativeElement.querySelectorAll('.we-workflow-card');
+      expect(cards.length).toBe(1);
+      expect(cards[0].textContent).toContain('simple-approval');
     });
   });
 });

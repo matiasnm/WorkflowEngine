@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { ExecutionApiService } from './execution-api.service';
 import { WORKFLOW_ENGINE_CONFIG } from '../config/workflow-engine.config';
-import { ExecutionResponse, TransitionResponse, HistoryItem, NextStatesResponse } from '../models';
+import { ExecutionResponse, TransitionResponse, HistoryItem, NextStatesResponse, ExecutionPageResponse } from '../models';
 
 describe('ExecutionApiService', () => {
   let service: ExecutionApiService;
@@ -165,35 +165,50 @@ describe('ExecutionApiService', () => {
   });
 
   describe('listExecutions()', () => {
-    it('should call GET /workflows/{id}/executions and return ExecutionResponse[]', () => {
+    const mockExecutions: ExecutionResponse[] = [
+      {
+        id: 'exec-uuid-1',
+        workflowId: 'wf-uuid-1',
+        currentState: { code: 'created', name: 'CREATED', terminal: false },
+        currentStateSince: '2026-06-19T10:00:00Z',
+      },
+      {
+        id: 'exec-uuid-2',
+        workflowId: 'wf-uuid-1',
+        currentState: { code: 'in_review', name: 'IN_REVIEW', terminal: false },
+        currentStateSince: '2026-06-19T10:05:00Z',
+      },
+    ];
+
+    it('should call GET /workflows/{id}/executions and return ExecutionResponse[] from page content', () => {
       const workflowId = 'wf-uuid-1';
-      const mockResponse: ExecutionResponse[] = [
-        {
-          id: 'exec-uuid-1',
-          workflowId,
-          currentState: { code: 'created', name: 'CREATED', terminal: false },
-          currentStateSince: '2026-06-19T10:00:00Z',
-        },
-        {
-          id: 'exec-uuid-2',
-          workflowId,
-          currentState: { code: 'in_review', name: 'IN_REVIEW', terminal: false },
-          currentStateSince: '2026-06-19T10:05:00Z',
-        },
-      ];
+      const mockPageResponse: ExecutionPageResponse = {
+        content: mockExecutions,
+        page: 0,
+        size: 20,
+        totalElements: 2,
+        totalPages: 1,
+      };
 
       service.listExecutions(workflowId).subscribe((response) => {
-        expect(response).toEqual(mockResponse);
+        expect(response).toEqual(mockExecutions);
         expect(response.length).toBe(2);
       });
 
       const req = httpMock.expectOne(`${apiBaseUrl}/workflows/${workflowId}/executions`);
       expect(req.request.method).toBe('GET');
-      req.flush(mockResponse);
+      req.flush(mockPageResponse);
     });
 
     it('should return an empty array when no executions exist', () => {
       const workflowId = 'wf-uuid-1';
+      const emptyPage: ExecutionPageResponse = {
+        content: [],
+        page: 0,
+        size: 20,
+        totalElements: 0,
+        totalPages: 0,
+      };
 
       service.listExecutions(workflowId).subscribe((response) => {
         expect(response).toEqual([]);
@@ -201,7 +216,7 @@ describe('ExecutionApiService', () => {
 
       const req = httpMock.expectOne(`${apiBaseUrl}/workflows/${workflowId}/executions`);
       expect(req.request.method).toBe('GET');
-      req.flush([]);
+      req.flush(emptyPage);
     });
   });
 

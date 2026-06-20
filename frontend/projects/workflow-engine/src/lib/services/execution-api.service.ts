@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { ExecutionResponse, TransitionResponse, HistoryItem, NextStatesResponse } from '../models';
+import { Observable, map } from 'rxjs';
+import { ExecutionResponse, TransitionResponse, HistoryItem, NextStatesResponse, ExecutionPageResponse } from '../models';
 import { WORKFLOW_ENGINE_CONFIG } from '../config/workflow-engine.config';
 
 @Injectable({
@@ -42,8 +42,8 @@ export class ExecutionApiService {
   }
 
   listExecutions(workflowId: string): Observable<ExecutionResponse[]> {
-    return this.http.get<ExecutionResponse[]>(
+    return this.http.get<ExecutionPageResponse>(
       `${this.config.apiBaseUrl}/workflows/${workflowId}/executions`
-    );
+    ).pipe(map(page => page.content));
   }
 }
