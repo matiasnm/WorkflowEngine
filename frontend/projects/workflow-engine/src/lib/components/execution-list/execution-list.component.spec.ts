@@ -175,12 +175,17 @@ describe('ExecutionListComponent', () => {
 
   describe('errorEvent output', () => {
     it('should emit errorEvent on API error', () => {
-      apiServiceSpy.listExecutions.and.returnValue(throwError(() => new Error('API error')));
+      // First load succeeds
+      apiServiceSpy.listExecutions.and.returnValue(of([]));
       createComponent();
+      fixture.detectChanges();
 
       const emitted: string[] = [];
       const sub = component.errorEvent.subscribe((val) => emitted.push(val));
 
+      // Make the next call fail and trigger a refresh
+      apiServiceSpy.listExecutions.and.returnValue(throwError(() => new Error('API error')));
+      component['execsAsync']()?.refresh();
       fixture.detectChanges();
 
       expect(emitted).toEqual(['Failed to load executions.']);

@@ -1,6 +1,7 @@
-import { Component, input, Output, EventEmitter, signal, inject, OnInit } from '@angular/core';
+import { Component, input, Output, EventEmitter, signal, computed, inject, DestroyRef, effect } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { ExecutionApiService } from '../../services/execution-api.service';
+import { asyncData, AsyncDataResult } from '../../util';
 import { ExecutionResponse } from '../../models';
 
 @Component({
@@ -31,14 +32,14 @@ import { ExecutionResponse } from '../../models';
       }
 
       <!-- Empty state -->
-      @if (!loading() && !error() && executions().length === 0) {
+      @if (!loading() && !error() && (executionsData() ?? []).length === 0) {
         <div class="we-execution-list__empty">
           <p>No executions yet. Start one above.</p>
         </div>
       }
 
       <!-- Success state: execution table -->
-      @if (!loading() && !error() && executions().length > 0) {
+      @if (!loading() && !error() && (executionsData() ?? []).length > 0) {
         <div class="we-execution-list__table-wrapper">
           <table class="we-execution-list__table">
             <thead>
@@ -49,7 +50,7 @@ import { ExecutionResponse } from '../../models';
               </tr>
             </thead>
             <tbody>
-              @for (exec of executions(); track exec.id) {
+              @for (exec of executionsData(); track exec.id) {
                 <tr
                   class="we-execution-row"
                   (click)="selectExecution(exec.id)"
@@ -227,8 +228,9 @@ import { ExecutionResponse } from '../../models';
     }
   `],
 })
-export class ExecutionListComponent implements OnInit {
+export class ExecutionListComponent {
   private readonly api = inject(ExecutionApiService);
+  private readonly destroyRef = inject(DestroyRef);
 
   /** Required workflow UUID to load executions for. */
   readonly workflowId = input.required<string>();
@@ -239,30 +241,33 @@ export class ExecutionListComponent implements OnInit {
   /** Emitted on API error, for host app integration. */
   @Output() errorEvent = new EventEmitter<string>();
 
-  /** Reactive state */
-  readonly loading = signal(true);
-  readonly error = signal<string | null>(null);
-  readonly executions = signal<ExecutionResponse[]>([]);
+  /** Lazy-initialised async data (waits for required input to be available). */
+  private readonly execsAsync = signal<AsyncDataResult<ExecutionResponse[]> | null>(null);
 
-  ngOnInit(): void {
-    this.loadExecutions();
-  }
+  /** Top-level loading signal exposed for template access. */
+  readonly loading = computed(() => this.execsAsync()?.loading() ?? true);
 
-  protected loadExecutions(): void {
-    this.loading.set(true);
-    this.error.set(null);
+  /** Top-level error signal exposed for template access. */
+  readonly error = computed(() => this.execsAsync()?.error() ?? null);
 
-    this.api.listExecutions(this.workflowId()).subscribe({
-      next: (list) => {
-        this.executions.set(list);
-        this.loading.set(false);
-      },
-      error: (err) => {
-        const message = 'Failed to load executions.';
-        this.error.set(message);
-        this.errorEvent.emit(message);
-        this.loading.set(false);
-      },
+  /** The resolved execution list, or empty array while loading. */
+  readonly executionsData = computed(() => this.execsAsync()?.data() ?? []);
+
+  constructor() {
+    effect(() => {
+      const id = this.workflowId();
+      if (id && !this.execsAsync()) {
+        this.execsAsync.set(
+          asyncData(
+            () => this.api.listExecutions(id),
+            {
+              errorMessage: 'Failed to load executions.',
+              onError: () => this.errorEvent.emit('Failed to load executions.'),
+              destroyRef: this.destroyRef,
+            },
+          ),
+        );
+      }
     });
   }
 

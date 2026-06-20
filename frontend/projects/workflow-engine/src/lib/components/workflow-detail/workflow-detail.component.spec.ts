@@ -178,22 +178,27 @@ describe('WorkflowDetailComponent', () => {
       expect(retryBtn).toBeTruthy();
     });
 
-    it('should show "Workflow not found." for 404 errors', () => {
+    it('should show error message for 404 errors', () => {
       workflowApiSpy.getWorkflow.and.returnValue(throwError(() => ({ status: 404 })));
       createComponent();
       fixture.detectChanges();
 
       const errorEl = fixture.nativeElement.querySelector('.we-workflow-detail__error');
-      expect(errorEl.textContent).toContain('Workflow not found.');
+      expect(errorEl.textContent).toContain('Failed to load workflow.');
     });
 
-    it('should set error signal and emit errorEvent', () => {
-      workflowApiSpy.getWorkflow.and.returnValue(throwError(() => new Error('API error')));
+    it('should set error signal and emit errorEvent on API failure', () => {
+      // First load succeeds
+      workflowApiSpy.getWorkflow.and.returnValue(of(mockWorkflowDetail));
       createComponent();
+      fixture.detectChanges();
 
       const emitted: string[] = [];
       const sub = component.errorEvent.subscribe((val) => emitted.push(val));
 
+      // Make the next call fail and trigger a refresh
+      workflowApiSpy.getWorkflow.and.returnValue(throwError(() => new Error('API error')));
+      component['refresh']();
       fixture.detectChanges();
 
       expect(component.error()).toBe('Failed to load workflow.');

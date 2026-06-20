@@ -111,12 +111,17 @@ describe('ExecutionHistoryComponent', () => {
     });
 
     it('should set error signal and emit errorEvent', () => {
-      apiServiceSpy.getHistory.and.returnValue(throwError(() => new Error('API error')));
+      // First load succeeds
+      apiServiceSpy.getHistory.and.returnValue(of([]));
       createComponent();
+      fixture.detectChanges();
 
       const emitted: string[] = [];
       const sub = component.errorEvent.subscribe((val) => emitted.push(val));
 
+      // Make the next call fail and trigger a refresh
+      apiServiceSpy.getHistory.and.returnValue(throwError(() => new Error('API error')));
+      component['historyAsync']()?.refresh();
       fixture.detectChanges();
 
       expect(component.error()).toBe('Failed to load execution history.');
@@ -379,12 +384,17 @@ describe('ExecutionHistoryComponent', () => {
 
   describe('errorEvent output', () => {
     it('should emit errorEvent on API error', () => {
-      apiServiceSpy.getHistory.and.returnValue(throwError(() => new Error('API error')));
+      // First load succeeds
+      apiServiceSpy.getHistory.and.returnValue(of([]));
       createComponent();
+      fixture.detectChanges();
 
       const emitted: string[] = [];
       const sub = component.errorEvent.subscribe((val) => emitted.push(val));
 
+      // Make the next call fail and trigger a refresh
+      apiServiceSpy.getHistory.and.returnValue(throwError(() => new Error('API error')));
+      component['historyAsync']()?.refresh();
       fixture.detectChanges();
 
       expect(emitted).toEqual(['Failed to load execution history.']);

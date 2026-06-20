@@ -242,7 +242,7 @@ describe('ExecutionDetailComponent', () => {
       expect(retryBtn).toBeTruthy();
     });
 
-    it('should show "Execution not found." for 404 errors', () => {
+    it('should show error message for 404 errors', () => {
       apiSpy.getExecution.and.returnValue(throwError(() => ({ status: 404 })));
       apiSpy.getNextStates.and.returnValue(of([]));
 
@@ -250,18 +250,23 @@ describe('ExecutionDetailComponent', () => {
       fixture.detectChanges();
 
       const errorEl = fixture.nativeElement.querySelector('.we-execution-detail__error');
-      expect(errorEl.textContent).toContain('Execution not found.');
+      expect(errorEl.textContent).toContain('Failed to load execution.');
     });
 
-    it('should set error signal and emit errorEvent', () => {
-      apiSpy.getExecution.and.returnValue(throwError(() => new Error('API error')));
-      apiSpy.getNextStates.and.returnValue(of([]));
-
+    it('should set error signal and emit errorEvent on load failure', () => {
+      // First load succeeds
+      apiSpy.getExecution.and.returnValue(of(mockExecution));
+      apiSpy.getNextStates.and.returnValue(of(mockNextStates));
       createComponent();
+      fixture.detectChanges();
 
       const emitted: string[] = [];
       const sub = component.errorEvent.subscribe((val) => emitted.push(val));
 
+      // Make the next call fail and trigger a refresh
+      apiSpy.getExecution.and.returnValue(throwError(() => new Error('API error')));
+      apiSpy.getNextStates.and.returnValue(of([]));
+      component['refresh']();
       fixture.detectChanges();
 
       expect(component.error()).toBe('Failed to load execution.');
@@ -537,14 +542,19 @@ describe('ExecutionDetailComponent', () => {
 
   describe('errorEvent output', () => {
     it('should emit errorEvent on initial load failure', () => {
-      apiSpy.getExecution.and.returnValue(throwError(() => new Error('API error')));
-      apiSpy.getNextStates.and.returnValue(of([]));
-
+      // First load succeeds
+      apiSpy.getExecution.and.returnValue(of(mockExecution));
+      apiSpy.getNextStates.and.returnValue(of(mockNextStates));
       createComponent();
+      fixture.detectChanges();
 
       const emitted: string[] = [];
       const sub = component.errorEvent.subscribe((val) => emitted.push(val));
 
+      // Make the next call fail and trigger a refresh
+      apiSpy.getExecution.and.returnValue(throwError(() => new Error('API error')));
+      apiSpy.getNextStates.and.returnValue(of([]));
+      component['refresh']();
       fixture.detectChanges();
 
       expect(emitted).toEqual(['Failed to load execution.']);

@@ -1,6 +1,7 @@
-import { Component, input, Output, EventEmitter, signal, computed, inject, OnInit } from '@angular/core';
+import { Component, input, Output, EventEmitter, signal, computed, inject, DestroyRef, effect } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { ExecutionApiService } from '../../services/execution-api.service';
+import { asyncData, AsyncDataResult } from '../../util';
 import { HistoryItem } from '../../models';
 
 @Component({
@@ -50,12 +51,12 @@ import { HistoryItem } from '../../models';
       }
 
       <!-- ── Empty state ── -->
-      @if (!loading() && !error() && history().length === 0) {
+      @if (!loading() && !error() && (historyData() ?? []).length === 0) {
         <p class="we-history-empty">No history available</p>
       }
 
       <!-- ── Success states ── -->
-      @if (!loading() && !error() && history().length > 0; as _) {
+      @if (!loading() && !error() && (historyData() ?? []).length > 0; as _) {
 
         <!-- ══════ VERTICAL MODE ══════ -->
         @if (displayMode() === 'vertical') {
@@ -69,7 +70,7 @@ import { HistoryItem } from '../../models';
             <div class="we-timeline__connector" aria-hidden="true"></div>
 
             <!-- History transition items -->
-            @for (item of history(); track $index; let last = $last) {
+            @for (item of historyData(); track $index; let last = $last) {
               <div class="we-timeline__transition">
                 <span class="we-timeline__dot" aria-hidden="true">●</span>
                 <div class="we-timeline__transition-body">
@@ -94,7 +95,7 @@ import { HistoryItem } from '../../models';
               <div class="we-timeline__initial-body">
                 <span class="we-timeline__state-name">{{ initialState()?.name }}</span>
                 <div class="we-timeline__timestamp">
-                  {{ history()[0].timestamp | date:'yyyy-MM-dd h:mm a' }}
+                  {{ (historyData() ?? [])[0].timestamp | date:'yyyy-MM-dd h:mm a' }}
                 </div>
               </div>
             </div>
@@ -445,8 +446,9 @@ import { HistoryItem } from '../../models';
     }
   `],
 })
-export class ExecutionHistoryComponent implements OnInit {
+export class ExecutionHistoryComponent {
   private readonly api = inject(ExecutionApiService);
+  private readonly destroyRef = inject(DestroyRef);
 
   /** Required execution ID to load history for. */
   readonly executionId = input.required<string>();
@@ -457,30 +459,37 @@ export class ExecutionHistoryComponent implements OnInit {
   /** Emitted when an error occurs, so the host app can react (toast, etc.). */
   @Output() errorEvent = new EventEmitter<string>();
 
-  /** Reactive state */
-  readonly loading = signal(true);
-  readonly error = signal<string | null>(null);
-  readonly history = signal<HistoryItem[]>([]);
+  /** Lazy-initialised async data (waits for required input to be available). */
+  private readonly historyAsync = signal<AsyncDataResult<HistoryItem[]> | null>(null);
+
+  /** Top-level loading signal exposed for template access. */
+  readonly loading = computed(() => this.historyAsync()?.loading() ?? true);
+
+  /** Top-level error signal exposed for template access. */
+  readonly error = computed(() => this.historyAsync()?.error() ?? null);
+
+  /** The resolved history data, or null while loading. */
+  readonly historyData = computed(() => this.historyAsync()?.data() ?? null);
 
   /** Derived: current state (toState of the last history item). */
   protected readonly currentState = computed(() => {
-    const items = this.history();
-    if (items.length === 0) return null;
+    const items = this.historyData();
+    if (!items || items.length === 0) return null;
     const last = items[items.length - 1];
     return { code: last.toStateCode, name: last.toStateName };
   });
 
   /** Derived: initial state (fromState of the first history item). */
   protected readonly initialState = computed(() => {
-    const items = this.history();
-    if (items.length === 0) return null;
+    const items = this.historyData();
+    if (!items || items.length === 0) return null;
     return { code: items[0].fromStateCode, name: items[0].fromStateName };
   });
 
   /** Derived: flat steps for horizontal mode display. */
   protected readonly horizontalSteps = computed(() => {
-    const items = this.history();
-    if (items.length === 0) return [];
+    const items = this.historyData();
+    if (!items || items.length === 0) return [];
 
     const steps: Array<{
       name: string;
@@ -514,26 +523,26 @@ export class ExecutionHistoryComponent implements OnInit {
     return steps;
   });
 
-  ngOnInit(): void {
-    this.loadHistory();
+  constructor() {
+    effect(() => {
+      const id = this.executionId();
+      if (id && !this.historyAsync()) {
+        this.historyAsync.set(
+          asyncData(
+            () => this.api.getHistory(id),
+            {
+              errorMessage: 'Failed to load execution history.',
+              onError: () => this.errorEvent.emit('Failed to load execution history.'),
+              destroyRef: this.destroyRef,
+            },
+          ),
+        );
+      }
+    });
   }
 
   /** Reloads history from the API. Public so the parent can call it after a transition. */
   loadHistory(): void {
-    this.loading.set(true);
-    this.error.set(null);
-
-    this.api.getHistory(this.executionId()).subscribe({
-      next: (items) => {
-        this.history.set(items);
-        this.loading.set(false);
-      },
-      error: (err) => {
-        const message = 'Failed to load execution history.';
-        this.error.set(message);
-        this.errorEvent.emit(message);
-        this.loading.set(false);
-      },
-    });
+    this.historyAsync()?.refresh();
   }
 }

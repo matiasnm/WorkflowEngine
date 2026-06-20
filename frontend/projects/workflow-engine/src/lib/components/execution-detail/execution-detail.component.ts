@@ -1,7 +1,8 @@
-import { Component, input, Output, EventEmitter, signal, inject, OnInit, ViewChild } from '@angular/core';
+import { Component, input, Output, EventEmitter, signal, computed, inject, ViewChild, DestroyRef, effect } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { forkJoin } from 'rxjs';
 import { ExecutionApiService } from '../../services/execution-api.service';
+import { asyncData, AsyncDataResult } from '../../util';
 import { ExecutionHistoryComponent } from '../execution-history/execution-history.component';
 import { ExecutionResponse, NextStatesResponse, TransitionResponse } from '../../models';
 
@@ -60,7 +61,7 @@ import { ExecutionResponse, NextStatesResponse, TransitionResponse } from '../..
         <div class="we-execution-detail__error" role="alert">
           <span class="we-error-icon" aria-hidden="true">⚠</span>
           <span class="we-error-text">{{ err }}</span>
-          <button class="we-btn we-btn--retry" (click)="loadExecution()">
+          <button class="we-btn we-btn--retry" (click)="refresh()">
             Retry
           </button>
         </div>
@@ -538,8 +539,9 @@ import { ExecutionResponse, NextStatesResponse, TransitionResponse } from '../..
     }
   `],
 })
-export class ExecutionDetailComponent implements OnInit {
+export class ExecutionDetailComponent {
   private readonly api = inject(ExecutionApiService);
+  private readonly destroyRef = inject(DestroyRef);
 
   /** Required execution ID to load detail for. */
   readonly executionId = input.required<string>();
@@ -553,9 +555,17 @@ export class ExecutionDetailComponent implements OnInit {
   /** Emitted when an error occurs, so the host app can react (toast, etc.). */
   @Output() errorEvent = new EventEmitter<string>();
 
-  /** Reactive state */
-  readonly loading = signal(true);
-  readonly error = signal<string | null>(null);
+  /** Lazy-initialised async data (waits for required input to be available). */
+  private readonly execAsync = signal<AsyncDataResult<{ execution: ExecutionResponse; nextStates: NextStatesResponse[] }> | null>(null);
+
+  /** Top-level loading signal exposed for template access. */
+  readonly loading = computed(() => this.execAsync()?.loading() ?? true);
+
+  /** Top-level error signal exposed for template access. */
+  readonly error = computed(() => this.execAsync()?.error() ?? null);
+
+  /** Individual data signals — synced from execAsync on initial load,
+   *  also updated by post-transition refresh (refreshExecutionAndStates). */
   readonly execution = signal<ExecutionResponse | null>(null);
   readonly nextStates = signal<NextStatesResponse[]>([]);
   readonly transitioning = signal<string | null>(null);
@@ -571,32 +581,39 @@ export class ExecutionDetailComponent implements OnInit {
     return id.substring(0, 4) + '...';
   }
 
-  ngOnInit(): void {
-    this.loadExecution();
+  constructor() {
+    effect(() => {
+      const id = this.executionId();
+      if (id && !this.execAsync()) {
+        this.execAsync.set(
+          asyncData(
+            () => forkJoin({
+              execution: this.api.getExecution(id),
+              nextStates: this.api.getNextStates(id),
+            }),
+            {
+              errorMessage: 'Failed to load execution.',
+              onError: () => this.errorEvent.emit('Failed to load execution.'),
+              destroyRef: this.destroyRef,
+            },
+          ),
+        );
+      }
+    });
+
+    // Sync asyncData emissions into the writable data signals
+    effect(() => {
+      const data = this.execAsync()?.data();
+      if (data) {
+        this.execution.set(data.execution);
+        this.nextStates.set(data.nextStates);
+      }
+    });
   }
 
-  protected loadExecution(): void {
-    this.loading.set(true);
-    this.error.set(null);
-
-    forkJoin({
-      execution: this.api.getExecution(this.executionId()),
-      nextStates: this.api.getNextStates(this.executionId()),
-    }).subscribe({
-      next: ({ execution, nextStates }) => {
-        this.execution.set(execution);
-        this.nextStates.set(nextStates);
-        this.loading.set(false);
-      },
-      error: (err) => {
-        const message = err.status === 404
-          ? 'Execution not found.'
-          : 'Failed to load execution.';
-        this.error.set(message);
-        this.errorEvent.emit(message);
-        this.loading.set(false);
-      },
-    });
+  /** Retry / refresh. */
+  protected refresh(): void {
+    this.execAsync()?.refresh();
   }
 
   protected executeTransition(targetStateCode: string): void {

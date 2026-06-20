@@ -1,6 +1,7 @@
-import { Component, input, Output, EventEmitter, signal, inject, OnInit } from '@angular/core';
+import { Component, input, Output, EventEmitter, signal, computed, inject, DestroyRef, effect } from '@angular/core';
 import { WorkflowApiService } from '../../services/workflow-api.service';
 import { ExecutionApiService } from '../../services/execution-api.service';
+import { asyncData, AsyncDataResult } from '../../util';
 import { WorkflowDetail } from '../../models';
 import { ExecutionListComponent } from '../execution-list/execution-list.component';
 
@@ -36,7 +37,7 @@ import { ExecutionListComponent } from '../execution-list/execution-list.compone
         <div class="we-workflow-detail__error" role="alert">
           <span class="we-error-icon" aria-hidden="true">⚠</span>
           <span class="we-error-text">{{ err }}</span>
-          <button class="we-btn we-btn--retry" (click)="loadWorkflow()">
+          <button class="we-btn we-btn--retry" (click)="refresh()">
             Retry
           </button>
         </div>
@@ -44,7 +45,7 @@ import { ExecutionListComponent } from '../execution-list/execution-list.compone
 
       <!-- Success state: workflow detail -->
       @if (!loading() && !error(); as _) {
-        @let wf = workflow();
+        @let wf = workflowData();
         @if (wf) {
           <h2 class="we-workflow-detail__name">{{ wf.name }}</h2>
 
@@ -415,9 +416,10 @@ import { ExecutionListComponent } from '../execution-list/execution-list.compone
     }
   `],
 })
-export class WorkflowDetailComponent implements OnInit {
+export class WorkflowDetailComponent {
   private readonly workflowApi = inject(WorkflowApiService);
   private readonly executionApi = inject(ExecutionApiService);
+  private readonly destroyRef = inject(DestroyRef);
 
   /** Required workflow ID to load detail for. */
   readonly workflowId = input.required<string>();
@@ -434,35 +436,42 @@ export class WorkflowDetailComponent implements OnInit {
   /** Emitted when an error occurs, so the host app can react (toast, etc.). */
   @Output() errorEvent = new EventEmitter<string>();
 
-  /** Reactive state */
-  readonly loading = signal(true);
-  readonly error = signal<string | null>(null);
-  readonly workflow = signal<WorkflowDetail | null>(null);
+  /** Lazy-initialised async data (waits for required input to be available). */
+  private readonly wfAsync = signal<AsyncDataResult<WorkflowDetail> | null>(null);
+
+  /** Top-level loading signal exposed for template access. */
+  readonly loading = computed(() => this.wfAsync()?.loading() ?? true);
+
+  /** Top-level error signal exposed for template access. */
+  readonly error = computed(() => this.wfAsync()?.error() ?? null);
+
+  /** The resolved workflow detail data, or null while loading. */
+  readonly workflowData = computed(() => this.wfAsync()?.data() ?? null);
+
   readonly startingExecution = signal(false);
   readonly executionError = signal<string | null>(null);
 
-  ngOnInit(): void {
-    this.loadWorkflow();
+  constructor() {
+    effect(() => {
+      const id = this.workflowId();
+      if (id && !this.wfAsync()) {
+        this.wfAsync.set(
+          asyncData(
+            () => this.workflowApi.getWorkflow(id),
+            {
+              errorMessage: 'Failed to load workflow.',
+              onError: () => this.errorEvent.emit('Failed to load workflow.'),
+              destroyRef: this.destroyRef,
+            },
+          ),
+        );
+      }
+    });
   }
 
-  protected loadWorkflow(): void {
-    this.loading.set(true);
-    this.error.set(null);
-
-    this.workflowApi.getWorkflow(this.workflowId()).subscribe({
-      next: (detail) => {
-        this.workflow.set(detail);
-        this.loading.set(false);
-      },
-      error: (err) => {
-        const message = err.status === 404
-          ? 'Workflow not found.'
-          : 'Failed to load workflow.';
-        this.error.set(message);
-        this.errorEvent.emit(message);
-        this.loading.set(false);
-      },
-    });
+  /** Retry / refresh. */
+  protected refresh(): void {
+    this.wfAsync()?.refresh();
   }
 
   protected onExecutionSelected(executionId: string): void {
