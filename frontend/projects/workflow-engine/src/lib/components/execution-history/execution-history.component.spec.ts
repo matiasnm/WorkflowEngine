@@ -95,7 +95,7 @@ describe('ExecutionHistoryComponent', () => {
       createComponent();
       fixture.detectChanges();
 
-      const errorEl = fixture.nativeElement.querySelector('.we-history-error');
+      const errorEl = fixture.nativeElement.querySelector('we-error-banner');
       expect(errorEl).toBeTruthy();
       expect(errorEl.textContent).toContain('Failed to load execution history.');
     });
@@ -105,8 +105,8 @@ describe('ExecutionHistoryComponent', () => {
       createComponent();
       fixture.detectChanges();
 
-      const errorEl = fixture.nativeElement.querySelector('.we-history-error');
-      const retryBtn = errorEl?.querySelector('button');
+      // Error banner should NOT have a retry button (showRetry is false by default)
+      const retryBtn = fixture.nativeElement.querySelector('.we-btn--retry');
       expect(retryBtn).toBeFalsy();
     });
 

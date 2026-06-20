@@ -91,9 +91,9 @@ describe('StartExecutionComponent', () => {
     expect(component.startingExecution()).toBeFalse();
 
     // Error message should be shown
-    const execErrorEl = fixture.nativeElement.querySelector('.we-start-execution__error');
-    expect(execErrorEl).toBeTruthy();
-    expect(execErrorEl.textContent).toContain('Failed to start execution.');
+    const errorEl = fixture.nativeElement.querySelector('we-error-banner');
+    expect(errorEl).toBeTruthy();
+    expect(errorEl.textContent).toContain('Failed to start execution.');
 
     // errorEvent should be emitted
     expect(emitted).toEqual(['Failed to start execution.']);
@@ -110,8 +110,8 @@ describe('StartExecutionComponent', () => {
     fixture.detectChanges();
 
     // Error should be visible
-    let execErrorEl = fixture.nativeElement.querySelector('.we-start-execution__error');
-    expect(execErrorEl).toBeTruthy();
+    let errorEl = fixture.nativeElement.querySelector('we-error-banner');
+    expect(errorEl).toBeTruthy();
 
     // Second call succeeds
     executionApiSpy.startExecution.and.returnValue(of({ executionId: 'exec-uuid-456' }));
@@ -119,8 +119,8 @@ describe('StartExecutionComponent', () => {
     fixture.detectChanges();
 
     // Error should be cleared
-    execErrorEl = fixture.nativeElement.querySelector('.we-start-execution__error');
-    expect(execErrorEl).toBeFalsy();
+    errorEl = fixture.nativeElement.querySelector('we-error-banner');
+    expect(errorEl).toBeFalsy();
     expect(component.executionError()).toBeNull();
   });
 });

@@ -234,11 +234,11 @@ describe('ExecutionDetailComponent', () => {
       createComponent();
       fixture.detectChanges();
 
-      const errorEl = fixture.nativeElement.querySelector('.we-execution-detail__error');
+      const errorEl = fixture.nativeElement.querySelector('we-error-banner');
       expect(errorEl).toBeTruthy();
       expect(errorEl.textContent).toContain('Failed to load execution.');
 
-      const retryBtn = errorEl.querySelector('.we-btn--retry');
+      const retryBtn = fixture.nativeElement.querySelector('.we-btn--retry');
       expect(retryBtn).toBeTruthy();
     });
 
@@ -249,7 +249,8 @@ describe('ExecutionDetailComponent', () => {
       createComponent();
       fixture.detectChanges();
 
-      const errorEl = fixture.nativeElement.querySelector('.we-execution-detail__error');
+      const errorEl = fixture.nativeElement.querySelector('we-error-banner');
+      expect(errorEl).toBeTruthy();
       expect(errorEl.textContent).toContain('Failed to load execution.');
     });
 

@@ -5,11 +5,13 @@ import { ExecutionApiPort, EXECUTION_API_PORT } from '../../services/execution-a
 import { asyncData, AsyncDataResult } from '../../util';
 import { ExecutionHistoryComponent } from '../execution-history/execution-history.component';
 import { ExecutionResponse, NextStatesResponse, TransitionResponse } from '../../models';
+import { ErrorBannerComponent, SpinnerComponent } from '../ui';
 
 @Component({
   selector: 'we-execution-detail',
   standalone: true,
-  imports: [DatePipe, ExecutionHistoryComponent],
+  imports: [DatePipe, ExecutionHistoryComponent, ErrorBannerComponent, SpinnerComponent],
+  styleUrl: '../../styles/shared.css',
   template: `
     <div class="we-execution-detail">
       <!-- ── Header: back button + truncated execution ID ── -->
@@ -58,13 +60,7 @@ import { ExecutionResponse, NextStatesResponse, TransitionResponse } from '../..
            ERROR STATE (initial load failure)
            ════════════════════════════════════════════ -->
       @if (error(); as err) {
-        <div class="we-execution-detail__error" role="alert">
-          <span class="we-error-icon" aria-hidden="true">⚠</span>
-          <span class="we-error-text">{{ err }}</span>
-          <button class="we-btn we-btn--retry" (click)="refresh()">
-            Retry
-          </button>
-        </div>
+        <we-error-banner [message]="err" [showRetry]="true" (retry)="refresh()" />
       }
 
       <!-- ════════════════════════════════════════════
@@ -117,7 +113,7 @@ import { ExecutionResponse, NextStatesResponse, TransitionResponse } from '../..
                     [attr.aria-label]="'Transition to ' + state.name"
                   >
                     @if (transitioning() === state.code) {
-                      <span class="we-spinner we-spinner--small" aria-hidden="true"></span>
+                      <we-spinner size="small" color="primary" />
                     }
                     <span class="we-btn__arrow" aria-hidden="true">→</span>
                     <span>{{ state.name }}</span>
@@ -161,16 +157,6 @@ import { ExecutionResponse, NextStatesResponse, TransitionResponse } from '../..
       margin: 0 auto;
     }
 
-    /* ── Shimmer animation (shared) ── */
-    @keyframes we-shimmer {
-      0% { background-position: 200% 0; }
-      100% { background-position: -200% 0; }
-    }
-
-    @keyframes we-spin {
-      to { transform: rotate(360deg); }
-    }
-
     /* ═══════════════════════════════════════════════════
        HEADER
        ═══════════════════════════════════════════════════ */
@@ -180,29 +166,6 @@ import { ExecutionResponse, NextStatesResponse, TransitionResponse } from '../..
       align-items: center;
       gap: 12px;
       margin-bottom: var(--we-spacing, 16px);
-    }
-
-    .we-btn--back {
-      padding: 6px 16px;
-      border: 1px solid var(--we-border, #e0e0e0);
-      border-radius: var(--we-border-radius, 8px);
-      background: var(--we-bg, #ffffff);
-      color: var(--we-text, #212121);
-      font-size: 0.9rem;
-      font-weight: 500;
-      cursor: pointer;
-      font-family: inherit;
-      transition: background 0.15s, border-color 0.15s;
-    }
-
-    .we-btn--back:hover {
-      background: var(--we-bg-secondary, #f5f5f5);
-      border-color: var(--we-primary, #1976d2);
-    }
-
-    .we-btn--back:focus-visible {
-      outline: 2px solid var(--we-primary, #1976d2);
-      outline-offset: 2px;
     }
 
     .we-execution-detail__id {
@@ -229,19 +192,6 @@ import { ExecutionResponse, NextStatesResponse, TransitionResponse } from '../..
       flex-direction: column;
       align-items: center;
       gap: 8px;
-    }
-
-    .we-skeleton-line {
-      height: 14px;
-      border-radius: 4px;
-      background: linear-gradient(
-        90deg,
-        var(--we-bg-secondary, #f5f5f5) 25%,
-        #e8e8e8 50%,
-        var(--we-bg-secondary, #f5f5f5) 75%
-      );
-      background-size: 200% 100%;
-      animation: we-shimmer 1.5s ease-in-out infinite;
     }
 
     .we-skeleton-line--state-code {
@@ -302,52 +252,6 @@ import { ExecutionResponse, NextStatesResponse, TransitionResponse } from '../..
     .we-skeleton-line--history-item {
       flex: 1;
       height: 14px;
-    }
-
-    /* ═══════════════════════════════════════════════════
-       ERROR STATE (initial load)
-       ═══════════════════════════════════════════════════ */
-
-    .we-execution-detail__error {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 12px 16px;
-      background: #fff3f3;
-      border: 1px solid var(--we-danger, #d32f2f);
-      border-radius: var(--we-border-radius, 8px);
-      color: var(--we-danger, #d32f2f);
-      font-size: 0.9rem;
-    }
-
-    .we-error-icon {
-      font-size: 1.1rem;
-    }
-
-    .we-error-text {
-      flex: 1;
-    }
-
-    .we-btn--retry {
-      padding: 6px 16px;
-      border: 1px solid var(--we-danger, #d32f2f);
-      border-radius: var(--we-border-radius, 8px);
-      background: var(--we-bg, #ffffff);
-      color: var(--we-danger, #d32f2f);
-      font-size: 0.85rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: background 0.15s;
-    }
-
-    .we-btn--retry:hover {
-      background: var(--we-danger, #d32f2f);
-      color: #ffffff;
-    }
-
-    .we-btn--retry:focus-visible {
-      outline: 2px solid var(--we-primary, #1976d2);
-      outline-offset: 2px;
     }
 
     /* ═══════════════════════════════════════════════════
@@ -430,23 +334,6 @@ import { ExecutionResponse, NextStatesResponse, TransitionResponse } from '../..
     }
 
     /* ═══════════════════════════════════════════════════
-       SECTION TITLES
-       ═══════════════════════════════════════════════════ */
-
-    .we-section-title {
-      font-size: 1.1rem;
-      font-weight: 600;
-      color: var(--we-text, #212121);
-      margin: 0 0 12px;
-    }
-
-    .we-empty-text {
-      color: var(--we-text-secondary, #757575);
-      font-size: 0.9rem;
-      margin: 0 0 var(--we-spacing, 16px);
-    }
-
-    /* ═══════════════════════════════════════════════════
        TRANSITIONS SECTION
        ═══════════════════════════════════════════════════ */
 
@@ -495,39 +382,6 @@ import { ExecutionResponse, NextStatesResponse, TransitionResponse } from '../..
     .we-btn__arrow {
       font-size: 1.1rem;
       font-weight: 700;
-    }
-
-    /* ── Small spinner for inline use in buttons ── */
-    .we-spinner--small {
-      display: inline-block;
-      width: 14px;
-      height: 14px;
-      border: 2px solid rgba(25, 118, 210, 0.3);
-      border-top-color: var(--we-primary, #1976d2);
-      border-radius: 50%;
-      animation: we-spin 0.6s linear infinite;
-    }
-
-    .we-btn--transition:hover:not(:disabled) .we-spinner--small {
-      border-color: rgba(255, 255, 255, 0.3);
-      border-top-color: #ffffff;
-    }
-
-    /* ═══════════════════════════════════════════════════
-       TRANSITION ACTION ERROR
-       ═══════════════════════════════════════════════════ */
-
-    .we-execution-detail__action-error {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-top: 12px;
-      padding: 10px 14px;
-      background: #fff3f3;
-      border: 1px solid var(--we-danger, #d32f2f);
-      border-radius: var(--we-border-radius, 8px);
-      color: var(--we-danger, #d32f2f);
-      font-size: 0.85rem;
     }
 
     /* ═══════════════════════════════════════════════════

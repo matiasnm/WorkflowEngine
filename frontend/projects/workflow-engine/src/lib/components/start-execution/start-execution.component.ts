@@ -1,9 +1,12 @@
 import { Component, Input, Output, EventEmitter, signal, inject } from '@angular/core';
 import { ExecutionApiPort, EXECUTION_API_PORT } from '../../services/execution-api.port';
+import { ErrorBannerComponent, SpinnerComponent } from '../ui';
 
 @Component({
   selector: 'we-start-execution',
   standalone: true,
+  imports: [ErrorBannerComponent, SpinnerComponent],
+  styleUrl: '../../styles/shared.css',
   template: `
     <div class="we-start-execution">
       <button
@@ -12,17 +15,14 @@ import { ExecutionApiPort, EXECUTION_API_PORT } from '../../services/execution-a
         (click)="start()"
       >
         @if (startingExecution()) {
-          <span class="we-spinner" aria-hidden="true"></span>
+          <we-spinner />
           <span>Starting…</span>
         } @else {
           <span>▶ Start Execution</span>
         }
       </button>
       @if (executionError(); as execErr) {
-        <div class="we-start-execution__error" role="alert">
-          <span class="we-error-icon" aria-hidden="true">⚠</span>
-          <span class="we-error-text">{{ execErr }}</span>
-        </div>
+        <we-error-banner [message]="execErr" />
       }
     </div>
   `,
@@ -64,41 +64,7 @@ import { ExecutionApiPort, EXECUTION_API_PORT } from '../../services/execution-a
       outline-offset: 2px;
     }
 
-    /* ── Spinner ── */
-    .we-spinner {
-      display: inline-block;
-      width: 16px;
-      height: 16px;
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      border-top-color: #ffffff;
-      border-radius: 50%;
-      animation: we-spin 0.6s linear infinite;
-    }
 
-    @keyframes we-spin {
-      to { transform: rotate(360deg); }
-    }
-
-    /* ── Execution error ── */
-    .we-start-execution__error {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 12px;
-      background: #fff3f3;
-      border: 1px solid var(--we-danger, #d32f2f);
-      border-radius: var(--we-border-radius, 8px);
-      color: var(--we-danger, #d32f2f);
-      font-size: 0.85rem;
-    }
-
-    .we-error-icon {
-      font-size: 1.1rem;
-    }
-
-    .we-error-text {
-      flex: 1;
-    }
   `],
 })
 export class StartExecutionComponent {

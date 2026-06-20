@@ -2,11 +2,13 @@ import { Component, input, Output, EventEmitter, signal, computed, inject, Destr
 import { FormsModule } from '@angular/forms';
 import { WorkflowApiPort, WORKFLOW_API_PORT } from '../../services/workflow-api.port';
 import { asyncData } from '../../util';
+import { ErrorBannerComponent, SkeletonCardComponent } from '../ui';
 
 @Component({
   selector: 'we-workflow-list',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, ErrorBannerComponent, SkeletonCardComponent],
+  styleUrl: '../../styles/shared.css',
   template: `
     <div class="we-workflow-list">
       @if (title(); as t) {
@@ -17,23 +19,17 @@ import { asyncData } from '../../util';
       @if (workflows.loading()) {
         <div class="we-workflow-list__skeleton" aria-label="Loading workflows">
           @for (_ of [1, 2, 3]; track $index) {
-            <div class="we-skeleton-card">
-              <div class="we-skeleton-line we-skeleton-line--title"></div>
-              <div class="we-skeleton-line we-skeleton-line--subtitle"></div>
-            </div>
+            <we-skeleton-card [lines]="[
+              { width: '60%', height: '18px' },
+              { width: '40%' }
+            ]" />
           }
         </div>
       }
 
       <!-- Error state: inline error message + retry button -->
       @if (workflows.error(); as err) {
-        <div class="we-workflow-list__error" role="alert">
-          <span class="we-error-icon" aria-hidden="true">⚠</span>
-          <span class="we-error-text">{{ err }}</span>
-          <button class="we-btn we-btn--retry" (click)="workflows.refresh()">
-            Retry
-          </button>
-        </div>
+        <we-error-banner [message]="err" [showRetry]="true" (retry)="workflows.refresh()" />
       }
 
       <!-- Success state (with data): workflow cards with search -->
@@ -135,91 +131,11 @@ import { asyncData } from '../../util';
       font-size: 0.95rem;
     }
 
-    /* ── Skeleton / Shimmer ── */
+    /* ── Skeleton / Shimmer container ── */
     .we-workflow-list__skeleton {
       display: flex;
       flex-direction: column;
       gap: var(--we-spacing, 16px);
-    }
-
-    .we-skeleton-card {
-      background: var(--we-bg, #ffffff);
-      border: 1px solid var(--we-border, #e0e0e0);
-      border-radius: var(--we-border-radius, 8px);
-      padding: var(--we-spacing, 16px);
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .we-skeleton-line {
-      height: 14px;
-      border-radius: 4px;
-      background: linear-gradient(
-        90deg,
-        var(--we-bg-secondary, #f5f5f5) 25%,
-        #e8e8e8 50%,
-        var(--we-bg-secondary, #f5f5f5) 75%
-      );
-      background-size: 200% 100%;
-      animation: we-shimmer 1.5s ease-in-out infinite;
-    }
-
-    .we-skeleton-line--title {
-      width: 60%;
-      height: 18px;
-    }
-
-    .we-skeleton-line--subtitle {
-      width: 40%;
-    }
-
-    @keyframes we-shimmer {
-      0% { background-position: 200% 0; }
-      100% { background-position: -200% 0; }
-    }
-
-    /* ── Error state ── */
-    .we-workflow-list__error {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 12px 16px;
-      background: #fff3f3;
-      border: 1px solid var(--we-danger, #d32f2f);
-      border-radius: var(--we-border-radius, 8px);
-      color: var(--we-danger, #d32f2f);
-      font-size: 0.9rem;
-    }
-
-    .we-error-icon {
-      font-size: 1.1rem;
-    }
-
-    .we-error-text {
-      flex: 1;
-    }
-
-    .we-btn--retry {
-      padding: 6px 16px;
-      border: 1px solid var(--we-danger, #d32f2f);
-      border-radius: var(--we-border-radius, 8px);
-      background: var(--we-bg, #ffffff);
-      color: var(--we-danger, #d32f2f);
-      font-size: 0.85rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: background 0.15s;
-    }
-
-    .we-btn--retry:hover {
-      background: var(--we-danger, #d32f2f);
-      color: #ffffff;
-    }
-
-    .we-btn--retry:focus-visible {
-      outline: 2px solid var(--we-primary, #1976d2);
-      outline-offset: 2px;
     }
 
     /* ── Empty state ── */
@@ -295,7 +211,7 @@ export class WorkflowListComponent {
   @Output() errorEvent = new EventEmitter<string>();
 
   /** Reactive async data for the workflow list. */
-  private readonly workflows = asyncData(
+  protected readonly workflows = asyncData(
     () => this.api.listWorkflows(),
     {
       errorMessage: 'Failed to load workflows.',

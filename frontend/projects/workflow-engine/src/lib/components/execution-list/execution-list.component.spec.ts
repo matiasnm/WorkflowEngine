@@ -152,12 +152,12 @@ describe('ExecutionListComponent', () => {
     });
 
     it('should show error message without retry button', () => {
-      const errorEl = fixture.nativeElement.querySelector('.we-execution-list__error');
+      const errorEl = fixture.nativeElement.querySelector('we-error-banner');
       expect(errorEl).toBeTruthy();
       expect(errorEl.textContent).toContain('Failed to load executions.');
 
-      // No retry button — parent handles retry
-      const retryBtn = errorEl.querySelector('.we-btn--retry');
+      // No retry button — parent handles retry (showRetry is false by default)
+      const retryBtn = fixture.nativeElement.querySelector('.we-btn--retry');
       expect(retryBtn).toBeFalsy();
     });
 

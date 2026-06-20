@@ -2,6 +2,7 @@ import { Component, Output, EventEmitter, signal, inject } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule } from '@angular/forms';
 import { WorkflowApiPort, WORKFLOW_API_PORT } from '../../services/workflow-api.port';
 import { CreateWorkflowRequest } from '../../models';
+import { ErrorBannerComponent, SpinnerComponent } from '../ui';
 
 interface StateFormValue {
   code: string;
@@ -24,7 +25,8 @@ function toSnakeCase(value: string): string {
 @Component({
   selector: 'we-workflow-create',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, ErrorBannerComponent, SpinnerComponent],
+  styleUrl: '../../styles/shared.css',
   template: `
     <div class="we-workflow-create">
       <!-- Header -->
@@ -247,7 +249,7 @@ function toSnakeCase(value: string): string {
             [disabled]="form.invalid || submitting()"
           >
             @if (submitting()) {
-              <span class="we-spinner we-spinner--small" aria-hidden="true"></span>
+              <we-spinner size="small" />
               <span>Creating…</span>
             } @else {
               <span>Create Workflow</span>
@@ -257,10 +259,7 @@ function toSnakeCase(value: string): string {
 
         <!-- Submit error -->
         @if (submitError(); as err) {
-          <div class="we-submit-error" role="alert">
-            <span class="we-error-icon" aria-hidden="true">⚠</span>
-            <span class="we-error-text">{{ err }}</span>
-          </div>
+          <we-error-banner [message]="err" />
         }
       </form>
     </div>
@@ -637,49 +636,7 @@ function toSnakeCase(value: string): string {
       outline-offset: 2px;
     }
 
-    /* ── Spinner ── */
-    .we-spinner {
-      display: inline-block;
-      width: 16px;
-      height: 16px;
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      border-top-color: #ffffff;
-      border-radius: 50%;
-      animation: we-spin 0.6s linear infinite;
-    }
 
-    .we-spinner--small {
-      width: 14px;
-      height: 14px;
-      border-width: 2px;
-    }
-
-    @keyframes we-spin {
-      to { transform: rotate(360deg); }
-    }
-
-    /* ── Submit error banner ── */
-    .we-submit-error {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-top: 16px;
-      padding: 12px 16px;
-      background: #fff3f3;
-      border: 1px solid var(--we-danger, #d32f2f);
-      border-radius: var(--we-border-radius, 8px);
-      color: var(--we-danger, #d32f2f);
-      font-size: 0.9rem;
-    }
-
-    .we-error-icon {
-      font-size: 1.1rem;
-      flex-shrink: 0;
-    }
-
-    .we-error-text {
-      flex: 1;
-    }
   `],
 })
 export class WorkflowCreateComponent {

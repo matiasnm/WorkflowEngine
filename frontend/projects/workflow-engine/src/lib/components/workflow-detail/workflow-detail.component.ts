@@ -4,11 +4,13 @@ import { asyncData, AsyncDataResult } from '../../util';
 import { WorkflowDetail } from '../../models';
 import { ExecutionListComponent } from '../execution-list/execution-list.component';
 import { StartExecutionComponent } from '../start-execution/start-execution.component';
+import { ErrorBannerComponent } from '../ui';
 
 @Component({
   selector: 'we-workflow-detail',
   standalone: true,
-  imports: [ExecutionListComponent, StartExecutionComponent],
+  imports: [ExecutionListComponent, StartExecutionComponent, ErrorBannerComponent],
+  styleUrl: '../../styles/shared.css',
   template: `
     <div class="we-workflow-detail">
       <!-- Header with back button -->
@@ -34,13 +36,7 @@ import { StartExecutionComponent } from '../start-execution/start-execution.comp
 
       <!-- Error state: inline error message + retry button -->
       @if (error(); as err) {
-        <div class="we-workflow-detail__error" role="alert">
-          <span class="we-error-icon" aria-hidden="true">⚠</span>
-          <span class="we-error-text">{{ err }}</span>
-          <button class="we-btn we-btn--retry" (click)="refresh()">
-            Retry
-          </button>
-        </div>
+        <we-error-banner [message]="err" [showRetry]="true" (retry)="refresh()" />
       }
 
       <!-- Success state: workflow detail -->
@@ -126,29 +122,6 @@ import { StartExecutionComponent } from '../start-execution/start-execution.comp
       margin-bottom: var(--we-spacing, 16px);
     }
 
-    .we-btn--back {
-      padding: 6px 16px;
-      border: 1px solid var(--we-border, #e0e0e0);
-      border-radius: var(--we-border-radius, 8px);
-      background: var(--we-bg, #ffffff);
-      color: var(--we-text, #212121);
-      font-size: 0.9rem;
-      font-weight: 500;
-      cursor: pointer;
-      font-family: inherit;
-      transition: background 0.15s, border-color 0.15s;
-    }
-
-    .we-btn--back:hover {
-      background: var(--we-bg-secondary, #f5f5f5);
-      border-color: var(--we-primary, #1976d2);
-    }
-
-    .we-btn--back:focus-visible {
-      outline: 2px solid var(--we-primary, #1976d2);
-      outline-offset: 2px;
-    }
-
     /* ── Skeleton / Shimmer ── */
     .we-workflow-detail__skeleton {
       display: flex;
@@ -183,54 +156,6 @@ import { StartExecutionComponent } from '../start-execution/start-execution.comp
     .we-skeleton-block--button {
       width: 180px;
       height: 40px;
-    }
-
-    @keyframes we-shimmer {
-      0% { background-position: 200% 0; }
-      100% { background-position: -200% 0; }
-    }
-
-    /* ── Error state ── */
-    .we-workflow-detail__error {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 12px 16px;
-      background: #fff3f3;
-      border: 1px solid var(--we-danger, #d32f2f);
-      border-radius: var(--we-border-radius, 8px);
-      color: var(--we-danger, #d32f2f);
-      font-size: 0.9rem;
-    }
-
-    .we-error-icon {
-      font-size: 1.1rem;
-    }
-
-    .we-error-text {
-      flex: 1;
-    }
-
-    .we-btn--retry {
-      padding: 6px 16px;
-      border: 1px solid var(--we-danger, #d32f2f);
-      border-radius: var(--we-border-radius, 8px);
-      background: var(--we-bg, #ffffff);
-      color: var(--we-danger, #d32f2f);
-      font-size: 0.85rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: background 0.15s;
-    }
-
-    .we-btn--retry:hover {
-      background: var(--we-danger, #d32f2f);
-      color: #ffffff;
-    }
-
-    .we-btn--retry:focus-visible {
-      outline: 2px solid var(--we-primary, #1976d2);
-      outline-offset: 2px;
     }
 
     /* ── Workflow name ── */

@@ -45,9 +45,9 @@ describe('WorkflowListComponent', () => {
       expect(component['workflows'].loading()).toBeTrue();
       const skeleton = fixture.nativeElement.querySelector('.we-workflow-list__skeleton');
       expect(skeleton).toBeTruthy();
-      // Should have 3 skeleton placeholder rows
+      // Should have 3 skeleton placeholder rows (we-skeleton-card elements)
       expect(skeleton.children.length).toBe(3);
-      expect(skeleton.children[0].classList).toContain('we-skeleton-card');
+      expect(skeleton.children[0].tagName.toLowerCase()).toBe('we-skeleton-card');
 
       // Data arrives
       subject.next(mockWorkflows);
@@ -139,11 +139,11 @@ describe('WorkflowListComponent', () => {
     });
 
     it('should show error message and retry button', () => {
-      const errorEl = fixture.nativeElement.querySelector('.we-workflow-list__error');
+      const errorEl = fixture.nativeElement.querySelector('we-error-banner');
       expect(errorEl).toBeTruthy();
       expect(errorEl.textContent).toContain('Failed to load workflows.');
 
-      const retryBtn = errorEl.querySelector('.we-btn--retry');
+      const retryBtn = fixture.nativeElement.querySelector('.we-btn--retry');
       expect(retryBtn).toBeTruthy();
     });
 
@@ -162,7 +162,9 @@ describe('WorkflowListComponent', () => {
       // Reset spy to return data on second call
       apiServiceSpy.listWorkflows.and.returnValue(of(mockWorkflows));
 
+      // The retry button is inside the we-error-banner component
       const retryBtn = fixture.nativeElement.querySelector('.we-btn--retry');
+      expect(retryBtn).toBeTruthy();
       retryBtn.click();
       fixture.detectChanges();
 

@@ -443,7 +443,7 @@ describe('WorkflowCreateComponent', () => {
       fixture.detectChanges();
 
       // Error banner should appear with the error message
-      const errorBanner = fixture.nativeElement.querySelector('.we-submit-error');
+      const errorBanner = fixture.nativeElement.querySelector('we-error-banner');
       expect(errorBanner).toBeTruthy();
       expect(errorBanner.textContent).toContain('API error');
 

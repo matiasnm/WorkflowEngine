@@ -3,11 +3,13 @@ import { DatePipe } from '@angular/common';
 import { ExecutionApiPort, EXECUTION_API_PORT } from '../../services/execution-api.port';
 import { asyncData, AsyncDataResult } from '../../util';
 import { HistoryItem } from '../../models';
+import { ErrorBannerComponent } from '../ui';
 
 @Component({
   selector: 'we-execution-history',
   standalone: true,
-  imports: [DatePipe],
+  imports: [DatePipe, ErrorBannerComponent],
+  styleUrl: '../../styles/shared.css',
   template: `
     <div class="we-execution-history">
       <!-- ── Loading state: skeleton timeline ── -->
@@ -44,10 +46,7 @@ import { HistoryItem } from '../../models';
 
       <!-- ── Error state: inline error (no retry — parent handles retry) ── -->
       @if (error(); as err) {
-        <div class="we-history-error" role="alert">
-          <span class="we-error-icon" aria-hidden="true">⚠</span>
-          <span class="we-error-text">{{ err }}</span>
-        </div>
+        <we-error-banner [message]="err" />
       }
 
       <!-- ── Empty state ── -->
@@ -149,17 +148,6 @@ import { HistoryItem } from '../../models';
       padding: var(--we-spacing, 16px);
     }
 
-    /* ── Shared shimmer animation ── */
-    @keyframes we-shimmer {
-      0% { background-position: 200% 0; }
-      100% { background-position: -200% 0; }
-    }
-
-    /* ── Spinner (inline) ── */
-    @keyframes we-spin {
-      to { transform: rotate(360deg); }
-    }
-
     /* ═══════════════════════════════════════════════════
        SKELETON / LOADING STATE
        ═══════════════════════════════════════════════════ */
@@ -202,19 +190,6 @@ import { HistoryItem } from '../../models';
       padding-top: 4px;
     }
 
-    .we-skeleton-line {
-      height: 14px;
-      border-radius: 4px;
-      background: linear-gradient(
-        90deg,
-        var(--we-bg-secondary, #f5f5f5) 25%,
-        #e8e8e8 50%,
-        var(--we-bg-secondary, #f5f5f5) 75%
-      );
-      background-size: 200% 100%;
-      animation: we-shimmer 1.5s ease-in-out infinite;
-    }
-
     .we-skeleton-line--title {
       width: 65%;
     }
@@ -222,30 +197,6 @@ import { HistoryItem } from '../../models';
     .we-skeleton-line--timestamp {
       width: 40%;
       height: 12px;
-    }
-
-    /* ═══════════════════════════════════════════════════
-       ERROR STATE
-       ═══════════════════════════════════════════════════ */
-
-    .we-history-error {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 12px 16px;
-      background: #fff3f3;
-      border: 1px solid var(--we-danger, #d32f2f);
-      border-radius: var(--we-border-radius, 8px);
-      color: var(--we-danger, #d32f2f);
-      font-size: 0.9rem;
-    }
-
-    .we-error-icon {
-      font-size: 1.1rem;
-    }
-
-    .we-error-text {
-      flex: 1;
     }
 
     /* ═══════════════════════════════════════════════════
