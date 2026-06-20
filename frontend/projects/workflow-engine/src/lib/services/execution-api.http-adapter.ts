@@ -3,11 +3,12 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { ExecutionResponse, TransitionResponse, HistoryItem, NextStatesResponse, ExecutionPageResponse } from '../models';
 import { WORKFLOW_ENGINE_CONFIG } from '../config/workflow-engine.config';
+import { ExecutionApiPort } from './execution-api.port';
 
 @Injectable({
   providedIn: 'root',
 })
-export class ExecutionApiService {
+export class ExecutionApiHttpAdapter implements ExecutionApiPort {
   private readonly http = inject(HttpClient);
   private readonly config = inject(WORKFLOW_ENGINE_CONFIG);
 

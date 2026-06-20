@@ -1,6 +1,6 @@
 import { Component, input, Output, EventEmitter, signal, computed, inject, DestroyRef, effect } from '@angular/core';
-import { WorkflowApiService } from '../../services/workflow-api.service';
-import { ExecutionApiService } from '../../services/execution-api.service';
+import { WorkflowApiPort, WORKFLOW_API_PORT } from '../../services/workflow-api.port';
+import { ExecutionApiPort, EXECUTION_API_PORT } from '../../services/execution-api.port';
 import { asyncData, AsyncDataResult } from '../../util';
 import { WorkflowDetail } from '../../models';
 import { ExecutionListComponent } from '../execution-list/execution-list.component';
@@ -417,8 +417,8 @@ import { ExecutionListComponent } from '../execution-list/execution-list.compone
   `],
 })
 export class WorkflowDetailComponent {
-  private readonly workflowApi = inject(WorkflowApiService);
-  private readonly executionApi = inject(ExecutionApiService);
+  private readonly workflowApi = inject(WORKFLOW_API_PORT);
+  private readonly executionApi = inject(EXECUTION_API_PORT);
   private readonly destroyRef = inject(DestroyRef);
 
   /** Required workflow ID to load detail for. */

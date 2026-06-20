@@ -1,6 +1,6 @@
 import { Component, input, Output, EventEmitter, signal, computed, inject, DestroyRef, effect } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { ExecutionApiService } from '../../services/execution-api.service';
+import { ExecutionApiPort, EXECUTION_API_PORT } from '../../services/execution-api.port';
 import { asyncData, AsyncDataResult } from '../../util';
 import { HistoryItem } from '../../models';
 
@@ -447,7 +447,7 @@ import { HistoryItem } from '../../models';
   `],
 })
 export class ExecutionHistoryComponent {
-  private readonly api = inject(ExecutionApiService);
+  private readonly api = inject(EXECUTION_API_PORT);
   private readonly destroyRef = inject(DestroyRef);
 
   /** Required execution ID to load history for. */

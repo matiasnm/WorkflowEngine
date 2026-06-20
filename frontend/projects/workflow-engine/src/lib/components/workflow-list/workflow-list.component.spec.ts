@@ -2,14 +2,14 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { Subject, of, throwError } from 'rxjs';
 import { WorkflowListComponent } from './workflow-list.component';
-import { WorkflowApiService } from '../../services/workflow-api.service';
+import { WORKFLOW_API_PORT, WorkflowApiPort } from '../../services/workflow-api.port';
 import { WorkflowSummary } from '../../models';
 import { FormsModule } from '@angular/forms';
 
 describe('WorkflowListComponent', () => {
   let component: WorkflowListComponent;
   let fixture: ComponentFixture<WorkflowListComponent>;
-  let apiServiceSpy: jasmine.SpyObj<WorkflowApiService>;
+  let apiServiceSpy: jasmine.SpyObj<WorkflowApiPort>;
 
   const mockWorkflows: WorkflowSummary[] = [
     { id: 'uuid-1', name: 'simple-approval', statesCount: 4, transitionsCount: 3 },
@@ -17,16 +17,16 @@ describe('WorkflowListComponent', () => {
   ];
 
   beforeEach(async () => {
-    const spy = jasmine.createSpyObj('WorkflowApiService', ['listWorkflows']);
+    const spy = jasmine.createSpyObj('WorkflowApiPort', ['listWorkflows']);
 
     await TestBed.configureTestingModule({
       imports: [WorkflowListComponent],
       providers: [
-        { provide: WorkflowApiService, useValue: spy },
+        { provide: WORKFLOW_API_PORT, useValue: spy },
       ],
     }).compileComponents();
 
-    apiServiceSpy = TestBed.inject(WorkflowApiService) as jasmine.SpyObj<WorkflowApiService>;
+    apiServiceSpy = TestBed.inject(WORKFLOW_API_PORT) as jasmine.SpyObj<WorkflowApiPort>;
   });
 
   function createComponent(): void {

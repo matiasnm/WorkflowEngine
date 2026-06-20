@@ -1,13 +1,13 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Subject, of, throwError } from 'rxjs';
 import { ExecutionListComponent } from './execution-list.component';
-import { ExecutionApiService } from '../../services/execution-api.service';
+import { EXECUTION_API_PORT, ExecutionApiPort } from '../../services/execution-api.port';
 import { ExecutionResponse } from '../../models';
 
 describe('ExecutionListComponent', () => {
   let component: ExecutionListComponent;
   let fixture: ComponentFixture<ExecutionListComponent>;
-  let apiServiceSpy: jasmine.SpyObj<ExecutionApiService>;
+  let apiServiceSpy: jasmine.SpyObj<ExecutionApiPort>;
 
   const mockExecutions: ExecutionResponse[] = [
     {
@@ -25,16 +25,16 @@ describe('ExecutionListComponent', () => {
   ];
 
   beforeEach(async () => {
-    const spy = jasmine.createSpyObj('ExecutionApiService', ['listExecutions']);
+    const spy = jasmine.createSpyObj('ExecutionApiPort', ['listExecutions']);
 
     await TestBed.configureTestingModule({
       imports: [ExecutionListComponent],
       providers: [
-        { provide: ExecutionApiService, useValue: spy },
+        { provide: EXECUTION_API_PORT, useValue: spy },
       ],
     }).compileComponents();
 
-    apiServiceSpy = TestBed.inject(ExecutionApiService) as jasmine.SpyObj<ExecutionApiService>;
+    apiServiceSpy = TestBed.inject(EXECUTION_API_PORT) as jasmine.SpyObj<ExecutionApiPort>;
   });
 
   function createComponent(): void {

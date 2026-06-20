@@ -1,7 +1,7 @@
 import { Component, input, Output, EventEmitter, signal, computed, inject, ViewChild, DestroyRef, effect } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { forkJoin } from 'rxjs';
-import { ExecutionApiService } from '../../services/execution-api.service';
+import { ExecutionApiPort, EXECUTION_API_PORT } from '../../services/execution-api.port';
 import { asyncData, AsyncDataResult } from '../../util';
 import { ExecutionHistoryComponent } from '../execution-history/execution-history.component';
 import { ExecutionResponse, NextStatesResponse, TransitionResponse } from '../../models';
@@ -540,7 +540,7 @@ import { ExecutionResponse, NextStatesResponse, TransitionResponse } from '../..
   `],
 })
 export class ExecutionDetailComponent {
-  private readonly api = inject(ExecutionApiService);
+  private readonly api = inject(EXECUTION_API_PORT);
   private readonly destroyRef = inject(DestroyRef);
 
   /** Required execution ID to load detail for. */

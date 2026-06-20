@@ -1,11 +1,11 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { WorkflowApiService } from './workflow-api.service';
+import { WorkflowApiHttpAdapter } from './workflow-api.http-adapter';
 import { WORKFLOW_ENGINE_CONFIG } from '../config/workflow-engine.config';
 import { WorkflowSummary, WorkflowDetail, CreateWorkflowRequest } from '../models';
 
-describe('WorkflowApiService', () => {
-  let service: WorkflowApiService;
+describe('WorkflowApiHttpAdapter', () => {
+  let service: WorkflowApiHttpAdapter;
   let httpMock: HttpTestingController;
   const apiBaseUrl = 'http://localhost:8080';
 
@@ -13,12 +13,12 @@ describe('WorkflowApiService', () => {
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
       providers: [
-        WorkflowApiService,
+        WorkflowApiHttpAdapter,
         { provide: WORKFLOW_ENGINE_CONFIG, useValue: { apiBaseUrl } },
       ],
     });
 
-    service = TestBed.inject(WorkflowApiService);
+    service = TestBed.inject(WorkflowApiHttpAdapter);
     httpMock = TestBed.inject(HttpTestingController);
   });
 

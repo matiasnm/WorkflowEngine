@@ -1,11 +1,11 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { ExecutionApiService } from './execution-api.service';
+import { ExecutionApiHttpAdapter } from './execution-api.http-adapter';
 import { WORKFLOW_ENGINE_CONFIG } from '../config/workflow-engine.config';
 import { ExecutionResponse, TransitionResponse, HistoryItem, NextStatesResponse, ExecutionPageResponse } from '../models';
 
-describe('ExecutionApiService', () => {
-  let service: ExecutionApiService;
+describe('ExecutionApiHttpAdapter', () => {
+  let service: ExecutionApiHttpAdapter;
   let httpMock: HttpTestingController;
   const apiBaseUrl = 'http://localhost:8080';
 
@@ -13,12 +13,12 @@ describe('ExecutionApiService', () => {
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
       providers: [
-        ExecutionApiService,
+        ExecutionApiHttpAdapter,
         { provide: WORKFLOW_ENGINE_CONFIG, useValue: { apiBaseUrl } },
       ],
     });
 
-    service = TestBed.inject(ExecutionApiService);
+    service = TestBed.inject(ExecutionApiHttpAdapter);
     httpMock = TestBed.inject(HttpTestingController);
   });
 

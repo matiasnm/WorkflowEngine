@@ -1,6 +1,6 @@
 import { Component, input, Output, EventEmitter, signal, computed, inject, DestroyRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { WorkflowApiService } from '../../services/workflow-api.service';
+import { WorkflowApiPort, WORKFLOW_API_PORT } from '../../services/workflow-api.port';
 import { asyncData } from '../../util';
 
 @Component({
@@ -282,7 +282,7 @@ import { asyncData } from '../../util';
   `],
 })
 export class WorkflowListComponent {
-  private readonly api = inject(WorkflowApiService);
+  private readonly api = inject(WORKFLOW_API_PORT);
   private readonly destroyRef = inject(DestroyRef);
 
   /** Optional heading shown above the list. */

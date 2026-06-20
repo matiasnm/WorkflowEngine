@@ -2,15 +2,15 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { Subject, of, throwError } from 'rxjs';
 import { WorkflowDetailComponent } from './workflow-detail.component';
-import { WorkflowApiService } from '../../services/workflow-api.service';
-import { ExecutionApiService } from '../../services/execution-api.service';
+import { WORKFLOW_API_PORT, WorkflowApiPort } from '../../services/workflow-api.port';
+import { EXECUTION_API_PORT, ExecutionApiPort } from '../../services/execution-api.port';
 import { WorkflowDetail } from '../../models';
 
 describe('WorkflowDetailComponent', () => {
   let component: WorkflowDetailComponent;
   let fixture: ComponentFixture<WorkflowDetailComponent>;
-  let workflowApiSpy: jasmine.SpyObj<WorkflowApiService>;
-  let executionApiSpy: jasmine.SpyObj<ExecutionApiService>;
+  let workflowApiSpy: jasmine.SpyObj<WorkflowApiPort>;
+  let executionApiSpy: jasmine.SpyObj<ExecutionApiPort>;
 
   const mockWorkflowDetail: WorkflowDetail = {
     id: 'uuid-1',
@@ -30,19 +30,19 @@ describe('WorkflowDetailComponent', () => {
   };
 
   beforeEach(async () => {
-    const wfSpy = jasmine.createSpyObj('WorkflowApiService', ['getWorkflow']);
-    const execSpy = jasmine.createSpyObj('ExecutionApiService', ['startExecution', 'listExecutions']);
+    const wfSpy = jasmine.createSpyObj('WorkflowApiPort', ['getWorkflow']);
+    const execSpy = jasmine.createSpyObj('ExecutionApiPort', ['startExecution', 'listExecutions']);
 
     await TestBed.configureTestingModule({
       imports: [WorkflowDetailComponent],
       providers: [
-        { provide: WorkflowApiService, useValue: wfSpy },
-        { provide: ExecutionApiService, useValue: execSpy },
+        { provide: WORKFLOW_API_PORT, useValue: wfSpy },
+        { provide: EXECUTION_API_PORT, useValue: execSpy },
       ],
     }).compileComponents();
 
-    workflowApiSpy = TestBed.inject(WorkflowApiService) as jasmine.SpyObj<WorkflowApiService>;
-    executionApiSpy = TestBed.inject(ExecutionApiService) as jasmine.SpyObj<ExecutionApiService>;
+    workflowApiSpy = TestBed.inject(WORKFLOW_API_PORT) as jasmine.SpyObj<WorkflowApiPort>;
+    executionApiSpy = TestBed.inject(EXECUTION_API_PORT) as jasmine.SpyObj<ExecutionApiPort>;
   });
 
   function createComponent(): void {

@@ -1,6 +1,6 @@
 import { Component, Output, EventEmitter, signal, inject } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule } from '@angular/forms';
-import { WorkflowApiService } from '../../services/workflow-api.service';
+import { WorkflowApiPort, WORKFLOW_API_PORT } from '../../services/workflow-api.port';
 import { CreateWorkflowRequest } from '../../models';
 
 interface StateFormValue {
@@ -684,7 +684,7 @@ function toSnakeCase(value: string): string {
 })
 export class WorkflowCreateComponent {
   private readonly fb = inject(FormBuilder);
-  private readonly api = inject(WorkflowApiService);
+  private readonly api = inject(WORKFLOW_API_PORT);
 
   /** Emitted when the API responds successfully, with the new workflow UUID. */
   @Output() workflowCreated = new EventEmitter<string>();

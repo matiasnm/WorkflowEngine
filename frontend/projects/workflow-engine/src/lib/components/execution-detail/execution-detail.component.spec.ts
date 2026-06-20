@@ -2,13 +2,13 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { Subject, of, throwError } from 'rxjs';
 import { ExecutionDetailComponent } from './execution-detail.component';
-import { ExecutionApiService } from '../../services/execution-api.service';
+import { EXECUTION_API_PORT, ExecutionApiPort } from '../../services/execution-api.port';
 import { ExecutionResponse, NextStatesResponse, TransitionResponse } from '../../models';
 
 describe('ExecutionDetailComponent', () => {
   let component: ExecutionDetailComponent;
   let fixture: ComponentFixture<ExecutionDetailComponent>;
-  let apiSpy: jasmine.SpyObj<ExecutionApiService>;
+  let apiSpy: jasmine.SpyObj<ExecutionApiPort>;
 
   const executionId = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
 
@@ -38,7 +38,7 @@ describe('ExecutionDetailComponent', () => {
   };
 
   beforeEach(async () => {
-    const spy = jasmine.createSpyObj('ExecutionApiService', [
+    const spy = jasmine.createSpyObj('ExecutionApiPort', [
       'getExecution',
       'getNextStates',
       'transition',
@@ -51,11 +51,11 @@ describe('ExecutionDetailComponent', () => {
     await TestBed.configureTestingModule({
       imports: [ExecutionDetailComponent],
       providers: [
-        { provide: ExecutionApiService, useValue: spy },
+        { provide: EXECUTION_API_PORT, useValue: spy },
       ],
     }).compileComponents();
 
-    apiSpy = TestBed.inject(ExecutionApiService) as jasmine.SpyObj<ExecutionApiService>;
+    apiSpy = TestBed.inject(EXECUTION_API_PORT) as jasmine.SpyObj<ExecutionApiPort>;
   });
 
   /**

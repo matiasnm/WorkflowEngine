@@ -3,11 +3,12 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { WorkflowSummary, WorkflowDetail, CreateWorkflowRequest } from '../models';
 import { WORKFLOW_ENGINE_CONFIG } from '../config/workflow-engine.config';
+import { WorkflowApiPort } from './workflow-api.port';
 
 @Injectable({
   providedIn: 'root',
 })
-export class WorkflowApiService {
+export class WorkflowApiHttpAdapter implements WorkflowApiPort {
   private readonly http = inject(HttpClient);
   private readonly config = inject(WORKFLOW_ENGINE_CONFIG);
 

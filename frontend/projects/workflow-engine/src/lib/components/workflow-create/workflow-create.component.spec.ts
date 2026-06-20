@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { Subject, of, throwError } from 'rxjs';
 import { WorkflowCreateComponent } from './workflow-create.component';
-import { WorkflowApiService } from '../../services/workflow-api.service';
+import { WORKFLOW_API_PORT, WorkflowApiPort } from '../../services/workflow-api.port';
 
 /** Helper to find an element whose textContent includes the given substring. */
 function findElementByText(parent: Element, selector: string, text: string): Element | null {
@@ -18,19 +18,19 @@ function findElementByText(parent: Element, selector: string, text: string): Ele
 describe('WorkflowCreateComponent', () => {
   let component: WorkflowCreateComponent;
   let fixture: ComponentFixture<WorkflowCreateComponent>;
-  let apiServiceSpy: jasmine.SpyObj<WorkflowApiService>;
+  let apiServiceSpy: jasmine.SpyObj<WorkflowApiPort>;
 
   beforeEach(async () => {
-    const spy = jasmine.createSpyObj('WorkflowApiService', ['createWorkflow']);
+    const spy = jasmine.createSpyObj('WorkflowApiPort', ['createWorkflow']);
 
     await TestBed.configureTestingModule({
       imports: [WorkflowCreateComponent],
       providers: [
-        { provide: WorkflowApiService, useValue: spy },
+        { provide: WORKFLOW_API_PORT, useValue: spy },
       ],
     }).compileComponents();
 
-    apiServiceSpy = TestBed.inject(WorkflowApiService) as jasmine.SpyObj<WorkflowApiService>;
+    apiServiceSpy = TestBed.inject(WORKFLOW_API_PORT) as jasmine.SpyObj<WorkflowApiPort>;
   });
 
   function createComponent(): void {
