@@ -5,7 +5,7 @@ Add pagination support to `GET /workflows/{workflowId}/executions` so the endpoi
 ## Status
 
 - **Iteration:** v0.4 (Hardening & Spring Events)
-- **Backend:** ❌ Not implemented
+- **Backend:** ✅ Implemented (v0.4)
 - **Frontend:** ❌ Not implemented
 - **Dependencies:** None
 

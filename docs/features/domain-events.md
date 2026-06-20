@@ -5,7 +5,7 @@ Publish `StateChanged` domain events through a proper hexagonal port, with the f
 ## Status
 
 - **Iteration:** v0.4 (Hardening & Spring Events)
-- **Backend:** ❌ Not implemented
+- **Backend:** ✅ Implemented (v0.4)
 - **Frontend:** N/A (backend-only)
 - **Dependencies:** None
 

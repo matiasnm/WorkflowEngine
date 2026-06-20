@@ -26,16 +26,16 @@
 
 ---
 
-## v0.4 — Hardening & Spring Events
+## v0.4 — Hardening & Spring Events ✅
 
 ### Backend hardening
-- [ ] Pagination for execution list — [spec](features/pagination-execution-list.md)
-- [ ] GlobalExceptionHandler coverage (`WorkflowExecutionNotFound`, missing handlers)
-- [ ] Domain events with `EventPublisher` port + Spring Events adapter — [spec](features/domain-events.md)
+- [x] Pagination for execution list — [spec](features/pagination-execution-list.md)
+- [x] GlobalExceptionHandler coverage (`WorkflowExecutionNotFound`, missing handlers)
+- [x] Domain events with `EventPublisher` port + Spring Events adapter — [spec](features/domain-events.md)
 
 ### Documentation
-- [ ] OpenAPI / Swagger docs (`springdoc-openapi`)
-- [ ] ADR: event publishing strategy (Spring Events vs Kafka)
+- [x] OpenAPI / Swagger docs (`springdoc-openapi`)
+- [x] ADR: event publishing strategy (Spring Events vs Kafka)
 
 ### Frontend polish
 - [ ] Skeleton loading components (reusable shimmer pattern)

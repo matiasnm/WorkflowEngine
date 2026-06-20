@@ -46,6 +46,7 @@ workflowEngine
 │   │   └── schema.sql
 │   │
 │   └── infrastructure
+│       ├── event                      ← EventPublisher adapters (Spring Events, Logging)
 │       ├── persistence
 │       │   ├── adapter
 │       │   ├── entity
@@ -139,6 +140,9 @@ Pure domain service that:
 - Track full execution history via events
 - Query next possible states
 - Inspect execution history
+- **Paginated execution list** (`?page=0&size=20`)
+- **Domain event publishing** via `EventPublisher` hexagonal port + Spring Events adapter
+- **OpenAPI / Swagger UI** auto-generated docs at `/swagger-ui.html`
 
 ---
 
@@ -151,11 +155,11 @@ Pure domain service that:
 
 ### Profiles
 
-| Profile | Database | Schema | Use case |
-|---------|----------|--------|----------|
-| `dev-jpa` (default) | H2 (embedded, in-memory) | Hibernate DDL `update` | Fast unit tests, dev without Docker |
-| `dev-pg` | PostgreSQL 16 (Docker) | Flyway migrations + Hibernate `validate` | Local dev matching production |
-| `dev-memory` | None | None | Controller/service tests with in-memory repos |
+| Profile | Database | Persistence adapter | Event adapter | Use case |
+|---------|----------|---------------------|---------------|---------|
+| `dev-jpa` (default) | H2 (embedded, in-memory) | JPA (Spring Data) | Spring `ApplicationEventPublisher` | Fast unit tests, dev without Docker |
+| `dev-pg` | PostgreSQL 16 (Docker) | JPA (Spring Data) | Spring `ApplicationEventPublisher` | Local dev matching production |
+| `dev-memory` | None | In-memory HashMap | Logging | Controller/service tests without database |
 
 ### Start PostgreSQL (for dev-pg)
 
@@ -291,6 +295,7 @@ But implemented in a minimal, educational form for portfolio and system design e
 | **Backend** | Java 21 + Spring Boot 4 |
 | **Persistence** | Spring Data JPA, PostgreSQL 16, Flyway, H2 (tests) |
 | **Backend Testing** | JUnit 5, Mockito, Testcontainers |
+| **API Documentation** | springdoc-openapi (Swagger UI) |
 | **Build** | Gradle Kotlin DSL |
 | **Frontend** | Angular 19, TypeScript 5.7, RxJS 7 |
 | **Frontend Testing** | Jasmine, Karma, HttpClientTestingController |
