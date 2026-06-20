@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import com.newen.workflowEngine.application.port.WorkflowRepository;
@@ -12,6 +13,7 @@ import com.newen.workflowEngine.domain.model.workflow.WorkflowId;
 import com.newen.workflowEngine.infrastructure.persistence.mapper.WorkflowMapper;
 import com.newen.workflowEngine.infrastructure.persistence.repository.jpa.JpaWorkflowRepository;
 
+@Profile("jpa")
 @Component
 public class JpaWorkflowPersistenceAdapter implements WorkflowRepository {
 

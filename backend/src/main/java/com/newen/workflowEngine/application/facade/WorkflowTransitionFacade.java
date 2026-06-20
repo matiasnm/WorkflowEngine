@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.newen.workflowEngine.application.port.EventPublisher;
 import com.newen.workflowEngine.application.port.WorkflowExecutionRepository;
 import com.newen.workflowEngine.application.port.WorkflowRepository;
 import com.newen.workflowEngine.application.usecase.commands.dto.ExecuteTransitionResult;
@@ -21,15 +22,18 @@ public class WorkflowTransitionFacade {
     private final WorkflowRepository workflowRepository;
     private final WorkflowExecutionRepository executionRepository;
     private final WorkflowEngine engine;
+    private final EventPublisher eventPublisher;
 
     public WorkflowTransitionFacade(
             WorkflowRepository workflowRepository,
             WorkflowExecutionRepository executionRepository,
-            WorkflowEngine engine
+            WorkflowEngine engine,
+            EventPublisher eventPublisher
     ) {
         this.workflowRepository = workflowRepository;
         this.executionRepository = executionRepository;
         this.engine = engine;
+        this.eventPublisher = eventPublisher;
     }
 
     private record Pair(Workflow workflow, WorkflowExecution execution) {}
@@ -46,6 +50,8 @@ public class WorkflowTransitionFacade {
 
         WorkflowEngine.TransitionResult result = engine.transition(pair.workflow(), pair.execution(), target);
         executionRepository.save(result.execution());
+
+        eventPublisher.publish(result.event());
 
         return new ExecuteTransitionResult(
                 result.execution().getId(),

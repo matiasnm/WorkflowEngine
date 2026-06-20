@@ -3,6 +3,7 @@ package com.newen.workflowEngine.infrastructure.persistence.adapter;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import com.newen.workflowEngine.application.port.WorkflowExecutionRepository;
@@ -17,6 +18,7 @@ import com.newen.workflowEngine.infrastructure.persistence.repository.jpa.JpaWor
 
 import jakarta.persistence.EntityManager;
 
+@Profile("jpa")
 @Component
 public class JpaWorkflowExecutionPersistenceAdapter implements WorkflowExecutionRepository {
     private final JpaWorkflowExecutionRepository repo;

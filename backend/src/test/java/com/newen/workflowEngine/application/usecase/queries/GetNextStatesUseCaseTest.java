@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 
 import com.newen.workflowEngine.application.facade.WorkflowTransitionFacade;
+import com.newen.workflowEngine.application.port.EventPublisher;
 import com.newen.workflowEngine.domain.model.execution.WorkflowExecution;
 import com.newen.workflowEngine.domain.model.execution.WorkflowExecutionId;
 import com.newen.workflowEngine.domain.model.workflow.State;
@@ -49,10 +50,13 @@ public class GetNextStatesUseCaseTest {
     
         executionRepo.save(execution);
     
+        EventPublisher noopPublisher = event -> {};
+
         WorkflowTransitionFacade facade = new WorkflowTransitionFacade(
-                workflowRepo,
-                executionRepo,
-                new WorkflowEngine()
+                workflowRepo, 
+                executionRepo, 
+                new WorkflowEngine(),
+                noopPublisher
         );
         
         GetNextStatesUseCase useCase = new GetNextStatesUseCase(facade);
