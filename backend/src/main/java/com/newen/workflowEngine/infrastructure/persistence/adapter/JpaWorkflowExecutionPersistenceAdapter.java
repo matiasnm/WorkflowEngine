@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.context.annotation.Profile;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
 import com.newen.workflowEngine.application.port.WorkflowExecutionRepository;
@@ -53,6 +54,19 @@ public class JpaWorkflowExecutionPersistenceAdapter implements WorkflowExecution
                     return mapper.toDomain(entity, workflow);
                 })
                 .toList();
+    }
+    @Override
+    public List<WorkflowExecution> findByWorkflowId(WorkflowId workflowId, int page, int size) {
+        return repo.findByWorkflow_Id(workflowId.value(), PageRequest.of(page, size)).stream()
+                .map(entity -> {
+                    Workflow workflow = workflowMapper.toDomain(entity.getWorkflow());
+                    return mapper.toDomain(entity, workflow);
+                })
+                .toList();
+    }
+    @Override
+    public int countByWorkflowId(WorkflowId workflowId) {
+        return (int) repo.countByWorkflow_Id(workflowId.value());
     }
     @Override
     public void save(WorkflowExecution execution) {

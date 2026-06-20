@@ -1,5 +1,6 @@
 package com.newen.workflowEngine.infrastructure.persistence.repository.memory;
 
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +34,23 @@ public class InMemoryWorkflowExecutionRepository
         return storage.values().stream()
                 .filter(execution -> execution.getWorkflowId().equals(workflowId))
                 .toList();
+    }
+
+    @Override
+    public List<WorkflowExecution> findByWorkflowId(WorkflowId workflowId, int page, int size) {
+        return storage.values().stream()
+                .filter(execution -> execution.getWorkflowId().equals(workflowId))
+                .sorted(Comparator.comparing(e -> e.getId().value()))
+                .skip((long) page * size)
+                .limit(size)
+                .toList();
+    }
+
+    @Override
+    public int countByWorkflowId(WorkflowId workflowId) {
+        return (int) storage.values().stream()
+                .filter(execution -> execution.getWorkflowId().equals(workflowId))
+                .count();
     }
 
     @Override

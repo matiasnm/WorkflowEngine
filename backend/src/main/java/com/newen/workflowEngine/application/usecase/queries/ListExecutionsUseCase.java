@@ -22,4 +22,14 @@ public class ListExecutionsUseCase {
     public List<WorkflowExecution> execute(WorkflowId workflowId) {
         return executionRepository.findByWorkflowId(workflowId);
     }
+
+    @Transactional(readOnly = true)
+    public List<WorkflowExecution> execute(WorkflowId workflowId, int page, int size) {
+        return executionRepository.findByWorkflowId(workflowId, page, size);
+    }
+
+    @Transactional(readOnly = true)
+    public int count(WorkflowId workflowId) {
+        return executionRepository.countByWorkflowId(workflowId);
+    }
 }

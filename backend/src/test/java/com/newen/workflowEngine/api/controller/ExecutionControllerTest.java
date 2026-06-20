@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import org.junit.jupiter.api.Test;
@@ -105,7 +106,8 @@ class ExecutionControllerTest {
                 now
         );
 
-        when(listExecutionsUseCase.execute(any(WorkflowId.class))).thenReturn(executions);
+        when(listExecutionsUseCase.execute(any(WorkflowId.class), anyInt(), anyInt())).thenReturn(executions);
+        when(listExecutionsUseCase.count(any(WorkflowId.class))).thenReturn(1);
         when(executionResponseMapper.toExecutionResponse(any(WorkflowExecution.class)))
                 .thenReturn(mockResponse);
 
@@ -115,10 +117,14 @@ class ExecutionControllerTest {
         )
         .andDo(print())
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$[0].id").value(executionId.toString()))
-        .andExpect(jsonPath("$[0].workflowId").value(workflowId.toString()))
-        .andExpect(jsonPath("$[0].currentState.code").value("created"))
-        .andExpect(jsonPath("$[0].currentStateSince").isNotEmpty());
+        .andExpect(jsonPath("$.content[0].id").value(executionId.toString()))
+        .andExpect(jsonPath("$.content[0].workflowId").value(workflowId.toString()))
+        .andExpect(jsonPath("$.content[0].currentState.code").value("created"))
+        .andExpect(jsonPath("$.content[0].currentStateSince").isNotEmpty())
+        .andExpect(jsonPath("$.page").value(0))
+        .andExpect(jsonPath("$.size").value(20))
+        .andExpect(jsonPath("$.totalElements").value(1))
+        .andExpect(jsonPath("$.totalPages").value(1));
     }
 
 

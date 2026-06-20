@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
 
 import com.newen.workflowEngine.application.port.WorkflowExecutionRepository;
 import com.newen.workflowEngine.application.port.WorkflowRepository;
@@ -27,6 +28,7 @@ import com.newen.workflowEngine.infrastructure.persistence.mapper.WorkflowExecut
 import com.newen.workflowEngine.infrastructure.persistence.mapper.WorkflowMapper;
 
 @DataJpaTest
+@ActiveProfiles("jpa")
 @Import({
         JpaWorkflowPersistenceAdapter.class,
         JpaWorkflowExecutionPersistenceAdapter.class,

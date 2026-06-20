@@ -13,5 +13,9 @@ public interface WorkflowExecutionRepository {
 
     List<WorkflowExecution> findByWorkflowId(WorkflowId workflowId);
 
+    List<WorkflowExecution> findByWorkflowId(WorkflowId workflowId, int page, int size);
+
+    int countByWorkflowId(WorkflowId workflowId);
+
     void save(WorkflowExecution instance);
 }

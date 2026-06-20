@@ -3,12 +3,15 @@ package com.newen.workflowEngine.api.controller;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.newen.workflowEngine.api.dto.ExecutionPageResponse;
 import com.newen.workflowEngine.api.dto.ExecutionResponse;
 import com.newen.workflowEngine.api.dto.HistoryItemResponse;
 import com.newen.workflowEngine.api.dto.NextStatesResponse;
@@ -35,8 +38,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 
 @RestController
+@Validated
 @Tag(name = "Executions", description = "API to manage workflow executions")
 public class ExecutionController {
 
@@ -84,14 +90,25 @@ public class ExecutionController {
 
     @GetMapping("/workflows/{workflowId}/executions")
     @Operation(summary = "List all executions for a workflow")
-    public List<ExecutionResponse> listExecutions(
+    public ExecutionPageResponse listExecutions(
             @Parameter(description = "Workflow unique identifier")
-            @PathVariable("workflowId") UUID workflowId
+            @PathVariable("workflowId") UUID workflowId,
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "20") @Max(100) int size
     ) {
-        return listExecutionsUseCase.execute(new WorkflowId(workflowId))
-                .stream()
+        var executions = listExecutionsUseCase.execute(new WorkflowId(workflowId), page, size);
+        int total = listExecutionsUseCase.count(new WorkflowId(workflowId));
+        int totalPages = (int) Math.ceil((double) total / size);
+
+        return new ExecutionPageResponse(
+            executions.stream()
                 .map(executionResponseMapper::toExecutionResponse)
-                .toList();
+                .toList(),
+            page,
+            size,
+            total,
+            totalPages
+        );
     }
 
 
