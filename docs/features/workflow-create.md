@@ -6,7 +6,7 @@ Form-based UI to create a new `Workflow` definition via `POST /workflows`.
 
 - **Iteration:** v0.3 (post-execution-list)
 - **Backend:** ✅ Already implemented (`POST /workflows` exists)
-- **Frontend:** ❌ Not implemented
+- **Frontend:** ✅ Implemented
 - **Dependencies:** None
 
 ---

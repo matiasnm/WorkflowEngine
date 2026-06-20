@@ -16,13 +16,31 @@
 
 ## v0.2 — Execution List
 
-- [ ] Execution list feature — [spec](features/execution-list.md)
+- [x] Execution list feature — [spec](features/execution-list.md)
 
 ---
 
 ## v0.3 — Create Workflow UI
 
-- [ ] Create workflow form — [spec](features/workflow-create.md)
+- [x] Create workflow form — [spec](features/workflow-create.md)
+
+---
+
+## v0.4 — Hardening & Spring Events
+
+### Backend hardening
+- [ ] Pagination for execution list — [spec](features/pagination-execution-list.md)
+- [ ] GlobalExceptionHandler coverage (`WorkflowExecutionNotFound`, missing handlers)
+- [ ] Domain events with `EventPublisher` port + Spring Events adapter — [spec](features/domain-events.md)
+
+### Documentation
+- [ ] OpenAPI / Swagger docs (`springdoc-openapi`)
+- [ ] ADR: event publishing strategy (Spring Events vs Kafka)
+
+### Frontend polish
+- [ ] Skeleton loading components (reusable shimmer pattern)
+- [ ] Shell-level error handling (global toast/snackbar)
+- [ ] Workflow list search/filter — [spec](features/frontend-polish.md)
 
 ---
 
@@ -37,5 +55,3 @@
 - [ ] Role-based transitions
 - [ ] Visual workflow graph (D3.js / vis-network)
 - [ ] WebSocket real-time updates
-- [ ] OpenAPI docs
-- [ ] Pagination for execution list

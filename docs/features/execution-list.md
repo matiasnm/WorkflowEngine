@@ -5,8 +5,8 @@ List all `WorkflowExecution` instances belonging to a `Workflow`.
 ## Status
 
 - **Iteration:** v0.2 (post-MVP)
-- **Backend:** ❌ Not implemented
-- **Frontend:** ❌ Not implemented
+- **Backend:** ✅ Implemented
+- **Frontend:** ✅ Implemented
 - **Dependencies:** None
 
 ---
