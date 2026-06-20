@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { WorkflowApiService } from './workflow-api.service';
 import { WORKFLOW_ENGINE_CONFIG } from '../config/workflow-engine.config';
-import { WorkflowSummary, WorkflowDetail } from '../models';
+import { WorkflowSummary, WorkflowDetail, CreateWorkflowRequest } from '../models';
 
 describe('WorkflowApiService', () => {
   let service: WorkflowApiService;
@@ -68,6 +68,54 @@ describe('WorkflowApiService', () => {
       const req = httpMock.expectOne(`${apiBaseUrl}/workflows`);
       expect(req.request.method).toBe('GET');
       req.flush(null, { status: 500, statusText: errorMessage });
+    });
+  });
+
+  describe('createWorkflow()', () => {
+    it('should call POST /workflows with correct request body', () => {
+      const request: CreateWorkflowRequest = {
+        name: 'simple-approval',
+        states: [
+          { code: 'created', name: 'CREATED', terminal: false },
+          { code: 'approved', name: 'APPROVED', terminal: true },
+        ],
+        transitions: [
+          { from: 'created', to: 'approved' },
+        ],
+        initialState: 'created',
+      };
+
+      service.createWorkflow(request).subscribe((response) => {
+        expect(response.workflowId).toBe('new-uuid');
+      });
+
+      const req = httpMock.expectOne(`${apiBaseUrl}/workflows`);
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toEqual(request);
+      req.flush({ workflowId: 'new-uuid' });
+    });
+
+    it('should propagate HTTP errors from the API', () => {
+      const request: CreateWorkflowRequest = {
+        name: 'test',
+        states: [
+          { code: 'a', name: 'A', terminal: false },
+          { code: 'b', name: 'B', terminal: false },
+        ],
+        transitions: [],
+        initialState: 'a',
+      };
+
+      service.createWorkflow(request).subscribe({
+        next: () => fail('Expected an error, not a response'),
+        error: (error) => {
+          expect(error.status).toBe(400);
+        },
+      });
+
+      const req = httpMock.expectOne(`${apiBaseUrl}/workflows`);
+      expect(req.request.method).toBe('POST');
+      req.flush({ message: 'name: must not be blank' }, { status: 400, statusText: 'Bad Request' });
     });
   });
 

@@ -23,3 +23,10 @@ export interface WorkflowDetail {
   transitions: TransitionDefinition[];
   initialState: string;
 }
+
+export interface CreateWorkflowRequest {
+  name: string;
+  states: StateDefinition[];
+  transitions: TransitionDefinition[];
+  initialState: string;
+}

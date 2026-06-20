@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { WorkflowSummary, WorkflowDetail } from '../models';
+import { WorkflowSummary, WorkflowDetail, CreateWorkflowRequest } from '../models';
 import { WORKFLOW_ENGINE_CONFIG } from '../config/workflow-engine.config';
 
 @Injectable({
@@ -17,5 +17,12 @@ export class WorkflowApiService {
 
   getWorkflow(id: string): Observable<WorkflowDetail> {
     return this.http.get<WorkflowDetail>(`${this.config.apiBaseUrl}/workflows/${id}`);
+  }
+
+  createWorkflow(request: CreateWorkflowRequest): Observable<{ workflowId: string }> {
+    return this.http.post<{ workflowId: string }>(
+      `${this.config.apiBaseUrl}/workflows`,
+      request,
+    );
   }
 }
