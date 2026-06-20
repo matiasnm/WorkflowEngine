@@ -11,6 +11,9 @@ export * from './lib/config/workflow-engine.config';
 // Services
 export * from './lib/services';
 
+// Utilities
+export * from './lib/util';
+
 // Components
 export * from './lib/components/workflow-list/workflow-list.component';
 export * from './lib/components/workflow-detail/workflow-detail.component';
