@@ -32,6 +32,7 @@ dependencies {
     runtimeOnly("com.h2database:h2")
 
     // ===== DOCUMENTATION =====
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3")
 
     // ===== DEV =====
     developmentOnly("org.springframework.boot:spring-boot-devtools")
