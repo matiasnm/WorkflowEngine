@@ -59,8 +59,8 @@ function toSnakeCase(value: string): string {
           @if (states.length > 0) {
             <div class="we-dynamic-list we-dynamic-list--headers">
               <div class="we-dynamic-row we-dynamic-row--header">
-                <span class="we-dynamic-header">Code</span>
                 <span class="we-dynamic-header">Name</span>
+                <span class="we-dynamic-header" title="Stable identifier used in APIs and data references. Auto-generated from Name.">Code</span>
                 <span class="we-dynamic-header we-dynamic-header--terminal">Terminal</span>
                 <span class="we-dynamic-header we-dynamic-header--remove"></span>
               </div>
@@ -72,21 +72,25 @@ function toSnakeCase(value: string): string {
               <div class="we-dynamic-row" [formGroupName]="i">
                 <input
                   class="we-input"
-                  [class.we-input--error]="state.get('code')?.invalid && state.get('code')?.touched"
-                  formControlName="code"
-                  placeholder="e.g. in_review"
-                  autocomplete="off"
-                  [attr.aria-label]="'State ' + (i + 1) + ' code'"
-                  [attr.disabled]="submitting() ? '' : null"
-                />
-                <input
-                  class="we-input"
                   [class.we-input--error]="state.get('name')?.invalid && state.get('name')?.touched"
                   formControlName="name"
                   placeholder="e.g. IN REVIEW"
                   autocomplete="off"
                   [attr.aria-label]="'State ' + (i + 1) + ' name'"
                   (input)="onStateNameInput(i)"
+                  [attr.disabled]="submitting() ? '' : null"
+                />
+                <input
+                  class="we-input"
+                  [class.we-input--error]="state.get('code')?.invalid && state.get('code')?.touched"
+                  [class.we-input--readonly]="!codeEditable().has(i)"
+                  formControlName="code"
+                  placeholder="e.g. in_review"
+                  autocomplete="off"
+                  [attr.aria-label]="'State ' + (i + 1) + ' code'"
+                  [attr.title]="!codeEditable().has(i) ? 'Auto-generated from Name. Click to edit.' : 'Code (stable identifier)'"
+                  [readonly]="!codeEditable().has(i)"
+                  (focus)="enableCodeEditing(i)"
                   [attr.disabled]="submitting() ? '' : null"
                 />
                 <label class="we-checkbox-label">
@@ -320,6 +324,20 @@ function toSnakeCase(value: string): string {
       box-shadow: 0 0 0 2px rgba(211, 47, 47, 0.12);
     }
 
+    .we-input--readonly {
+      background: var(--we-bg-secondary, #f5f5f5);
+      color: var(--we-text-secondary, #757575);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .we-input--readonly:focus {
+      background: var(--we-bg, #ffffff);
+      color: var(--we-text, #212121);
+      cursor: text;
+      user-select: auto;
+    }
+
     .we-input:disabled {
       background: var(--we-bg-secondary, #f5f5f5);
       cursor: not-allowed;
@@ -403,7 +421,7 @@ function toSnakeCase(value: string): string {
     }
 
     .we-dynamic-row--header {
-      padding: 0 4px;
+      /* Match the flex layout of the form rows below */
     }
 
     .we-dynamic-header {
@@ -414,18 +432,27 @@ function toSnakeCase(value: string): string {
       letter-spacing: 0.03em;
     }
 
+    /* Text headers (Name, Code, From, To) expand to match inputs/selects below */
+    .we-dynamic-header:not(.we-dynamic-header--terminal):not(.we-dynamic-header--arrow):not(.we-dynamic-header--remove) {
+      flex: 1;
+      min-width: 0;
+    }
+
     .we-dynamic-header--terminal {
       width: 90px;
       text-align: center;
+      flex: none;
     }
 
     .we-dynamic-header--remove {
       width: 36px;
+      flex: none;
     }
 
     .we-dynamic-header--arrow {
       width: 24px;
       text-align: center;
+      flex: none;
     }
 
     .we-dynamic-row .we-input {
@@ -672,6 +699,9 @@ export class WorkflowCreateComponent {
   readonly submitting = signal(false);
   readonly submitError = signal<string | null>(null);
 
+  /** Tracks which state rows have editable code fields (others are readonly, auto-generated). */
+  readonly codeEditable = signal<Set<number>>(new Set());
+
   readonly form: FormGroup = this.fb.group({
     name: ['', [Validators.required, this.nonBlankValidator]],
     states: this.fb.array([], { validators: [Validators.minLength(2)] }),
@@ -755,6 +785,17 @@ export class WorkflowCreateComponent {
       this.transitions.removeAt(toRemove[i]);
     }
 
+    // Adjust codeEditable after removal: shift indices down for rows after the removed one
+    this.codeEditable.update(set => {
+      const newSet = new Set<number>();
+      for (const idx of set) {
+        if (idx < index) newSet.add(idx);
+        else if (idx > index) newSet.add(idx - 1);
+        // idx === index → removed, don't re-add
+      }
+      return newSet;
+    });
+
     this.states.removeAt(index);
     this.updateTransitionValidators();
     this.updateDuplicateCodeValidator();
@@ -772,6 +813,16 @@ export class WorkflowCreateComponent {
         codeControl.setValue(snake);
       }
     }
+  }
+
+  /** Makes the code field editable for the given state row (on focus/click). */
+  enableCodeEditing(index: number): void {
+    this.codeEditable.update(set => {
+      if (set.has(index)) return set;
+      const newSet = new Set(set);
+      newSet.add(index);
+      return newSet;
+    });
   }
 
   // ── Transitions management ──
