@@ -7,6 +7,7 @@
 ![Build Tool](https://img.shields.io/badge/Gradle-Kotlin_DSL-darkgreen)
 ![Angular](https://img.shields.io/badge/Angular-19-red)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/matiasnm/WorkflowEngine)
 
 A lightweight workflow runtime engine inspired by Temporal and Camunda, built using Domain-Driven Design (DDD), Hexagonal Architecture and CQRS principles.
 
