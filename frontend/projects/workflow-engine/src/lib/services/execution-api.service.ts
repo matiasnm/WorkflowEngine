@@ -40,4 +40,10 @@ export class ExecutionApiService {
       `${this.config.apiBaseUrl}/executions/${executionId}/history`
     );
   }
+
+  listExecutions(workflowId: string): Observable<ExecutionResponse[]> {
+    return this.http.get<ExecutionResponse[]>(
+      `${this.config.apiBaseUrl}/workflows/${workflowId}/executions`
+    );
+  }
 }
