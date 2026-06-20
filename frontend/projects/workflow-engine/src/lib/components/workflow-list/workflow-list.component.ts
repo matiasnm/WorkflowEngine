@@ -1,7 +1,7 @@
-import { Component, input, Output, EventEmitter, signal, computed, inject, OnInit } from '@angular/core';
+import { Component, input, Output, EventEmitter, signal, computed, inject, DestroyRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { WorkflowApiService } from '../../services/workflow-api.service';
-import { WorkflowSummary } from '../../models';
+import { asyncData } from '../../util';
 
 @Component({
   selector: 'we-workflow-list',
@@ -14,7 +14,7 @@ import { WorkflowSummary } from '../../models';
       }
 
       <!-- Loading state: skeleton shimmer with 3 placeholder rows -->
-      @if (loading()) {
+      @if (workflows.loading()) {
         <div class="we-workflow-list__skeleton" aria-label="Loading workflows">
           @for (_ of [1, 2, 3]; track $index) {
             <div class="we-skeleton-card">
@@ -26,18 +26,18 @@ import { WorkflowSummary } from '../../models';
       }
 
       <!-- Error state: inline error message + retry button -->
-      @if (error(); as err) {
+      @if (workflows.error(); as err) {
         <div class="we-workflow-list__error" role="alert">
           <span class="we-error-icon" aria-hidden="true">⚠</span>
           <span class="we-error-text">{{ err }}</span>
-          <button class="we-btn we-btn--retry" (click)="loadWorkflows()">
+          <button class="we-btn we-btn--retry" (click)="workflows.refresh()">
             Retry
           </button>
         </div>
       }
 
       <!-- Success state (with data): workflow cards with search -->
-      @if (!loading() && !error() && workflows().length > 0) {
+      @if (!workflows.loading() && !workflows.error() && (workflows.data() ?? []).length > 0) {
         <!-- Search input -->
         <div class="we-workflow-list__search">
           <input
@@ -77,7 +77,7 @@ import { WorkflowSummary } from '../../models';
       }
 
       <!-- Empty state (no workflows at all) -->
-      @if (!loading() && !error() && workflows().length === 0) {
+      @if (!workflows.loading() && !workflows.error() && (workflows.data() ?? []).length === 0) {
         <div class="we-workflow-list__empty">
           <p>No workflows found. Create one via the API.</p>
         </div>
@@ -281,8 +281,9 @@ import { WorkflowSummary } from '../../models';
     }
   `],
 })
-export class WorkflowListComponent implements OnInit {
+export class WorkflowListComponent {
   private readonly api = inject(WorkflowApiService);
+  private readonly destroyRef = inject(DestroyRef);
 
   /** Optional heading shown above the list. */
   readonly title = input<string>();
@@ -293,42 +294,29 @@ export class WorkflowListComponent implements OnInit {
   /** Emitted when an error occurs, so the host app can react (toast, etc.). */
   @Output() errorEvent = new EventEmitter<string>();
 
-  /** Reactive state */
-  readonly loading = signal(true);
-  readonly error = signal<string | null>(null);
-  readonly workflows = signal<WorkflowSummary[]>([]);
+  /** Reactive async data for the workflow list. */
+  private readonly workflows = asyncData(
+    () => this.api.listWorkflows(),
+    {
+      errorMessage: 'Failed to load workflows.',
+      onError: () => this.errorEvent.emit('Failed to load workflows.'),
+      destroyRef: this.destroyRef,
+    },
+  );
+
+  /** Client-side search query. */
   readonly searchQuery = signal<string>('');
 
   /** Computed: client-side filtered workflows by name (case-insensitive). */
   readonly filteredWorkflows = computed(() => {
+    const data = this.workflows.data();
+    if (!data) return [];
     const query = this.searchQuery().toLowerCase();
-    if (!query) return this.workflows();
-    return this.workflows().filter(w =>
+    if (!query) return data;
+    return data.filter(w =>
       w.name.toLowerCase().includes(query)
     );
   });
-
-  ngOnInit(): void {
-    this.loadWorkflows();
-  }
-
-  protected loadWorkflows(): void {
-    this.loading.set(true);
-    this.error.set(null);
-
-    this.api.listWorkflows().subscribe({
-      next: (list) => {
-        this.workflows.set(list);
-        this.loading.set(false);
-      },
-      error: (err) => {
-        const message = 'Failed to load workflows.';
-        this.error.set(message);
-        this.errorEvent.emit(message);
-        this.loading.set(false);
-      },
-    });
-  }
 
   protected selectWorkflow(id: string): void {
     this.workflowSelected.emit(id);

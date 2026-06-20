@@ -42,7 +42,7 @@ describe('WorkflowListComponent', () => {
       fixture.detectChanges();
 
       // Should show skeleton while loading
-      expect(component.loading()).toBeTrue();
+      expect(component['workflows'].loading()).toBeTrue();
       const skeleton = fixture.nativeElement.querySelector('.we-workflow-list__skeleton');
       expect(skeleton).toBeTruthy();
       // Should have 3 skeleton placeholder rows
@@ -55,7 +55,7 @@ describe('WorkflowListComponent', () => {
       fixture.detectChanges();
 
       // Skeleton should be gone, cards should be visible
-      expect(component.loading()).toBeFalse();
+      expect(component['workflows'].loading()).toBeFalse();
       const skeletonAfter = fixture.nativeElement.querySelector('.we-workflow-list__skeleton');
       expect(skeletonAfter).toBeFalsy();
       const cards = fixture.nativeElement.querySelectorAll('.we-workflow-card');
@@ -68,7 +68,7 @@ describe('WorkflowListComponent', () => {
       fixture.detectChanges();
 
       // After error, loading should be false
-      expect(component.loading()).toBeFalse();
+      expect(component['workflows'].loading()).toBeFalse();
     });
   });
 
@@ -148,7 +148,7 @@ describe('WorkflowListComponent', () => {
     });
 
     it('should set error signal and emit errorEvent', () => {
-      expect(component.error()).toBe('Failed to load workflows.');
+      expect(component['workflows'].error()).toBe('Failed to load workflows.');
     });
 
     it('should hide skeleton and cards when in error state', () => {
@@ -167,8 +167,8 @@ describe('WorkflowListComponent', () => {
       fixture.detectChanges();
 
       // After retry, should show cards instead of error
-      expect(component.error()).toBeNull();
-      expect(component.loading()).toBeFalse();
+      expect(component['workflows'].error()).toBeNull();
+      expect(component['workflows'].loading()).toBeFalse();
       const cards = fixture.nativeElement.querySelectorAll('.we-workflow-card');
       expect(cards.length).toBe(2);
     });
@@ -198,13 +198,18 @@ describe('WorkflowListComponent', () => {
 
   describe('errorEvent output', () => {
     it('should emit errorEvent on API error', () => {
-      apiServiceSpy.listWorkflows.and.returnValue(throwError(() => new Error('API error')));
+      // Set up component with a successful first load
+      apiServiceSpy.listWorkflows.and.returnValue(of([]));
       createComponent();
+      fixture.detectChanges();
 
-      // Subscribe BEFORE detectChanges so we catch the emission from ngOnInit
+      // Subscribe to errorEvent after the component is created
       const emitted: string[] = [];
       const sub = component.errorEvent.subscribe((val) => emitted.push(val));
 
+      // Make the next call fail and trigger a refresh
+      apiServiceSpy.listWorkflows.and.returnValue(throwError(() => new Error('API error')));
+      component['workflows'].refresh();
       fixture.detectChanges();
 
       expect(emitted).toEqual(['Failed to load workflows.']);
@@ -298,15 +303,21 @@ describe('WorkflowListComponent', () => {
       fixture.detectChanges();
       expect(component.searchQuery()).toBe('simple');
 
-      // Simulate reload (loading → success transition)
-      component.loading.set(true);
+      // Change spy to return a Subject for controlled timing
+      const subject = new Subject<WorkflowSummary[]>();
+      apiServiceSpy.listWorkflows.and.returnValue(subject.asObservable());
+
+      // Trigger refresh — starts loading
+      component['workflows'].refresh();
       fixture.detectChanges();
 
-      // Loading state hides cards — that's expected
+      // Loading state hides cards — shows skeleton
       expect(fixture.nativeElement.querySelector('.we-workflow-list__skeleton')).toBeTruthy();
+      expect(component['workflows'].loading()).toBeTrue();
 
-      // Complete loading
-      component.loading.set(false);
+      // Complete loading with data
+      subject.next(mockWorkflows);
+      subject.complete();
       fixture.detectChanges();
 
       // Search query should still be 'simple'
