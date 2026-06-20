@@ -28,9 +28,16 @@ import com.newen.workflowEngine.domain.model.execution.WorkflowExecutionId;
 import com.newen.workflowEngine.domain.model.workflow.State;
 import com.newen.workflowEngine.domain.model.workflow.WorkflowId;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 @RestController
+@Tag(name = "Executions", description = "API to manage workflow executions")
 public class ExecutionController {
 
     private final StartWorkflowExecutionUseCase startUseCase;
@@ -61,7 +68,12 @@ public class ExecutionController {
 
 
     @PostMapping("/workflows/{workflowId}/executions")
+    @Operation(summary = "Start a new execution for a workflow")
+    @ApiResponse(responseCode = "200", description = "Execution started")
+    @ApiResponse(responseCode = "404", description = "Workflow not found",
+        content = @Content(schema = @Schema(implementation = org.springframework.http.ProblemDetail.class)))
     public WorkflowExecutionCreatedResponse start(
+            @Parameter(description = "Workflow unique identifier")
             @PathVariable("workflowId") UUID workflowId
     ) {
         return new WorkflowExecutionCreatedResponse(
@@ -71,7 +83,9 @@ public class ExecutionController {
 
 
     @GetMapping("/workflows/{workflowId}/executions")
+    @Operation(summary = "List all executions for a workflow")
     public List<ExecutionResponse> listExecutions(
+            @Parameter(description = "Workflow unique identifier")
             @PathVariable("workflowId") UUID workflowId
     ) {
         return listExecutionsUseCase.execute(new WorkflowId(workflowId))
@@ -82,7 +96,14 @@ public class ExecutionController {
 
 
     @PostMapping("/executions/{executionId}/transition")
+    @Operation(summary = "Execute a transition on an execution")
+    @ApiResponse(responseCode = "200", description = "Transition executed")
+    @ApiResponse(responseCode = "404", description = "Execution not found",
+        content = @Content(schema = @Schema(implementation = org.springframework.http.ProblemDetail.class)))
+    @ApiResponse(responseCode = "422", description = "Invalid transition",
+        content = @Content(schema = @Schema(implementation = org.springframework.http.ProblemDetail.class)))
     public TransitionResponse transition(
+            @Parameter(description = "Execution unique identifier")
             @PathVariable("executionId") UUID executionId,
             @Valid @RequestBody TransitionRequest request
     ) {
@@ -103,14 +124,25 @@ public class ExecutionController {
 
 
     @GetMapping("/executions/{executionId}")
-    public ExecutionResponse getExecution(@PathVariable("executionId") UUID executionId) {
+    @Operation(summary = "Get execution details")
+    @ApiResponse(responseCode = "200", description = "Execution found")
+    @ApiResponse(responseCode = "404", description = "Execution not found",
+        content = @Content(schema = @Schema(implementation = org.springframework.http.ProblemDetail.class)))
+    public ExecutionResponse getExecution(
+            @Parameter(description = "Execution unique identifier")
+            @PathVariable("executionId") UUID executionId) {
         var execution = getExecutionUseCase.execute(new WorkflowExecutionId(executionId));
         return executionResponseMapper.toExecutionResponse(execution);
     }
 
 
     @GetMapping("/executions/{executionId}/next-states")
+    @Operation(summary = "Get available next states for an execution")
+    @ApiResponse(responseCode = "200", description = "List of reachable states")
+    @ApiResponse(responseCode = "404", description = "Execution not found",
+        content = @Content(schema = @Schema(implementation = org.springframework.http.ProblemDetail.class)))
     public List<NextStatesResponse> nextStates(
+            @Parameter(description = "Execution unique identifier")
             @PathVariable("executionId") UUID executionId
     ) {
         List<State> statesList = nextStatesUseCase.execute(new WorkflowExecutionId(executionId));
@@ -121,7 +153,12 @@ public class ExecutionController {
 
 
     @GetMapping("/executions/{executionId}/history")
+    @Operation(summary = "Get state transition history for an execution")
+    @ApiResponse(responseCode = "200", description = "History of state changes")
+    @ApiResponse(responseCode = "404", description = "Execution not found",
+        content = @Content(schema = @Schema(implementation = org.springframework.http.ProblemDetail.class)))
     public List<HistoryItemResponse> history(
+            @Parameter(description = "Execution unique identifier")
             @PathVariable("executionId") UUID executionId
     ) {
         List<StateChanged> stateChanges = historyUseCase.execute(new WorkflowExecutionId(executionId));

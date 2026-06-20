@@ -24,9 +24,16 @@ import com.newen.workflowEngine.domain.model.workflow.Transition;
 import com.newen.workflowEngine.domain.model.workflow.Workflow;
 import com.newen.workflowEngine.domain.model.workflow.WorkflowId;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 @RestController
+@Tag(name = "Workflows", description = "API to manage workflow definitions")
 public class WorkflowController {
 
     private final CreateWorkflowUseCase createUseCase;
@@ -51,6 +58,10 @@ public class WorkflowController {
 
 
     @PostMapping("/workflows")
+    @Operation(summary = "Create a new workflow definition")
+    @ApiResponse(responseCode = "200", description = "Workflow created successfully")
+    @ApiResponse(responseCode = "400", description = "Invalid request body",
+        content = @Content(schema = @Schema(implementation = org.springframework.http.ProblemDetail.class)))
     public CreateWorkflowResponse create(@Valid @RequestBody CreateWorkflowRequest request) {
         Map<String, State> statesByCode = workflowRequestMapper.buildStateMap(request);
         List<Transition> transitions = workflowRequestMapper.buildTransitions(request, statesByCode);
@@ -65,6 +76,7 @@ public class WorkflowController {
 
 
     @GetMapping("/workflows")
+    @Operation(summary = "List all workflow definitions")
     public List<WorkflowSummaryResponse> listWorkflows() {
         return listWorkflowsUseCase.execute().stream()
                 .map(workflowResponseMapper::toSummary)
@@ -73,7 +85,13 @@ public class WorkflowController {
 
 
     @GetMapping("/workflows/{workflowId}")
-    public WorkflowDetailResponse getWorkflow(@PathVariable("workflowId") UUID workflowId) {
+    @Operation(summary = "Get workflow definition details")
+    @ApiResponse(responseCode = "200", description = "Workflow found")
+    @ApiResponse(responseCode = "404", description = "Workflow not found",
+        content = @Content(schema = @Schema(implementation = org.springframework.http.ProblemDetail.class)))
+    public WorkflowDetailResponse getWorkflow(
+            @Parameter(description = "Workflow unique identifier")
+            @PathVariable("workflowId") UUID workflowId) {
         Workflow workflow = getWorkflowUseCase.execute(new WorkflowId(workflowId));
         return workflowResponseMapper.toDetail(workflow);
     }

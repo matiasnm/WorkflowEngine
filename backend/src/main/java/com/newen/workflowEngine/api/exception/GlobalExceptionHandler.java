@@ -8,13 +8,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.newen.workflowEngine.domain.exception.InvalidTransitionException;
 import com.newen.workflowEngine.domain.exception.StateNotFoundInWorkflowException;
+import com.newen.workflowEngine.domain.exception.WorkflowExecutionNotFoundException;
 import com.newen.workflowEngine.domain.exception.WorkflowNotFoundException;
 
 import jakarta.validation.ConstraintViolationException;
@@ -76,6 +76,32 @@ public class GlobalExceptionHandler {
         return problem;
     }
 
+    @ExceptionHandler(WorkflowExecutionNotFoundException.class)
+    public ProblemDetail handleExecutionNotFound(WorkflowExecutionNotFoundException ex) {
+
+        ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.NOT_FOUND);
+
+        problem.setTitle("Execution Not Found");
+        problem.setDetail(ex.getMessage());
+        problem.setProperty("type", "execution/not-found");
+        problem.setProperty("timestamp", Instant.now());
+
+        return problem;
+    }
+
+    @ExceptionHandler(StateNotFoundInWorkflowException.class)
+    public ProblemDetail handleStateNotFound(StateNotFoundInWorkflowException ex) {
+
+        ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.UNPROCESSABLE_CONTENT);
+
+        problem.setTitle("State Not Found");
+        problem.setDetail(ex.getMessage());
+        problem.setProperty("type", "workflow/state-not-found");
+        problem.setProperty("timestamp", Instant.now());
+
+        return problem;
+    }
+
     @ExceptionHandler(Exception.class)
     public ProblemDetail handleGeneric(Exception ex) {
 
@@ -96,15 +122,5 @@ public class GlobalExceptionHandler {
 
         return problem;
         }
-
-    @ExceptionHandler(StateNotFoundInWorkflowException.class)
-    public ResponseEntity<ProblemDetail> handle(StateNotFoundInWorkflowException ex) {
-        return ResponseEntity.status(422).body(
-                ProblemDetail.forStatusAndDetail(
-                        HttpStatus.UNPROCESSABLE_CONTENT,
-                        ex.getMessage()
-                )
-        );
-    }
 
 }
