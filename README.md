@@ -27,6 +27,7 @@ workflowEngine
 │   │
 │   ├── application
 │   │   ├── facade
+│   │   ├── port
 │   │   └── usecase
 │   │       ├── commands
 │   │       └── queries
@@ -63,7 +64,9 @@ workflowEngine
 │   │   │   │       ├── workflow-list/
 │   │   │   │       ├── workflow-detail/
 │   │   │   │       ├── execution-detail/
-│   │   │   │       └── execution-history/
+│   │   │   │       ├── execution-history/
+│   │   │   │       ├── execution-list/
+│   │   │   │       └── workflow-create/
 │   │   │   └── public-api.ts         ← Barrel exports
 │   │   │
 │   │   └── shell/                   ← Demo SPA consuming the library
@@ -75,11 +78,10 @@ workflowEngine
 │   ├── angular.json
 │   ├── package.json
 │   └── docs/                        ← Frontend-specific docs
-│       ├── CONTEXT.md               ← Domain glossary & architecture decisions
-│       ├── mvp.md                   ← Frontend MVP scope
-│       └── slices/                  ← MVP implementation slices
+│       └── mvp.md                   ← Frontend MVP scope
 │
 ├── docs/                            ← Cross-cutting docs (root level)
+│   ├── CONTEXT.md                   ← Domain glossary & architecture decisions
 │   ├── mvp.md
 │   ├── roadmap.md
 │   └── features/                    ← Feature specs (back + front)
@@ -121,6 +123,7 @@ Pure domain service that:
 ### Queries (read operations)
 - ListWorkflows
 - GetWorkflow
+- ListExecutions
 - GetExecution
 - GetNextStates
 - GetHistory
