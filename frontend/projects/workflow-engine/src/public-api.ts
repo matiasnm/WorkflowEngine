@@ -17,3 +17,4 @@ export * from './lib/components/workflow-detail/workflow-detail.component';
 export * from './lib/components/execution-detail/execution-detail.component';
 export * from './lib/components/execution-history/execution-history.component';
 export * from './lib/components/execution-list/execution-list.component';
+export * from './lib/components/workflow-create/workflow-create.component';
