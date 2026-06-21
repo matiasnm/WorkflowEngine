@@ -43,7 +43,7 @@ The nav bar is a **shell-level concern** (not part of the library) since navigat
 
 ```
 ┌──────────────────────────────────────────────────────┐
-│  [⚡] Workflow Engine    [Workflows] [Executions] [Create]  │
+│  [🚦] Workflow Engine    [Workflows] [Executions] [Create]  │
 ├──────────────────────────────────────────────────────┤
 │                                                      │
 │  (router outlet content)                             │
@@ -64,7 +64,7 @@ The nav bar is a **shell-level concern** (not part of the library) since navigat
 <shell-error-toast />
 <nav class="shell-nav">
   <a class="shell-nav__brand" routerLink="/">
-    <span class="shell-nav__icon" aria-hidden="true">⚡</span>
+    <span class="shell-nav__icon" aria-hidden="true">🚦</span>
     <span class="shell-nav__title">Workflow Engine</span>
   </a>
   <div class="shell-nav__links">
