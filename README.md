@@ -178,7 +178,7 @@ docker compose up -d
 
 ```bash
 cd backend
-./gradlew bootRun --spring.profiles.active=dev-pg
+./gradlew bootRun --args='--spring.profiles.active=dev-pg'
 ```
 
 Or from the IDE, set `--spring.profiles.active=dev-pg` in the run configuration.
