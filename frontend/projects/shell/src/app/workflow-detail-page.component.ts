@@ -24,6 +24,10 @@ export class WorkflowDetailPageComponent {
   private readonly location = inject(Location);
   private readonly errorService = inject(ErrorService);
 
+  /** Whether the user arrived here after creating a new workflow. */
+  private readonly navigatedFromCreate =
+    this.router.getCurrentNavigation()?.extras?.state?.['from'] === 'create';
+
   get workflowId(): string {
     return this.route.snapshot.paramMap.get('id') ?? '';
   }
@@ -37,7 +41,11 @@ export class WorkflowDetailPageComponent {
   }
 
   onBack(): void {
-    this.location.back();
+    if (this.navigatedFromCreate) {
+      this.router.navigate(['/']);
+    } else {
+      this.location.back();
+    }
   }
 
   onError(message: string): void {

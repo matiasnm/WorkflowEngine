@@ -20,7 +20,7 @@ export class WorkflowCreatePageComponent {
   private readonly errorService = inject(ErrorService);
 
   onWorkflowCreated(workflowId: string): void {
-    this.router.navigate(['/workflows', workflowId]);
+    this.router.navigate(['/workflows', workflowId], { state: { from: 'create' } });
   }
 
   onCancel(): void {
