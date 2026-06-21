@@ -58,6 +58,35 @@
   background: rgba(25, 118, 210, 0.12);
 }
 
+.shell-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 18px;
+  border-radius: var(--we-border-radius, 8px);
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+
+.shell-btn--primary {
+  background: var(--we-primary, #1976d2);
+  color: #ffffff;
+  border: none;
+}
+
+.shell-btn--primary:hover {
+  background: var(--we-primary-hover, #1565c0);
+}
+
+.shell-btn--primary:focus-visible {
+  outline: 2px solid var(--we-primary, #1976d2);
+  outline-offset: 2px;
+}
+
 .shell-container {
   max-width: 960px;
   margin: 0 auto;
