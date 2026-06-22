@@ -26,7 +26,7 @@ public class JpaWorkflowExecutionPersistenceAdapter implements WorkflowExecution
     private final WorkflowExecutionMapper mapper;
     private final WorkflowMapper workflowMapper;
     private final EntityManager entityManager;
-    
+
     public JpaWorkflowExecutionPersistenceAdapter(
             JpaWorkflowExecutionRepository repo,
             WorkflowExecutionMapper mapper,
@@ -38,6 +38,7 @@ public class JpaWorkflowExecutionPersistenceAdapter implements WorkflowExecution
         this.workflowMapper = workflowMapper;
         this.entityManager = entityManager;
     }
+
     @Override
     public Optional<WorkflowExecution> findById(WorkflowExecutionId id) {
         return repo.findById(id.value())
@@ -46,6 +47,7 @@ public class JpaWorkflowExecutionPersistenceAdapter implements WorkflowExecution
                     return mapper.toDomain(e, workflow);
                 });
     }
+
     @Override
     public List<WorkflowExecution> findByWorkflowId(WorkflowId workflowId) {
         return repo.findByWorkflow_Id(workflowId.value()).stream()
@@ -55,6 +57,7 @@ public class JpaWorkflowExecutionPersistenceAdapter implements WorkflowExecution
                 })
                 .toList();
     }
+
     @Override
     public List<WorkflowExecution> findByWorkflowId(WorkflowId workflowId, int page, int size) {
         return repo.findByWorkflow_Id(workflowId.value(), PageRequest.of(page, size)).stream()
@@ -64,10 +67,12 @@ public class JpaWorkflowExecutionPersistenceAdapter implements WorkflowExecution
                 })
                 .toList();
     }
+
     @Override
     public int countByWorkflowId(WorkflowId workflowId) {
         return (int) repo.countByWorkflow_Id(workflowId.value());
     }
+
     @Override
     public void save(WorkflowExecution execution) {
         // getReference() → JPA proxy, NO database query, just the ID

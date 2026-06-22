@@ -128,4 +128,95 @@ class WorkflowEnginePersistenceIntegrationTest {
                 storedEvent.getExecutionId()
         );
     }
+
+    @Test
+    void should_not_duplicate_history_after_two_transitions() {
+
+        State created = new State("created", "CREATED", false);
+        State review = new State("review", "REVIEW", false);
+        State approved = new State("approved", "APPROVED", true);
+
+        Workflow workflow = new Workflow(
+                new WorkflowId(UUID.randomUUID()),
+                "Test Workflow",
+                List.of(created, review, approved),
+                List.of(
+                        new Transition(created, review),
+                        new Transition(review, approved)
+                ),
+                created
+        );
+
+        workflowRepository.save(workflow);
+
+        Workflow loadedWorkflow =
+                workflowRepository.findById(
+                        workflow.getId()
+                ).orElseThrow();
+
+        WorkflowExecution execution =
+                new WorkflowExecution(
+                        new WorkflowExecutionId(UUID.randomUUID()),
+                        loadedWorkflow.getId(),
+                        created
+                );
+
+        WorkflowEngine engine = new WorkflowEngine();
+
+        // ── First transition: created → review ──
+        var firstResult = engine.transition(
+                loadedWorkflow,
+                execution,
+                review
+        );
+
+        executionRepository.save(firstResult.execution());
+        em.flush();
+        em.clear();
+
+        // Reload from DB so the second transition works on persisted data
+        WorkflowExecution reloaded =
+                executionRepository.findById(
+                        execution.getId()
+                ).orElseThrow();
+
+        // ── Second transition: review → approved ──
+        var secondResult = engine.transition(
+                loadedWorkflow,
+                reloaded,
+                approved
+        );
+
+        executionRepository.save(secondResult.execution());
+        em.flush();
+        em.clear();
+
+        // ── Reload and verify ──
+        WorkflowExecution loadedExecution =
+                executionRepository.findById(
+                        execution.getId()
+                ).orElseThrow();
+
+        assertEquals(
+                approved,
+                loadedExecution.getCurrentState()
+        );
+
+        assertEquals(
+                2,
+                loadedExecution.getHistory().size(),
+                "History must have exactly 2 entries – no duplicates after two transitions"
+        );
+
+        StateChanged firstEvent =
+                loadedExecution.getHistory().get(0);
+        StateChanged secondEvent =
+                loadedExecution.getHistory().get(1);
+
+        assertEquals(created, firstEvent.getFrom());
+        assertEquals(review, firstEvent.getTo());
+
+        assertEquals(review, secondEvent.getFrom());
+        assertEquals(approved, secondEvent.getTo());
+    }
 }

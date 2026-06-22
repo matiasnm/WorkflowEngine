@@ -32,6 +32,7 @@ public class WorkflowExecutionEntity {
     @OneToMany(
         mappedBy = "execution",
         cascade = CascadeType.ALL,
+        orphanRemoval = true,
         fetch = FetchType.LAZY
     )
     private List<StateChangedEntity> history = new ArrayList<>();
