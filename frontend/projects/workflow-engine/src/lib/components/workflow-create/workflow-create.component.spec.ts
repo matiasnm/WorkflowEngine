@@ -474,7 +474,7 @@ describe('WorkflowCreateComponent', () => {
   });
 
   describe('submit success', () => {
-    it('should emit workflowCreated with the new UUID on success', () => {
+    it('should emit workflowCreated with the new workflow summary on success', () => {
       createComponent();
       apiServiceSpy.createWorkflow.and.returnValue(of({ workflowId: 'new-uuid-123' }));
 
@@ -483,13 +483,19 @@ describe('WorkflowCreateComponent', () => {
       component.states.at(1).patchValue({ code: 'b', name: 'B' });
       component.form.get('initialState')?.setValue('a');
 
-      const emitted: string[] = [];
+      const emitted: unknown[] = [];
       const sub = component.workflowCreated.subscribe((val) => emitted.push(val));
 
       component.onSubmit();
       fixture.detectChanges();
 
-      expect(emitted).toEqual(['new-uuid-123']);
+      expect(emitted.length).toBe(1);
+      const summary = emitted[0] as { id: string; name: string; statesCount: number; transitionsCount: number };
+      expect(summary.id).toBe('new-uuid-123');
+      expect(summary.name).toBe('test');
+      expect(summary.statesCount).toBe(2);
+      // No auto-transitions because state codes were empty at construction time
+      expect(summary.transitionsCount).toBe(0);
       sub.unsubscribe();
     });
   });

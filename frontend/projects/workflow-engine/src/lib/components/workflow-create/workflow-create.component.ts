@@ -1,7 +1,7 @@
 import { Component, Output, EventEmitter, signal, inject } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule } from '@angular/forms';
 import { WorkflowApiPort, WORKFLOW_API_PORT } from '../../services/workflow-api.port';
-import { CreateWorkflowRequest } from '../../models';
+import { CreateWorkflowRequest, WorkflowSummary } from '../../models';
 import { ErrorBannerComponent, SpinnerComponent } from '../ui';
 
 interface StateFormValue {
@@ -643,8 +643,8 @@ export class WorkflowCreateComponent {
   private readonly fb = inject(FormBuilder);
   private readonly api = inject(WORKFLOW_API_PORT);
 
-  /** Emitted when the API responds successfully, with the new workflow UUID. */
-  @Output() workflowCreated = new EventEmitter<string>();
+  /** Emitted when the API responds successfully, with the new workflow summary. */
+  @Output() workflowCreated = new EventEmitter<WorkflowSummary>();
 
   /** Emitted when the user clicks Cancel/Back. */
   @Output() cancel = new EventEmitter<void>();
@@ -947,7 +947,13 @@ export class WorkflowCreateComponent {
     this.api.createWorkflow(request).subscribe({
       next: (response) => {
         this.submitting.set(false);
-        this.workflowCreated.emit(response.workflowId);
+        const summary: WorkflowSummary = {
+          id: response.workflowId,
+          name: this.form.value.name?.trim() ?? '',
+          statesCount: this.states.length,
+          transitionsCount: this.transitions.length,
+        };
+        this.workflowCreated.emit(summary);
       },
       error: (err) => {
         const message = err.error?.message || err.message || 'Failed to create workflow.';

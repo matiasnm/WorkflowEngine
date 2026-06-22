@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { WorkflowCreateComponent } from 'workflow-engine';
+import { WorkflowCreateComponent, WorkflowCacheService, WorkflowSummary } from 'workflow-engine';
 import { ErrorService } from './error.service';
 
 @Component({
@@ -18,9 +18,11 @@ import { ErrorService } from './error.service';
 export class WorkflowCreatePageComponent {
   private readonly router = inject(Router);
   private readonly errorService = inject(ErrorService);
+  private readonly workflowCache = inject(WorkflowCacheService);
 
-  onWorkflowCreated(workflowId: string): void {
-    this.router.navigate(['/workflows', workflowId], { state: { from: 'create' } });
+  onWorkflowCreated(workflow: WorkflowSummary): void {
+    this.workflowCache.addWorkflow(workflow);
+    this.router.navigate(['/workflows', workflow.id], { state: { from: 'create' } });
   }
 
   onCancel(): void {

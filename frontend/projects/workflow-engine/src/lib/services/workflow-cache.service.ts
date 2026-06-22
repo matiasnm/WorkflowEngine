@@ -25,6 +25,16 @@ export class WorkflowCacheService {
     this._workflows.set(workflows);
   }
 
+  /** Add a single workflow to the cached list (e.g. after creation). */
+  addWorkflow(workflow: WorkflowSummary): void {
+    this._workflows.update(list => {
+      if (list === null) return [workflow];
+      // Avoid duplicates by id
+      if (list.some(w => w.id === workflow.id)) return list;
+      return [...list, workflow];
+    });
+  }
+
   /** Clear the cached workflow list (e.g. on logout or cache invalidation). */
   clear(): void {
     this._workflows.set(null);
