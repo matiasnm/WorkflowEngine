@@ -534,6 +534,7 @@ export class ExecutionHistoryComponent {
             () => this.api.getHistory(id),
             {
               errorMessage: 'Failed to load execution history.',
+              onError: () => this.errorEvent.emit('Failed to load execution history.'),
               destroyRef: this.destroyRef,
             },
           ),

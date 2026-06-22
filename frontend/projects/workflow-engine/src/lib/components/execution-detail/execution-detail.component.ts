@@ -446,6 +446,7 @@ export class ExecutionDetailComponent {
             }),
             {
               errorMessage: 'Failed to load execution.',
+              onError: () => this.errorEvent.emit('Failed to load execution.'),
               destroyRef: this.destroyRef,
             },
           ),
