@@ -12,12 +12,13 @@ import { ErrorBannerComponent, SkeletonCardComponent } from '../ui';
   styleUrl: '../../styles/shared.css',
   template: `
     <div class="we-workflow-list">
-      @if (title(); as t) {
-        <h2 class="we-workflow-list__title">{{ t }}</h2>
-      }
-
       <!-- Loading state: skeleton shimmer with 3 placeholder rows -->
       @if (workflows.loading()) {
+        <div class="we-workflow-list__header">
+          @if (title(); as t) {
+            <h2 class="we-workflow-list__title">{{ t }}</h2>
+          }
+        </div>
         <div class="we-workflow-list__skeleton" aria-label="Loading workflows">
           @for (_ of [1, 2, 3]; track $index) {
             <we-skeleton-card [lines]="[
@@ -30,13 +31,21 @@ import { ErrorBannerComponent, SkeletonCardComponent } from '../ui';
 
       <!-- Error state: inline error message + retry button -->
       @if (workflows.error(); as err) {
+        <div class="we-workflow-list__header">
+          @if (title(); as t) {
+            <h2 class="we-workflow-list__title">{{ t }}</h2>
+          }
+        </div>
         <we-error-banner [message]="err" [showRetry]="true" (retry)="workflows.refresh()" />
       }
 
       <!-- Success state (with data): workflow cards with search -->
       @if (!workflows.loading() && !workflows.error() && (workflows.data() ?? []).length > 0) {
-        <!-- Search input -->
-        <div class="we-workflow-list__search">
+        <!-- Title + Search inline header -->
+        <div class="we-workflow-list__header">
+          @if (title(); as t) {
+            <h2 class="we-workflow-list__title">{{ t }}</h2>
+          }
           <input
             class="we-input we-input--search"
             type="search"
@@ -75,6 +84,11 @@ import { ErrorBannerComponent, SkeletonCardComponent } from '../ui';
 
       <!-- Empty state (no workflows at all) -->
       @if (!workflows.loading() && !workflows.error() && (workflows.data() ?? []).length === 0) {
+        <div class="we-workflow-list__header">
+          @if (title(); as t) {
+            <h2 class="we-workflow-list__title">{{ t }}</h2>
+          }
+        </div>
         <div class="we-workflow-list__empty">
           <p>No workflows found. Create one via the API.</p>
         </div>
@@ -89,21 +103,26 @@ import { ErrorBannerComponent, SkeletonCardComponent } from '../ui';
       margin: 0 auto;
     }
 
+    .we-workflow-list__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: var(--we-spacing, 16px);
+      flex-wrap: wrap;
+    }
+
     .we-workflow-list__title {
       font-size: 1.5rem;
       font-weight: 600;
       color: var(--we-text, #212121);
-      margin: 0 0 var(--we-spacing, 16px);
+      margin: 0;
     }
 
     /* ── Search input ── */
-    .we-workflow-list__search {
-      margin-bottom: var(--we-spacing-md, 16px);
-    }
-
     .we-input--search {
       width: 100%;
-      max-width: 400px;
+      max-width: 260px;
       padding: 8px 12px;
       border: 1px solid var(--we-border-color, #ccc);
       border-radius: var(--we-border-radius, 4px);
@@ -219,6 +238,7 @@ export class WorkflowListComponent {
     () => this.api.listWorkflows(),
     {
       errorMessage: 'Failed to load workflows.',
+      onError: () => this.errorEvent.emit('Failed to load workflows.'),
       destroyRef: this.destroyRef,
     },
   );
