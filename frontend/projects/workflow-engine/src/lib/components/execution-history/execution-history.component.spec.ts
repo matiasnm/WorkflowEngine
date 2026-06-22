@@ -166,7 +166,7 @@ describe('ExecutionHistoryComponent', () => {
     beforeEach(() => {
       apiServiceSpy.getHistory.and.returnValue(of(mockHistoryItems));
       createComponent();
-      // Default displayMode is 'vertical'
+      // Default displayMode is 'vertical' (internal signal)
       fixture.detectChanges();
     });
 
@@ -175,56 +175,47 @@ describe('ExecutionHistoryComponent', () => {
       expect(timeline).toBeTruthy();
     });
 
-    it('should show the current state at the top with ▲ indicator', () => {
-      const currentEl = fixture.nativeElement.querySelector('.we-timeline__current');
-      expect(currentEl).toBeTruthy();
-      expect(currentEl.textContent).toContain('▲');
-      expect(currentEl.textContent).toContain('APPROVED');
-
-      const currentIndicator = currentEl.querySelector('.we-timeline__indicator--current');
-      expect(currentIndicator).toBeTruthy();
-    });
-
-    it('should render each history transition item', () => {
-      const transitionItems = fixture.nativeElement.querySelectorAll('.we-timeline__transition');
-      // 2 history items → 2 transition rows
-      expect(transitionItems.length).toBe(2);
+    it('should render a transition row for each history item', () => {
+      const rows = fixture.nativeElement.querySelectorAll('.we-timeline__transition');
+      expect(rows.length).toBe(2); // 2 history items → 2 transition rows
     });
 
     it('should display fromState → toState in each transition row', () => {
-      const items = fixture.nativeElement.querySelectorAll('.we-timeline__transition');
+      const rows = fixture.nativeElement.querySelectorAll('.we-timeline__transition');
 
-      // First item: CREATED → IN_REVIEW
-      const firstFrom = items[0].querySelector('.we-timeline__from');
-      const firstArrow = items[0].querySelector('.we-timeline__arrow--transition');
-      const firstTo = items[0].querySelector('.we-timeline__to');
+      // First row: CREATED → IN_REVIEW
+      const firstFrom = rows[0].querySelector('.we-timeline__from');
+      const firstArrow = rows[0].querySelector('.we-timeline__arrow');
+      const firstTo = rows[0].querySelector('.we-timeline__to');
       expect(firstFrom.textContent).toContain('CREATED');
       expect(firstArrow.textContent).toContain('→');
       expect(firstTo.textContent).toContain('IN_REVIEW');
 
-      // Second item: IN_REVIEW → APPROVED
-      const secondFrom = items[1].querySelector('.we-timeline__from');
-      const secondTo = items[1].querySelector('.we-timeline__to');
+      // Second row: IN_REVIEW → APPROVED
+      const secondFrom = rows[1].querySelector('.we-timeline__from');
+      const secondTo = rows[1].querySelector('.we-timeline__to');
       expect(secondFrom.textContent).toContain('IN_REVIEW');
       expect(secondTo.textContent).toContain('APPROVED');
     });
 
-    it('should show timestamps below each transition', () => {
+    it('should show timestamps on transition rows', () => {
       const timestamps = fixture.nativeElement.querySelectorAll('.we-timeline__timestamp');
-      // At least 2 timestamps (one per transition row)
-      expect(timestamps.length).toBeGreaterThanOrEqual(2);
+      // Each transition row has a timestamp + the current state may not have one
+      expect(timestamps.length).toBe(2);
     });
 
-    it('should show the initial state at the bottom', () => {
-      const initialEl = fixture.nativeElement.querySelector('.we-timeline__initial');
-      expect(initialEl).toBeTruthy();
-      expect(initialEl.textContent).toContain('CREATED');
-    });
-
-    it('should render connector lines between timeline nodes', () => {
+    it('should show connector lines between transitions and before current state', () => {
       const connectors = fixture.nativeElement.querySelectorAll('.we-timeline__connector');
-      // Should have connectors between sections
-      expect(connectors.length).toBeGreaterThan(0);
+      // 2 transitions → 1 connector between them + 1 before current state = 2
+      expect(connectors.length).toBe(2);
+    });
+
+    it('should show the current state at the bottom with ▲ indicator', () => {
+      const currentNode = fixture.nativeElement.querySelector('.we-timeline__current-node');
+      expect(currentNode).toBeTruthy();
+      expect(currentNode.textContent).toContain('▲');
+      expect(currentNode.textContent).toContain('APPROVED');
+      expect(currentNode.textContent).toContain('(current)');
     });
 
     it('should not render horizontal timeline elements', () => {
@@ -240,19 +231,21 @@ describe('ExecutionHistoryComponent', () => {
       fixture.detectChanges();
     });
 
-    it('should render current state at the top', () => {
-      const currentEl = fixture.nativeElement.querySelector('.we-timeline__current');
-      expect(currentEl.textContent).toContain('IN_REVIEW');
+    it('should render 1 transition row + current state node', () => {
+      const rows = fixture.nativeElement.querySelectorAll('.we-timeline__transition');
+      expect(rows.length).toBe(1); // 1 history item → 1 transition
+
+      const currentNode = fixture.nativeElement.querySelector('.we-timeline__current-node');
+      expect(currentNode).toBeTruthy();
     });
 
-    it('should render one transition item', () => {
-      const transitionItems = fixture.nativeElement.querySelectorAll('.we-timeline__transition');
-      expect(transitionItems.length).toBe(1);
-    });
+    it('should show CREATED → IN_REVIEW in transition and IN_REVIEW as current', () => {
+      const row = fixture.nativeElement.querySelector('.we-timeline__transition');
+      expect(row.querySelector('.we-timeline__from').textContent).toContain('CREATED');
+      expect(row.querySelector('.we-timeline__to').textContent).toContain('IN_REVIEW');
 
-    it('should render initial state at the bottom', () => {
-      const initialEl = fixture.nativeElement.querySelector('.we-timeline__initial');
-      expect(initialEl.textContent).toContain('CREATED');
+      const currentNode = fixture.nativeElement.querySelector('.we-timeline__current-node');
+      expect(currentNode.textContent).toContain('IN_REVIEW');
     });
   });
 
@@ -260,7 +253,10 @@ describe('ExecutionHistoryComponent', () => {
     beforeEach(() => {
       apiServiceSpy.getHistory.and.returnValue(of(mockHistoryItems));
       createComponent();
-      fixture.componentRef.setInput('displayMode', 'horizontal');
+      fixture.detectChanges();
+      // Click the "Condensed" toggle button to switch to horizontal
+      const buttons = fixture.nativeElement.querySelectorAll('.we-display-toggle__btn');
+      (buttons[1] as HTMLElement)?.click();
       fixture.detectChanges();
     });
 
@@ -325,7 +321,10 @@ describe('ExecutionHistoryComponent', () => {
     beforeEach(() => {
       apiServiceSpy.getHistory.and.returnValue(of(singleItemHistory));
       createComponent();
-      fixture.componentRef.setInput('displayMode', 'horizontal');
+      fixture.detectChanges();
+      // Click the "Condensed" toggle button to switch to horizontal
+      const buttons = fixture.nativeElement.querySelectorAll('.we-display-toggle__btn');
+      (buttons[1] as HTMLElement)?.click();
       fixture.detectChanges();
     });
 
@@ -346,39 +345,74 @@ describe('ExecutionHistoryComponent', () => {
     });
   });
 
-  describe('displayMode input', () => {
-    it('should default to vertical mode', () => {
+  describe('display toggle', () => {
+    beforeEach(() => {
       apiServiceSpy.getHistory.and.returnValue(of(mockHistoryItems));
       createComponent();
       fixture.detectChanges();
-
-      expect(component.displayMode()).toBe('vertical');
     });
 
-    it('should accept "horizontal" as displayMode', () => {
-      apiServiceSpy.getHistory.and.returnValue(of(mockHistoryItems));
-      createComponent();
-      fixture.componentRef.setInput('displayMode', 'horizontal');
-      fixture.detectChanges();
+    it('should render toggle buttons when history data is present', () => {
+      const toggleGroup = fixture.nativeElement.querySelector('.we-display-toggle');
+      expect(toggleGroup).toBeTruthy();
 
-      expect(component.displayMode()).toBe('horizontal');
+      const buttons = toggleGroup.querySelectorAll('.we-display-toggle__btn');
+      expect(buttons.length).toBe(2);
+      expect(buttons[0].textContent).toContain('Detail');
+      expect(buttons[1].textContent).toContain('Condensed');
     });
 
-    it('should switch rendering when displayMode changes', () => {
-      apiServiceSpy.getHistory.and.returnValue(of(mockHistoryItems));
-      createComponent();
+    it('should default to vertical mode with Detail button active', () => {
+      const buttons = fixture.nativeElement.querySelectorAll('.we-display-toggle__btn');
+      expect(buttons[0].classList).toContain('we-display-toggle__btn--active');
+      expect(buttons[1].classList).not.toContain('we-display-toggle__btn--active');
+      // Vertical timeline should be rendered
+      expect(fixture.nativeElement.querySelector('.we-timeline--vertical')).toBeTruthy();
+    });
+
+    it('should switch to horizontal mode when Condensed is clicked', () => {
+      const buttons = fixture.nativeElement.querySelectorAll('.we-display-toggle__btn');
+      const condensedBtn = buttons[1] as HTMLElement;
+      condensedBtn.click();
       fixture.detectChanges();
 
+      expect(buttons[0].classList).not.toContain('we-display-toggle__btn--active');
+      expect(buttons[1].classList).toContain('we-display-toggle__btn--active');
+      // Horizontal timeline should be rendered
+      expect(fixture.nativeElement.querySelector('.we-timeline--horizontal')).toBeTruthy();
+    });
+
+    it('should switch rendering when toggle is clicked', () => {
       // Default: vertical
       expect(fixture.nativeElement.querySelector('.we-timeline--vertical')).toBeTruthy();
       expect(fixture.nativeElement.querySelector('.we-timeline--horizontal')).toBeFalsy();
 
       // Switch to horizontal
-      fixture.componentRef.setInput('displayMode', 'horizontal');
+      const buttons = fixture.nativeElement.querySelectorAll('.we-display-toggle__btn');
+      (buttons[1] as HTMLElement).click();
       fixture.detectChanges();
 
       expect(fixture.nativeElement.querySelector('.we-timeline--vertical')).toBeFalsy();
       expect(fixture.nativeElement.querySelector('.we-timeline--horizontal')).toBeTruthy();
+
+      // Switch back to vertical
+      (buttons[0] as HTMLElement).click();
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('.we-timeline--vertical')).toBeTruthy();
+      expect(fixture.nativeElement.querySelector('.we-timeline--horizontal')).toBeFalsy();
+    });
+
+    it('should set aria-pressed correctly on toggle buttons', () => {
+      const buttons = fixture.nativeElement.querySelectorAll('.we-display-toggle__btn');
+      expect(buttons[0].getAttribute('aria-pressed')).toBe('true');
+      expect(buttons[1].getAttribute('aria-pressed')).toBe('false');
+
+      (buttons[1] as HTMLElement).click();
+      fixture.detectChanges();
+
+      expect(buttons[0].getAttribute('aria-pressed')).toBe('false');
+      expect(buttons[1].getAttribute('aria-pressed')).toBe('true');
     });
   });
 

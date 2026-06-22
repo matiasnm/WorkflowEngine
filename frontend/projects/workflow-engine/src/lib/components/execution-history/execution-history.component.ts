@@ -57,24 +57,37 @@ import { ErrorBannerComponent } from '../ui';
       <!-- ── Success states ── -->
       @if (!loading() && !error() && (historyData() ?? []).length > 0; as _) {
 
+        <!-- ── Display mode toggle ── -->
+        <div class="we-display-toggle" role="group" aria-label="Display mode">
+          <button
+            class="we-display-toggle__btn"
+            [class.we-display-toggle__btn--active]="displayMode() === 'vertical'"
+            (click)="setDisplayMode('vertical')"
+            [attr.aria-pressed]="displayMode() === 'vertical'"
+            type="button"
+          >
+            Detail
+          </button>
+          <button
+            class="we-display-toggle__btn"
+            [class.we-display-toggle__btn--active]="displayMode() === 'horizontal'"
+            (click)="setDisplayMode('horizontal')"
+            [attr.aria-pressed]="displayMode() === 'horizontal'"
+            type="button"
+          >
+            Condensed
+          </button>
+        </div>
+
         <!-- ══════ VERTICAL MODE ══════ -->
         @if (displayMode() === 'vertical') {
           <div class="we-timeline we-timeline--vertical">
-            <!-- Current state at top with ▲ indicator -->
-            <div class="we-timeline__current">
-              <span class="we-timeline__indicator we-timeline__indicator--current" aria-hidden="true">▲</span>
-              <span class="we-timeline__state-name we-timeline__state-name--current">{{ currentState()?.name }}</span>
-            </div>
-
-            <div class="we-timeline__connector" aria-hidden="true"></div>
-
-            <!-- History transition items -->
             @for (item of historyData(); track $index; let last = $last) {
               <div class="we-timeline__transition">
                 <span class="we-timeline__dot" aria-hidden="true">●</span>
                 <div class="we-timeline__transition-body">
                   <span class="we-timeline__from">{{ item.fromStateName }}</span>
-                  <span class="we-timeline__arrow we-timeline__arrow--transition" aria-hidden="true">→</span>
+                  <span class="we-timeline__arrow" aria-hidden="true">→</span>
                   <span class="we-timeline__to">{{ item.toStateName }}</span>
                   <div class="we-timeline__timestamp">
                     {{ item.timestamp | date:'yyyy-MM-dd h:mm a' }}
@@ -87,15 +100,13 @@ import { ErrorBannerComponent } from '../ui';
               }
             }
 
-            <!-- Initial state at bottom -->
+            <!-- Current state at the end of the timeline -->
             <div class="we-timeline__connector" aria-hidden="true"></div>
-            <div class="we-timeline__initial">
-              <span class="we-timeline__dot" aria-hidden="true">●</span>
-              <div class="we-timeline__initial-body">
-                <span class="we-timeline__state-name">{{ initialState()?.name }}</span>
-                <div class="we-timeline__timestamp">
-                  {{ (historyData() ?? [])[0].timestamp | date:'yyyy-MM-dd h:mm a' }}
-                </div>
+            <div class="we-timeline__current-node">
+              <span class="we-timeline__indicator we-timeline__indicator--current" aria-hidden="true">▲</span>
+              <div class="we-timeline__current-body">
+                <span class="we-timeline__current-name">{{ currentState()?.name }}</span>
+                <span class="we-timeline__current-label">(current)</span>
               </div>
             </div>
           </div>
@@ -214,7 +225,55 @@ import { ErrorBannerComponent } from '../ui';
     }
 
     /* ═══════════════════════════════════════════════════
-       VERTICAL TIMELINE
+       DISPLAY MODE TOGGLE
+       ═══════════════════════════════════════════════════ */
+
+    .we-display-toggle {
+      display: inline-flex;
+      border: 1px solid var(--we-border, #e0e0e0);
+      border-radius: var(--we-border-radius, 8px);
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+
+    .we-display-toggle__btn {
+      padding: 6px 16px;
+      border: none;
+      background: var(--we-bg, #ffffff);
+      color: var(--we-text-secondary, #757575);
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .we-display-toggle__btn:not(:last-child) {
+      border-right: 1px solid var(--we-border, #e0e0e0);
+    }
+
+    .we-display-toggle__btn:hover {
+      background: var(--we-bg-secondary, #f5f5f5);
+      color: var(--we-text, #212121);
+    }
+
+    .we-display-toggle__btn--active {
+      background: var(--we-primary, #1976d2);
+      color: #ffffff;
+    }
+
+    .we-display-toggle__btn--active:hover {
+      background: var(--we-primary, #1976d2);
+      color: #ffffff;
+    }
+
+    .we-display-toggle__btn:focus-visible {
+      outline: 2px solid var(--we-primary, #1976d2);
+      outline-offset: -2px;
+    }
+
+    /* ═══════════════════════════════════════════════════
+       VERTICAL TIMELINE  (Detail mode — transitions)
        ═══════════════════════════════════════════════════ */
 
     .we-timeline--vertical {
@@ -231,31 +290,7 @@ import { ErrorBannerComponent } from '../ui';
       margin-left: 11px;  /* centers under 24px node */
     }
 
-    /* ── Current state (▲) ── */
-    .we-timeline__current {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .we-timeline__indicator--current {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 24px;
-      height: 24px;
-      font-size: 0.9rem;
-      color: var(--we-primary, #1976d2);
-      font-weight: 700;
-    }
-
-    .we-timeline__state-name--current {
-      font-size: 1rem;
-      font-weight: 700;
-      color: var(--we-primary, #1976d2);
-    }
-
-    /* ── Transition items ── */
+    /* ── Transition row (from → to) ── */
     .we-timeline__transition {
       display: flex;
       align-items: flex-start;
@@ -288,7 +323,7 @@ import { ErrorBannerComponent } from '../ui';
       color: var(--we-text, #212121);
     }
 
-    .we-timeline__arrow--transition {
+    .we-timeline__arrow {
       color: var(--we-primary, #1976d2);
       font-weight: 600;
       font-size: 0.9rem;
@@ -301,24 +336,42 @@ import { ErrorBannerComponent } from '../ui';
       margin-top: -2px;
     }
 
-    /* ── Initial state at bottom ── */
-    .we-timeline__initial {
+    /* ── Current state node at the bottom ── */
+    .we-timeline__current-node {
       display: flex;
-      align-items: flex-start;
+      align-items: center;
       gap: 10px;
     }
 
-    .we-timeline__initial-body {
+    .we-timeline__current-body {
       display: flex;
-      flex-direction: column;
-      gap: 2px;
+      align-items: baseline;
+      gap: 6px;
       padding-top: 2px;
     }
 
-    .we-timeline__state-name {
+    .we-timeline__current-name {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--we-primary, #1976d2);
+    }
+
+    .we-timeline__indicator--current {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      min-width: 24px;
+      height: 24px;
       font-size: 0.9rem;
-      font-weight: 500;
-      color: var(--we-text, #212121);
+      color: var(--we-primary, #1976d2);
+      font-weight: 700;
+    }
+
+    .we-timeline__current-label {
+      font-size: 0.8rem;
+      font-style: italic;
+      color: var(--we-primary, #1976d2);
     }
 
     /* ═══════════════════════════════════════════════════
@@ -404,11 +457,16 @@ export class ExecutionHistoryComponent {
   /** Required execution ID to load history for. */
   readonly executionId = input.required<string>();
 
-  /** Display mode: 'vertical' (default) or 'horizontal'. */
-  readonly displayMode = input<'vertical' | 'horizontal'>('vertical');
-
   /** Emitted when an error occurs, so the host app can react (toast, etc.). */
   @Output() errorEvent = new EventEmitter<string>();
+
+  /** Internal display mode, owned fully by the component. Default is vertical (detailed timeline). */
+  protected readonly displayMode = signal<'vertical' | 'horizontal'>('vertical');
+
+  /** Switch the display mode. Called by the toggle UI. */
+  protected setDisplayMode(mode: 'vertical' | 'horizontal'): void {
+    this.displayMode.set(mode);
+  }
 
   /** Lazy-initialised async data (waits for required input to be available). */
   private readonly historyAsync = signal<AsyncDataResult<HistoryItem[]> | null>(null);
@@ -422,7 +480,7 @@ export class ExecutionHistoryComponent {
   /** The resolved history data, or null while loading. */
   readonly historyData = computed(() => this.historyAsync()?.data() ?? null);
 
-  /** Derived: current state (toState of the last history item). */
+  /** Derived: current state (toState of the last history item). Used by the vertical detail view. */
   protected readonly currentState = computed(() => {
     const items = this.historyData();
     if (!items || items.length === 0) return null;
@@ -430,14 +488,7 @@ export class ExecutionHistoryComponent {
     return { code: last.toStateCode, name: last.toStateName };
   });
 
-  /** Derived: initial state (fromState of the first history item). */
-  protected readonly initialState = computed(() => {
-    const items = this.historyData();
-    if (!items || items.length === 0) return null;
-    return { code: items[0].fromStateCode, name: items[0].fromStateName };
-  });
-
-  /** Derived: flat steps for horizontal mode display. */
+  /** Derived: flat steps for both vertical and horizontal mode display. */
   protected readonly horizontalSteps = computed(() => {
     const items = this.historyData();
     if (!items || items.length === 0) return [];

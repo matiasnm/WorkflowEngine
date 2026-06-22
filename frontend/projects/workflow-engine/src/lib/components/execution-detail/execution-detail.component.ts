@@ -136,7 +136,6 @@ import { ErrorBannerComponent, SpinnerComponent } from '../ui';
             <h3 class="we-section-title">History</h3>
             <we-execution-history
               [executionId]="executionId()"
-              displayMode="vertical"
             />
           </section>
 
