@@ -1,5 +1,6 @@
 import { Component, input, Output, EventEmitter, signal, computed, inject, DestroyRef, effect } from '@angular/core';
 import { WorkflowApiPort, WORKFLOW_API_PORT } from '../../services/workflow-api.port';
+import { StateColorService } from '../../services/state-color.service';
 import { asyncData, AsyncDataResult } from '../../util';
 import { WorkflowDetail } from '../../models';
 import { ExecutionListComponent } from '../execution-list/execution-list.component';
@@ -52,6 +53,7 @@ import { ErrorBannerComponent } from '../ui';
               <table class="we-table">
                 <thead>
                   <tr>
+                    <th aria-label="Colour">●</th>
                     <th>Code</th>
                     <th>Name</th>
                     <th>Terminal</th>
@@ -60,6 +62,12 @@ import { ErrorBannerComponent } from '../ui';
                 <tbody>
                   @for (state of wf.states; track state.code) {
                     <tr>
+                      <td>
+                        <span
+                          class="we-state-swatch"
+                          [style.background-color]="colorMap()?.get(state.code)"
+                        ></span>
+                      </td>
                       <td><code>{{ state.code }}</code></td>
                       <td>{{ state.name }}</td>
                       <td>{{ state.terminal ? 'Yes' : 'No' }}</td>
@@ -271,6 +279,7 @@ import { ErrorBannerComponent } from '../ui';
 })
 export class WorkflowDetailComponent {
   private readonly workflowApi = inject(WORKFLOW_API_PORT);
+  private readonly stateColorService = inject(StateColorService);
   private readonly destroyRef = inject(DestroyRef);
 
   /** Required workflow ID to load detail for. */
@@ -299,6 +308,13 @@ export class WorkflowDetailComponent {
 
   /** The resolved workflow detail data, or null while loading. */
   readonly workflowData = computed(() => this.wfAsync()?.data() ?? null);
+
+  /** Color map for the current workflow's states, populated once data loads. */
+  readonly colorMap = computed(() => {
+    const wf = this.workflowData();
+    if (!wf) return null;
+    return this.stateColorService.getOrCreateColors(wf.id, wf.states);
+  });
 
   constructor() {
     effect(() => {

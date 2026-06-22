@@ -30,6 +30,8 @@ describe('WorkflowDetailComponent', () => {
   };
 
   beforeEach(async () => {
+    localStorage.clear();
+
     const wfSpy = jasmine.createSpyObj('WorkflowApiPort', ['getWorkflow']);
     const execSpy = jasmine.createSpyObj('ExecutionApiPort', ['startExecution', 'listExecutions']);
 
@@ -89,6 +91,15 @@ describe('WorkflowDetailComponent', () => {
 
       expect(component.loading()).toBeFalse();
     });
+
+    it('should not render swatches while loading', () => {
+      const subject = new Subject<WorkflowDetail>();
+      workflowApiSpy.getWorkflow.and.returnValue(subject.asObservable());
+      createComponent();
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelectorAll('.we-state-swatch').length).toBe(0);
+    });
   });
 
   describe('success state', () => {
@@ -104,16 +115,16 @@ describe('WorkflowDetailComponent', () => {
       expect(nameEl.textContent).toContain('simple-approval');
     });
 
-    it('should render states table with Code, Name, Terminal columns', () => {
+    it('should render states table with swatch, Code, Name, Terminal columns', () => {
       const table = fixture.nativeElement.querySelector('.we-table');
       expect(table).toBeTruthy();
 
-      // Check headers
+      // 4 columns: swatch | Code | Name | Terminal
       const headers = table.querySelectorAll('thead th');
-      expect(headers.length).toBe(3);
-      expect(headers[0].textContent).toContain('Code');
-      expect(headers[1].textContent).toContain('Name');
-      expect(headers[2].textContent).toContain('Terminal');
+      expect(headers.length).toBe(4);
+      expect(headers[1].textContent).toContain('Code');
+      expect(headers[2].textContent).toContain('Name');
+      expect(headers[3].textContent).toContain('Terminal');
 
       // Check rows (4 states)
       const rows = table.querySelectorAll('tbody tr');
@@ -123,15 +134,40 @@ describe('WorkflowDetailComponent', () => {
     it('should render state rows with correct data', () => {
       const rows = fixture.nativeElement.querySelectorAll('.we-table tbody tr');
 
-      // First row: created
+      // First row: created — swatch is cells[0], data starts at cells[1]
       const cells0 = rows[0].querySelectorAll('td');
-      expect(cells0[0].textContent).toContain('created');
-      expect(cells0[1].textContent).toContain('CREATED');
-      expect(cells0[2].textContent).toContain('No');
+      expect(cells0[1].textContent).toContain('created');
+      expect(cells0[2].textContent).toContain('CREATED');
+      expect(cells0[3].textContent).toContain('No');
 
       // Last row: rejected (terminal)
       const cells3 = rows[3].querySelectorAll('td');
-      expect(cells3[2].textContent).toContain('Yes');
+      expect(cells3[3].textContent).toContain('Yes');
+    });
+
+    it('should render one swatch per state row', () => {
+      const swatches = fixture.nativeElement.querySelectorAll('.we-state-swatch');
+      expect(swatches.length).toBe(mockWorkflowDetail.states.length);
+    });
+
+    it('first state swatch has green background (#4CAF50)', () => {
+      const swatches = fixture.nativeElement.querySelectorAll('.we-state-swatch');
+      const firstSwatch = swatches[0] as HTMLElement;
+      // Angular sets inline style; normalise to lowercase for comparison
+      expect(firstSwatch.style.backgroundColor.toLowerCase()).toContain('');
+      // The computed color for N=4 index=0 from the curated palette is #4CAF50
+      // Browsers convert hex to rgb(), so compare via computed style
+      const computed = window.getComputedStyle(firstSwatch).backgroundColor;
+      // rgb(76, 175, 80) is #4CAF50
+      expect(computed).toBe('rgb(76, 175, 80)');
+    });
+
+    it('last state swatch has red background (#F44336)', () => {
+      const swatches = fixture.nativeElement.querySelectorAll('.we-state-swatch');
+      const lastSwatch = swatches[swatches.length - 1] as HTMLElement;
+      const computed = window.getComputedStyle(lastSwatch).backgroundColor;
+      // rgb(244, 67, 54) is #F44336
+      expect(computed).toBe('rgb(244, 67, 54)');
     });
 
     it('should render transitions list', () => {
@@ -216,6 +252,14 @@ describe('WorkflowDetailComponent', () => {
       const nameEl = fixture.nativeElement.querySelector('.we-workflow-detail__name');
       expect(skeleton).toBeFalsy();
       expect(nameEl).toBeFalsy();
+    });
+
+    it('should not render swatches in error state', () => {
+      workflowApiSpy.getWorkflow.and.returnValue(throwError(() => new Error('API error')));
+      createComponent();
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelectorAll('.we-state-swatch').length).toBe(0);
     });
 
     it('should retry loading when retry button is clicked', () => {
