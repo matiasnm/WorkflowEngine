@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { Location } from '@angular/common';
 import { ExecutionDetailPageComponent } from './execution-detail-page.component';
-import { ExecutionApiService } from 'workflow-engine';
+import { EXECUTION_API_PORT } from 'workflow-engine';
 import { of } from 'rxjs';
 
 describe('ExecutionDetailPageComponent', () => {
@@ -16,7 +16,7 @@ describe('ExecutionDetailPageComponent', () => {
       providers: [
         provideRouter([]),
         {
-          provide: ExecutionApiService,
+          provide: EXECUTION_API_PORT,
           useValue: {
             getExecution: () => of({ id: 'exec-1', workflowId: 'wf-1', currentState: { code: 'created', name: 'CREATED', terminal: false } }),
             getNextStates: () => of([]),

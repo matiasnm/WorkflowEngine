@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { WorkflowListPageComponent } from './workflow-list-page.component';
-import { WorkflowApiService } from 'workflow-engine';
+import { WORKFLOW_API_PORT } from 'workflow-engine';
 import { of } from 'rxjs';
 
 describe('WorkflowListPageComponent', () => {
@@ -14,7 +14,7 @@ describe('WorkflowListPageComponent', () => {
       imports: [WorkflowListPageComponent],
       providers: [
         provideRouter([]),
-        { provide: WorkflowApiService, useValue: { listWorkflows: () => of([]) } },
+        { provide: WORKFLOW_API_PORT, useValue: { listWorkflows: () => of([]) } },
       ],
     }).compileComponents();
 

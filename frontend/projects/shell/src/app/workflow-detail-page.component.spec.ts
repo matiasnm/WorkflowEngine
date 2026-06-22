@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { Location } from '@angular/common';
 import { WorkflowDetailPageComponent } from './workflow-detail-page.component';
-import { WorkflowApiService, ExecutionApiService } from 'workflow-engine';
+import { WORKFLOW_API_PORT, EXECUTION_API_PORT } from 'workflow-engine';
 import { of } from 'rxjs';
 
 describe('WorkflowDetailPageComponent', () => {
@@ -18,8 +18,8 @@ describe('WorkflowDetailPageComponent', () => {
         provideRouter([
           { path: 'workflows/:id', component: WorkflowDetailPageComponent },
         ]),
-        { provide: WorkflowApiService, useValue: { getWorkflow: () => of({ id: 'wf-1', name: 'test', states: [], transitions: [], initialState: '' }) } },
-        { provide: ExecutionApiService, useValue: { startExecution: () => of({}), listExecutions: () => of([]) } },
+        { provide: WORKFLOW_API_PORT, useValue: { getWorkflow: () => of({ id: 'wf-1', name: 'test', states: [], transitions: [], initialState: '' }) } },
+        { provide: EXECUTION_API_PORT, useValue: { startExecution: () => of({}), listExecutions: () => of([]) } },
       ],
     }).compileComponents();
 
