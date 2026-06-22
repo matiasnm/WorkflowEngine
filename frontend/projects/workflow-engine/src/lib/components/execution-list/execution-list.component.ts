@@ -4,6 +4,7 @@ import { ExecutionApiPort, EXECUTION_API_PORT } from '../../services/execution-a
 import { asyncData, AsyncDataResult } from '../../util';
 import { ExecutionResponse } from '../../models';
 import { ErrorBannerComponent } from '../ui';
+import { StateColorService } from '../../services/state-color.service';
 
 @Component({
   selector: 'we-execution-list',
@@ -57,6 +58,7 @@ import { ErrorBannerComponent } from '../ui';
                 >
                   <td><code>{{ truncateId(exec.id) }}</code></td>
                   <td>
+                    <span class="we-state-swatch" [style.background-color]="getStateColor(exec.currentState.code)"></span>
                     <span class="we-execution-state">{{ exec.currentState.name }}</span>
                     <span class="we-execution-state-code">({{ exec.currentState.code }})</span>
                   </td>
@@ -191,6 +193,7 @@ import { ErrorBannerComponent } from '../ui';
 export class ExecutionListComponent {
   private readonly api = inject(EXECUTION_API_PORT);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly stateColorService = inject(StateColorService);
 
   /** Required workflow UUID to load executions for. */
   readonly workflowId = input.required<string>();
@@ -237,5 +240,9 @@ export class ExecutionListComponent {
 
   protected truncateId(id: string): string {
     return id.length > 8 ? id.substring(0, 4) + '…' : id;
+  }
+
+  protected getStateColor(stateCode: string): string | null {
+    return this.stateColorService.getColor(this.workflowId(), stateCode);
   }
 }

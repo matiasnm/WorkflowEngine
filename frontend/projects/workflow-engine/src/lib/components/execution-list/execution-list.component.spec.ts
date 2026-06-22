@@ -2,12 +2,14 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Subject, of, throwError } from 'rxjs';
 import { ExecutionListComponent } from './execution-list.component';
 import { EXECUTION_API_PORT, ExecutionApiPort } from '../../services/execution-api.port';
+import { StateColorService } from '../../services/state-color.service';
 import { ExecutionResponse } from '../../models';
 
 describe('ExecutionListComponent', () => {
   let component: ExecutionListComponent;
   let fixture: ComponentFixture<ExecutionListComponent>;
   let apiServiceSpy: jasmine.SpyObj<ExecutionApiPort>;
+  let stateColorSpy: jasmine.SpyObj<StateColorService>;
 
   const mockExecutions: ExecutionResponse[] = [
     {
@@ -25,12 +27,17 @@ describe('ExecutionListComponent', () => {
   ];
 
   beforeEach(async () => {
+    localStorage.clear();
     const spy = jasmine.createSpyObj('ExecutionApiPort', ['listExecutions']);
+
+    stateColorSpy = jasmine.createSpyObj('StateColorService', ['getColor', 'getOrCreateColors']);
+    stateColorSpy.getColor.and.returnValue(null);
 
     await TestBed.configureTestingModule({
       imports: [ExecutionListComponent],
       providers: [
         { provide: EXECUTION_API_PORT, useValue: spy },
+        { provide: StateColorService, useValue: stateColorSpy },
       ],
     }).compileComponents();
 
@@ -190,6 +197,79 @@ describe('ExecutionListComponent', () => {
 
       expect(emitted).toEqual(['Failed to load executions.']);
       sub.unsubscribe();
+    });
+  });
+
+  describe('state colour swatches', () => {
+    const colorMap: Record<string, string> = {
+      in_review: 'rgb(92, 107, 192)',
+      created:   'rgb(76, 175, 80)',
+    };
+
+    beforeEach(() => {
+      stateColorSpy.getColor.and.callFake(
+        (_wfId: string, code: string): string | null => colorMap[code] ?? null,
+      );
+      apiServiceSpy.listExecutions.and.returnValue(of(mockExecutions));
+      createComponent();
+      fixture.detectChanges();
+    });
+
+    it('renders a swatch span in each state cell', () => {
+      const swatches = fixture.nativeElement.querySelectorAll('.we-state-swatch');
+      expect(swatches.length).toBe(2);
+    });
+
+    it('sets background-color on each swatch from the service', () => {
+      const swatches = fixture.nativeElement.querySelectorAll(
+        '.we-state-swatch',
+      ) as NodeListOf<HTMLElement>;
+      expect(swatches[0].style.backgroundColor).toBe(colorMap['in_review']);
+      expect(swatches[1].style.backgroundColor).toBe(colorMap['created']);
+    });
+
+    it('passes the component workflowId to the service', () => {
+      expect(stateColorSpy.getColor).toHaveBeenCalledWith('wf-uuid-1', 'in_review');
+      expect(stateColorSpy.getColor).toHaveBeenCalledWith('wf-uuid-1', 'created');
+    });
+
+    it('swatch has no background when service returns null', () => {
+      stateColorSpy.getColor.and.returnValue(null);
+      fixture.detectChanges();
+      const swatches = fixture.nativeElement.querySelectorAll(
+        '.we-state-swatch',
+      ) as NodeListOf<HTMLElement>;
+      swatches.forEach(s => expect(s.style.backgroundColor).toBe(''));
+    });
+
+    it('clicking a row still emits executionSelected (swatch is not interactive)', () => {
+      const emitted: string[] = [];
+      const sub = component.executionSelected.subscribe(v => emitted.push(v));
+      (fixture.nativeElement.querySelector('.we-execution-row') as HTMLElement).click();
+      expect(emitted).toEqual(['550e8400-e29b-41d4-a716-446655440000']);
+      sub.unsubscribe();
+    });
+
+    it('no swatches rendered during loading', () => {
+      const subject = new Subject<ExecutionResponse[]>();
+      apiServiceSpy.listExecutions.and.returnValue(subject.asObservable());
+      createComponent();
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelectorAll('.we-state-swatch').length).toBe(0);
+    });
+
+    it('no swatches rendered in error state', () => {
+      apiServiceSpy.listExecutions.and.returnValue(throwError(() => new Error('fail')));
+      createComponent();
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelectorAll('.we-state-swatch').length).toBe(0);
+    });
+
+    it('no swatches rendered for empty list', () => {
+      apiServiceSpy.listExecutions.and.returnValue(of([]));
+      createComponent();
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelectorAll('.we-state-swatch').length).toBe(0);
     });
   });
 });
