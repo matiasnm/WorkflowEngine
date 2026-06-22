@@ -4,3 +4,4 @@ export { WorkflowApiHttpAdapter } from './workflow-api.http-adapter';
 export { ExecutionApiHttpAdapter } from './execution-api.http-adapter';
 export { WorkflowApiFakeAdapter } from './workflow-api.fake-adapter';
 export { ExecutionApiFakeAdapter } from './execution-api.fake-adapter';
+export { WorkflowCacheService } from './workflow-cache.service';

@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { AllExecutionsComponent } from 'workflow-engine';
+import { AllExecutionsComponent, WorkflowCacheService } from 'workflow-engine';
 import { ErrorService } from './error.service';
 
 @Component({
@@ -11,6 +11,7 @@ import { ErrorService } from './error.service';
     <div class="shell-executions-page">
       <button class="shell-back-btn" (click)="onBack()">← Back</button>
       <we-all-executions
+        [workflows]="cachedWorkflows()"
         (executionSelected)="onExecutionSelected($event)"
         (errorEvent)="onError($event)"
       />
@@ -44,6 +45,10 @@ import { ErrorService } from './error.service';
 export class ExecutionsPageComponent {
   private readonly router = inject(Router);
   private readonly errorService = inject(ErrorService);
+  private readonly workflowCache = inject(WorkflowCacheService);
+
+  /** Read-only signal of the cached workflow list (null until the home page loads). */
+  protected readonly cachedWorkflows = this.workflowCache.workflows;
 
   onBack(): void {
     this.router.navigate(['/']);

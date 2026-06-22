@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { WorkflowListComponent } from 'workflow-engine';
+import { WorkflowListComponent, WorkflowCacheService, WorkflowSummary } from 'workflow-engine';
 import { ErrorService } from './error.service';
 
 @Component({
@@ -13,6 +13,7 @@ import { ErrorService } from './error.service';
         title="Workflows"
         (workflowSelected)="onWorkflowSelected($event)"
         (errorEvent)="onError($event)"
+        (workflowsLoaded)="onWorkflowsLoaded($event)"
       />
     </div>
   `,
@@ -25,6 +26,7 @@ import { ErrorService } from './error.service';
 export class WorkflowListPageComponent {
   private readonly router = inject(Router);
   private readonly errorService = inject(ErrorService);
+  private readonly workflowCache = inject(WorkflowCacheService);
 
   onWorkflowSelected(id: string): void {
     this.router.navigate(['/workflows', id]);
@@ -32,5 +34,9 @@ export class WorkflowListPageComponent {
 
   onError(message: string): void {
     this.errorService.addError(message);
+  }
+
+  onWorkflowsLoaded(workflows: WorkflowSummary[]): void {
+    this.workflowCache.setWorkflows(workflows);
   }
 }

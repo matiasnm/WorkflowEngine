@@ -1,7 +1,8 @@
-import { Component, input, Output, EventEmitter, signal, computed, inject, DestroyRef } from '@angular/core';
+import { Component, input, Output, EventEmitter, signal, computed, inject, DestroyRef, effect } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { WorkflowApiPort, WORKFLOW_API_PORT } from '../../services/workflow-api.port';
 import { asyncData } from '../../util';
+import { WorkflowSummary } from '../../models';
 import { ErrorBannerComponent, SkeletonCardComponent } from '../ui';
 
 @Component({
@@ -210,6 +211,9 @@ export class WorkflowListComponent {
   /** Emitted when an error occurs, so the host app can react (toast, etc.). */
   @Output() errorEvent = new EventEmitter<string>();
 
+  /** Emitted when the workflow list is successfully loaded. */
+  @Output() workflowsLoaded = new EventEmitter<WorkflowSummary[]>();
+
   /** Reactive async data for the workflow list. */
   protected readonly workflows = asyncData(
     () => this.api.listWorkflows(),
@@ -218,6 +222,14 @@ export class WorkflowListComponent {
       destroyRef: this.destroyRef,
     },
   );
+
+  /** Emit workflowsLoaded whenever the async data resolves with a non-null value. */
+  private readonly _workflowsLoadedEffect = effect(() => {
+    const data = this.workflows.data();
+    if (data) {
+      this.workflowsLoaded.emit(data);
+    }
+  });
 
   /** Client-side search query. */
   readonly searchQuery = signal<string>('');

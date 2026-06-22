@@ -1,8 +1,11 @@
-import { Component, Output, EventEmitter, inject, DestroyRef } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject, DestroyRef } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { forkJoin, Observable, of } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
 import { EXECUTION_API_PORT } from '../../services/execution-api.port';
+import { WORKFLOW_API_PORT } from '../../services/workflow-api.port';
 import { asyncData } from '../../util';
-import { AllExecutionResponse } from '../../models';
+import { AllExecutionResponse, WorkflowSummary } from '../../models';
 import { ErrorBannerComponent } from '../ui';
 
 @Component({
@@ -199,18 +202,76 @@ import { ErrorBannerComponent } from '../ui';
 })
 export class AllExecutionsComponent {
   private readonly api = inject(EXECUTION_API_PORT);
+  private readonly workflowApi = inject(WORKFLOW_API_PORT);
   private readonly destroyRef = inject(DestroyRef);
+
+  /** Backing field for the {@link workflows} input property. */
+  private _workflows: WorkflowSummary[] | null = null;
+
+  /**
+   * Optional list of workflows to scope the execution fetch to.
+   *
+   * - When provided (non‑null), executions are fetched per workflow in parallel
+   *   via `forkJoin` and merged into a single list.
+   * - When `null` (the default / fallback), the component fetches the workflow
+   *   list independently first, then performs the same per‑workflow aggregation.
+   */
+  @Input() set workflows(value: WorkflowSummary[] | null) {
+    this._workflows = value;
+    // Re‑trigger the async load with the new workflow scope.
+    this.executions.refresh();
+  }
+  get workflows(): WorkflowSummary[] | null {
+    return this._workflows;
+  }
 
   @Output() executionSelected = new EventEmitter<string>();
   @Output() errorEvent = new EventEmitter<string>();
 
+  /** Reactive async data for the aggregated execution list. */
   readonly executions = asyncData(
-    () => this.api.listAllExecutions(),
+    () => {
+      if (this._workflows !== null) {
+        return this.aggregateExecutions(this._workflows);
+      }
+      // Fallback: fetch the workflow list, then aggregate per workflow.
+      return this.workflowApi.listWorkflows().pipe(
+        switchMap(workflows => this.aggregateExecutions(workflows)),
+      );
+    },
     {
       errorMessage: 'Failed to load executions.',
       destroyRef: this.destroyRef,
+      onError: (err) => this.errorEvent.emit('Failed to load executions.'),
     },
   );
+
+  /**
+   * Fetch executions for every workflow in parallel and merge into a single
+   * {@link AllExecutionResponse} list, decorating each execution with the
+   * workflow name.
+   */
+  private aggregateExecutions(
+    workflows: WorkflowSummary[],
+  ): Observable<AllExecutionResponse[]> {
+    if (workflows.length === 0) return of([]);
+
+    return forkJoin(
+      workflows.map(wf =>
+        this.api.listExecutions(wf.id).pipe(
+          map(execs =>
+            execs.map(e => ({
+              id: e.id,
+              workflowId: e.workflowId,
+              workflowName: wf.name,
+              currentState: e.currentState,
+              currentStateSince: e.currentStateSince,
+            } as AllExecutionResponse)),
+          ),
+        ),
+      ),
+    ).pipe(map(results => results.flat()));
+  }
 
   protected selectExecution(id: string): void {
     this.executionSelected.emit(id);
