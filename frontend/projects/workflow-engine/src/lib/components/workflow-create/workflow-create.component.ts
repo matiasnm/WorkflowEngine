@@ -724,7 +724,7 @@ export class WorkflowCreateComponent {
       const prevState = this.states.at(newIndex - 1);
       const prevCode = prevState.value.code;
       if (prevCode && prevCode.trim()) {
-        this.addTransitionInternal(prevCode, group.value.code);
+        this.addTransitionInternal(prevCode, group.value.code ?? '');
       }
     }
 
