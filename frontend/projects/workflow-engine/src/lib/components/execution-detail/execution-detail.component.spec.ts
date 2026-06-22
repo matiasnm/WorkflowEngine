@@ -3,12 +3,14 @@ import { By } from '@angular/platform-browser';
 import { Subject, of, throwError } from 'rxjs';
 import { ExecutionDetailComponent } from './execution-detail.component';
 import { EXECUTION_API_PORT, ExecutionApiPort } from '../../services/execution-api.port';
+import { StateColorService } from '../../services/state-color.service';
 import { ExecutionResponse, NextStatesResponse, TransitionResponse } from '../../models';
 
 describe('ExecutionDetailComponent', () => {
   let component: ExecutionDetailComponent;
   let fixture: ComponentFixture<ExecutionDetailComponent>;
   let apiSpy: jasmine.SpyObj<ExecutionApiPort>;
+  let stateColorSpy: jasmine.SpyObj<StateColorService>;
 
   const executionId = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
 
@@ -38,6 +40,8 @@ describe('ExecutionDetailComponent', () => {
   };
 
   beforeEach(async () => {
+    localStorage.clear();
+
     const spy = jasmine.createSpyObj('ExecutionApiPort', [
       'getExecution',
       'getNextStates',
@@ -48,10 +52,14 @@ describe('ExecutionDetailComponent', () => {
     // Default: return empty history so the embedded ExecutionHistoryComponent does not error
     spy.getHistory.and.returnValue(of([]));
 
+    stateColorSpy = jasmine.createSpyObj('StateColorService', ['getColor', 'getOrCreateColors']);
+    stateColorSpy.getColor.and.returnValue(null); // default: no colour cached
+
     await TestBed.configureTestingModule({
       imports: [ExecutionDetailComponent],
       providers: [
         { provide: EXECUTION_API_PORT, useValue: spy },
+        { provide: StateColorService, useValue: stateColorSpy },
       ],
     }).compileComponents();
 
@@ -597,6 +605,71 @@ describe('ExecutionDetailComponent', () => {
     it('should not render any transition buttons when nextStates is empty', () => {
       const buttons = fixture.nativeElement.querySelectorAll('.we-btn--transition');
       expect(buttons.length).toBe(0);
+    });
+  });
+
+  // ═══════════════════════════════════════════════════════════
+  //  STATE CARD COLOUR
+  // ═══════════════════════════════════════════════════════════
+
+  describe('state card colour', () => {
+    it('sets --we-state-color CSS variable on the card when a colour is available', () => {
+      stateColorSpy.getColor.and.returnValue('#2196F3');
+      initWithData();
+
+      const card = fixture.nativeElement.querySelector('.we-state-card') as HTMLElement;
+      expect(card).toBeTruthy();
+      expect(card.style.getPropertyValue('--we-state-color').trim()).toBe('#2196F3');
+    });
+
+    it('does not set --we-state-color when no colour is cached', () => {
+      stateColorSpy.getColor.and.returnValue(null);
+      initWithData();
+
+      const card = fixture.nativeElement.querySelector('.we-state-card') as HTMLElement;
+      expect(card.style.getPropertyValue('--we-state-color')).toBe('');
+    });
+
+    it('calls getColor with the correct workflowId and state code', () => {
+      initWithData();
+
+      expect(stateColorSpy.getColor).toHaveBeenCalledWith(
+        mockExecution.workflowId,
+        mockExecution.currentState.code,
+      );
+    });
+
+    it('no state card is rendered during loading, so no colour is applied', () => {
+      const subject = new Subject<ExecutionResponse>();
+      apiSpy.getExecution.and.returnValue(subject.asObservable());
+      apiSpy.getNextStates.and.returnValue(of([]));
+      createComponent();
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('.we-state-card')).toBeFalsy();
+    });
+
+    it('no state card is rendered in error state, so no colour is applied', () => {
+      apiSpy.getExecution.and.returnValue(throwError(() => new Error('fail')));
+      apiSpy.getNextStates.and.returnValue(of([]));
+      createComponent();
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('.we-state-card')).toBeFalsy();
+    });
+
+    it('terminal success banner is unaffected by state card colour', () => {
+      stateColorSpy.getColor.and.returnValue('#F44336');
+      const terminalExecution: ExecutionResponse = {
+        ...mockExecution,
+        currentState: { code: 'approved', name: 'APPROVED', terminal: true },
+      };
+      initWithData(terminalExecution, []);
+
+      const banner = fixture.nativeElement.querySelector('.we-execution-detail__terminal');
+      expect(banner).toBeTruthy();
+      // The banner element itself carries no --we-state-color inline style
+      expect((banner as HTMLElement).style.getPropertyValue('--we-state-color')).toBe('');
     });
   });
 });

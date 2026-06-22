@@ -2,6 +2,7 @@ import { Component, input, Output, EventEmitter, signal, computed, inject, ViewC
 import { DatePipe } from '@angular/common';
 import { forkJoin } from 'rxjs';
 import { ExecutionApiPort, EXECUTION_API_PORT } from '../../services/execution-api.port';
+import { StateColorService } from '../../services/state-color.service';
 import { asyncData, AsyncDataResult } from '../../util';
 import { ExecutionHistoryComponent } from '../execution-history/execution-history.component';
 import { ExecutionResponse, NextStatesResponse, TransitionResponse } from '../../models';
@@ -83,7 +84,7 @@ import { ErrorBannerComponent, SpinnerComponent } from '../ui';
           <!-- ── Current state display (non-terminal) ── -->
           @if (!exec.currentState.terminal) {
             <div class="we-execution-detail__current-state">
-              <div class="we-state-card">
+              <div class="we-state-card" [style.--we-state-color]="stateColor()">
                 <div class="we-state-card__code">{{ exec.currentState.code }}</div>
                 <div class="we-state-card__name">{{ exec.currentState.name }}</div>
                 @if (exec.currentStateSince; as since) {
@@ -136,6 +137,7 @@ import { ErrorBannerComponent, SpinnerComponent } from '../ui';
             <h3 class="we-section-title">History</h3>
             <we-execution-history
               [executionId]="executionId()"
+              [workflowId]="execution()?.workflowId"
             />
           </section>
 
@@ -295,7 +297,7 @@ import { ErrorBannerComponent, SpinnerComponent } from '../ui';
       text-align: center;
       padding: 32px 24px;
       background: var(--we-bg, #ffffff);
-      border: 2px solid var(--we-primary, #1976d2);
+      border: 2px solid var(--we-state-color, var(--we-primary, #1976d2));
       border-radius: var(--we-border-radius, 8px);
       position: relative;
       overflow: hidden;
@@ -308,13 +310,13 @@ import { ErrorBannerComponent, SpinnerComponent } from '../ui';
       left: 0;
       right: 0;
       height: 4px;
-      background: var(--we-primary, #1976d2);
+      background: var(--we-state-color, var(--we-primary, #1976d2));
     }
 
     .we-state-card__code {
       font-size: 1.8rem;
       font-weight: 700;
-      color: var(--we-primary, #1976d2);
+      color: var(--we-state-color, var(--we-primary, #1976d2));
       letter-spacing: 0.02em;
       margin-bottom: 4px;
       text-transform: uppercase;
@@ -394,6 +396,7 @@ import { ErrorBannerComponent, SpinnerComponent } from '../ui';
 })
 export class ExecutionDetailComponent {
   private readonly api = inject(EXECUTION_API_PORT);
+  private readonly stateColorService = inject(StateColorService);
   private readonly destroyRef = inject(DestroyRef);
 
   /** Required execution ID to load detail for. */
@@ -420,6 +423,13 @@ export class ExecutionDetailComponent {
   /** Individual data signals — synced from execAsync on initial load,
    *  also updated by post-transition refresh (refreshExecutionAndStates). */
   readonly execution = signal<ExecutionResponse | null>(null);
+
+  /** Auto-generated colour for the current state, or null when not cached. */
+  readonly stateColor = computed(() => {
+    const exec = this.execution();
+    if (!exec) return null;
+    return this.stateColorService.getColor(exec.workflowId, exec.currentState.code);
+  });
   readonly nextStates = signal<NextStatesResponse[]>([]);
   readonly transitioning = signal<string | null>(null);
   readonly transitionError = signal<string | null>(null);
