@@ -2,12 +2,14 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Subject, of, throwError } from 'rxjs';
 import { ExecutionHistoryComponent } from './execution-history.component';
 import { EXECUTION_API_PORT, ExecutionApiPort } from '../../services/execution-api.port';
+import { StateColorService } from '../../services/state-color.service';
 import { HistoryItem } from '../../models';
 
 describe('ExecutionHistoryComponent', () => {
   let component: ExecutionHistoryComponent;
   let fixture: ComponentFixture<ExecutionHistoryComponent>;
   let apiServiceSpy: jasmine.SpyObj<ExecutionApiPort>;
+  let stateColorSpy: jasmine.SpyObj<StateColorService>;
 
   const mockHistoryItems: HistoryItem[] = [
     {
@@ -37,22 +39,31 @@ describe('ExecutionHistoryComponent', () => {
   ];
 
   beforeEach(async () => {
+    localStorage.clear();
+
     const spy = jasmine.createSpyObj('ExecutionApiPort', ['getHistory']);
+
+    stateColorSpy = jasmine.createSpyObj('StateColorService', ['getColor', 'getOrCreateColors']);
+    stateColorSpy.getColor.and.returnValue(null); // default: no colour
 
     await TestBed.configureTestingModule({
       imports: [ExecutionHistoryComponent],
       providers: [
         { provide: EXECUTION_API_PORT, useValue: spy },
+        { provide: StateColorService, useValue: stateColorSpy },
       ],
     }).compileComponents();
 
     apiServiceSpy = TestBed.inject(EXECUTION_API_PORT) as jasmine.SpyObj<ExecutionApiPort>;
   });
 
-  function createComponent(): void {
+  function createComponent(workflowId?: string): void {
     fixture = TestBed.createComponent(ExecutionHistoryComponent);
     component = fixture.componentInstance;
     fixture.componentRef.setInput('executionId', 'exec-uuid-1');
+    if (workflowId !== undefined) {
+      fixture.componentRef.setInput('workflowId', workflowId);
+    }
   }
 
   describe('loading state', () => {
@@ -433,6 +444,174 @@ describe('ExecutionHistoryComponent', () => {
 
       expect(emitted).toEqual(['Failed to load execution history.']);
       sub.unsubscribe();
+    });
+  });
+
+  // ═══════════════════════════════════════════════════════════
+  //  STATE COLOURS
+  //  Spy returns rgb strings to avoid browser hex-normalisation.
+  // ═══════════════════════════════════════════════════════════
+
+  describe('state colours', () => {
+    // State-code → colour mapping used by the spy
+    const colorMap: Record<string, string> = {
+      created:   'rgb(76, 175, 80)',    // green
+      in_review: 'rgb(92, 107, 192)',   // deep purple
+      approved:  'rgb(244, 67, 54)',    // red
+    };
+
+    function initWithColors(history: HistoryItem[] = mockHistoryItems): void {
+      stateColorSpy.getColor.and.callFake(
+        (_wfId: string, code: string): string | null => colorMap[code] ?? null,
+      );
+      apiServiceSpy.getHistory.and.returnValue(of(history));
+      createComponent('wf-1');
+      fixture.detectChanges();
+    }
+
+    // ── Vertical mode ──────────────────────────────────────
+
+    describe('vertical mode', () => {
+      it('colours each dot with its toState colour', () => {
+        initWithColors();
+        const dots = fixture.nativeElement.querySelectorAll(
+          '.we-timeline__dot',
+        ) as NodeListOf<HTMLElement>;
+        // item[0] toState = in_review, item[1] toState = approved
+        expect(dots[0].style.color).toBe(colorMap['in_review']);
+        expect(dots[1].style.color).toBe(colorMap['approved']);
+      });
+
+      it('colours the current indicator with the current state colour', () => {
+        initWithColors();
+        const indicator = fixture.nativeElement.querySelector(
+          '.we-timeline__indicator--current',
+        ) as HTMLElement;
+        // currentState = last toState = approved
+        expect(indicator.style.color).toBe(colorMap['approved']);
+      });
+
+      it('does NOT colour fromState or toState text labels', () => {
+        initWithColors();
+        (fixture.nativeElement.querySelectorAll('.we-timeline__from') as NodeListOf<HTMLElement>)
+          .forEach(el => expect(el.style.color).toBe(''));
+        (fixture.nativeElement.querySelectorAll('.we-timeline__to') as NodeListOf<HTMLElement>)
+          .forEach(el => expect(el.style.color).toBe(''));
+      });
+
+      it('applies no dot colour when workflowId is not provided', () => {
+        stateColorSpy.getColor.and.returnValue('rgb(92, 107, 192)');
+        apiServiceSpy.getHistory.and.returnValue(of(mockHistoryItems));
+        createComponent(); // no workflowId → getStateColor returns null
+        fixture.detectChanges();
+        const dot = fixture.nativeElement.querySelector('.we-timeline__dot') as HTMLElement;
+        expect(dot.style.color).toBe('');
+      });
+    });
+
+    // ── Horizontal mode ────────────────────────────────────
+
+    describe('horizontal mode', () => {
+      function switchToHorizontal(): void {
+        const buttons = fixture.nativeElement.querySelectorAll('.we-display-toggle__btn');
+        (buttons[1] as HTMLElement).click();
+        fixture.detectChanges();
+      }
+
+      it('colours every step name with its state colour', () => {
+        initWithColors();
+        switchToHorizontal();
+        const names = fixture.nativeElement.querySelectorAll(
+          '.we-timeline__step-name',
+        ) as NodeListOf<HTMLElement>;
+        // 3 steps: created (initial), in_review, approved (current)
+        expect(names[0].style.color).toBe(colorMap['created']);
+        expect(names[1].style.color).toBe(colorMap['in_review']);
+        expect(names[2].style.color).toBe(colorMap['approved']);
+      });
+
+      it('adds rgba background-color tint to the current step name', () => {
+        initWithColors();
+        switchToHorizontal();
+        const names = fixture.nativeElement.querySelectorAll(
+          '.we-timeline__step-name',
+        ) as NodeListOf<HTMLElement>;
+        const lastStepName = names[names.length - 1];
+        expect(lastStepName.style.backgroundColor).toContain('rgba(');
+        expect(lastStepName.style.backgroundColor).toContain('0.08');
+      });
+
+      it('does NOT add a background tint to non-current step names', () => {
+        initWithColors();
+        switchToHorizontal();
+        const names = fixture.nativeElement.querySelectorAll(
+          '.we-timeline__step-name',
+        ) as NodeListOf<HTMLElement>;
+        expect(names[0].style.backgroundColor).toBe('');
+        expect(names[1].style.backgroundColor).toBe('');
+      });
+
+      it('connector arrows are not coloured by the service', () => {
+        initWithColors();
+        switchToHorizontal();
+        (fixture.nativeElement.querySelectorAll(
+          '.we-timeline__arrow--horizontal',
+        ) as NodeListOf<HTMLElement>).forEach(el => expect(el.style.color).toBe(''));
+      });
+    });
+
+    // ── Toggle persistence ─────────────────────────────────
+
+    describe('toggle persistence', () => {
+      it('colours persist when toggling from vertical to horizontal and back', () => {
+        initWithColors();
+        const buttons = fixture.nativeElement.querySelectorAll('.we-display-toggle__btn');
+
+        // vertical — dots coloured
+        expect(
+          (fixture.nativeElement.querySelector('.we-timeline__dot') as HTMLElement).style.color,
+        ).not.toBe('');
+
+        // switch to horizontal — step names coloured
+        (buttons[1] as HTMLElement).click();
+        fixture.detectChanges();
+        expect(
+          (fixture.nativeElement.querySelector('.we-timeline__step-name') as HTMLElement).style.color,
+        ).not.toBe('');
+
+        // back to vertical — dots still coloured
+        (buttons[0] as HTMLElement).click();
+        fixture.detectChanges();
+        expect(
+          (fixture.nativeElement.querySelector('.we-timeline__dot') as HTMLElement).style.color,
+        ).not.toBe('');
+      });
+    });
+
+    // ── No colours during loading / error / empty ──────────
+
+    describe('no colours during loading, error, and empty states', () => {
+      it('no timeline is rendered while loading', () => {
+        const subject = new Subject<HistoryItem[]>();
+        apiServiceSpy.getHistory.and.returnValue(subject.asObservable());
+        createComponent('wf-1');
+        fixture.detectChanges();
+        expect(fixture.nativeElement.querySelectorAll('.we-timeline__dot').length).toBe(0);
+      });
+
+      it('no timeline is rendered in error state', () => {
+        apiServiceSpy.getHistory.and.returnValue(throwError(() => new Error('fail')));
+        createComponent('wf-1');
+        fixture.detectChanges();
+        expect(fixture.nativeElement.querySelector('.we-timeline--vertical')).toBeFalsy();
+      });
+
+      it('no timeline is rendered for empty history', () => {
+        apiServiceSpy.getHistory.and.returnValue(of([]));
+        createComponent('wf-1');
+        fixture.detectChanges();
+        expect(fixture.nativeElement.querySelector('.we-timeline--vertical')).toBeFalsy();
+      });
     });
   });
 });

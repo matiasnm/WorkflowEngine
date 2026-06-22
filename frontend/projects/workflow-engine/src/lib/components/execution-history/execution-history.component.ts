@@ -1,6 +1,7 @@
 import { Component, input, Output, EventEmitter, signal, computed, inject, DestroyRef, effect } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { ExecutionApiPort, EXECUTION_API_PORT } from '../../services/execution-api.port';
+import { StateColorService } from '../../services/state-color.service';
 import { asyncData, AsyncDataResult } from '../../util';
 import { HistoryItem } from '../../models';
 import { ErrorBannerComponent } from '../ui';
@@ -84,7 +85,11 @@ import { ErrorBannerComponent } from '../ui';
           <div class="we-timeline we-timeline--vertical">
             @for (item of historyData(); track $index; let last = $last) {
               <div class="we-timeline__transition">
-                <span class="we-timeline__dot" aria-hidden="true">●</span>
+                <span
+                  class="we-timeline__dot"
+                  aria-hidden="true"
+                  [style.color]="getStateColor(item.toStateCode)"
+                >●</span>
                 <div class="we-timeline__transition-body">
                   <span class="we-timeline__from">{{ item.fromStateName }}</span>
                   <span class="we-timeline__arrow" aria-hidden="true">→</span>
@@ -103,7 +108,11 @@ import { ErrorBannerComponent } from '../ui';
             <!-- Current state at the end of the timeline -->
             <div class="we-timeline__connector" aria-hidden="true"></div>
             <div class="we-timeline__current-node">
-              <span class="we-timeline__indicator we-timeline__indicator--current" aria-hidden="true">▲</span>
+              <span
+                class="we-timeline__indicator we-timeline__indicator--current"
+                aria-hidden="true"
+                [style.color]="getStateColor(currentState()?.code)"
+              >▲</span>
               <div class="we-timeline__current-body">
                 <span class="we-timeline__current-name">{{ currentState()?.name }}</span>
                 <span class="we-timeline__current-label">(current)</span>
@@ -126,6 +135,8 @@ import { ErrorBannerComponent } from '../ui';
                 <span
                   class="we-timeline__step-name"
                   [class.we-timeline__step-name--current]="step.isCurrent"
+                  [style.color]="getStateColor(step.code)"
+                  [style.background-color]="step.isCurrent ? toRgba(getStateColor(step.code), 0.08) : null"
                 >
                   {{ step.name }}
                 </span>
@@ -419,7 +430,7 @@ import { ErrorBannerComponent } from '../ui';
     .we-timeline__step-name--current {
       font-weight: 700;
       color: var(--we-primary, #1976d2);
-      background: rgba(25, 118, 210, 0.08);
+      background-color: rgba(25, 118, 210, 0.08);
     }
 
     .we-timeline__step-label {
@@ -452,10 +463,14 @@ import { ErrorBannerComponent } from '../ui';
 })
 export class ExecutionHistoryComponent {
   private readonly api = inject(EXECUTION_API_PORT);
+  private readonly stateColorService = inject(StateColorService);
   private readonly destroyRef = inject(DestroyRef);
 
   /** Required execution ID to load history for. */
   readonly executionId = input.required<string>();
+
+  /** Optional workflow ID — used to look up state colours. When absent no colours are applied. */
+  readonly workflowId = input<string | undefined>(undefined);
 
   /** Emitted when an error occurs, so the host app can react (toast, etc.). */
   @Output() errorEvent = new EventEmitter<string>();
@@ -546,5 +561,33 @@ export class ExecutionHistoryComponent {
   /** Reloads history from the API. Public so the parent can call it after a transition. */
   loadHistory(): void {
     this.historyAsync()?.refresh();
+  }
+
+  /** Returns the colour for a state code, or null when workflowId is absent or colour not cached. */
+  protected getStateColor(stateCode: string | null | undefined): string | null {
+    const wfId = this.workflowId();
+    if (!wfId || !stateCode) return null;
+    return this.stateColorService.getColor(wfId, stateCode);
+  }
+
+  /**
+   * Converts a CSS colour string to an rgba() value with the given alpha.
+   * Handles hex (#rrggbb), hsl(), and rgb() inputs.
+   */
+  protected toRgba(color: string | null, alpha: number): string | null {
+    if (!color) return null;
+    if (color.startsWith('#') && color.length === 7) {
+      const r = parseInt(color.slice(1, 3), 16);
+      const g = parseInt(color.slice(3, 5), 16);
+      const b = parseInt(color.slice(5, 7), 16);
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+    if (color.startsWith('hsl(')) {
+      return color.replace('hsl(', 'hsla(').replace(')', `, ${alpha})`);
+    }
+    if (color.startsWith('rgb(')) {
+      return color.replace('rgb(', 'rgba(').replace(')', `, ${alpha})`);
+    }
+    return null;
   }
 }
