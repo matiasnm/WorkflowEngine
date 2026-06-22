@@ -717,6 +717,17 @@ export class WorkflowCreateComponent {
       terminal: [false],
     });
     this.states.push(group);
+
+    // Auto-create transition from previous last state to new state
+    const newIndex = this.states.length - 1;
+    if (newIndex > 0) {
+      const prevState = this.states.at(newIndex - 1);
+      const prevCode = prevState.value.code;
+      if (prevCode && prevCode.trim()) {
+        this.addTransitionInternal(prevCode, group.value.code);
+      }
+    }
+
     // Re-run cross-field validators after adding
     this.updateTransitionValidators();
     this.updateDuplicateCodeValidator();
@@ -724,6 +735,30 @@ export class WorkflowCreateComponent {
 
   removeState(index: number): void {
     const removedCode = this.states.at(index).value.code;
+
+    // Reconnect the chain when a middle state is removed:
+    // If the removed state had both an incoming and outgoing transition
+    // (forming a chain A → removed → B), create A → B.
+    if (index > 0 && index < this.states.length - 1) {
+      const prevCode = this.states.at(index - 1).value.code;
+      const nextCode = this.states.at(index + 1).value.code;
+
+      const hasIncoming = this.transitions.controls.some(
+        t => t.value.from === prevCode && t.value.to === removedCode
+      );
+      const hasOutgoing = this.transitions.controls.some(
+        t => t.value.from === removedCode && t.value.to === nextCode
+      );
+
+      if (hasIncoming && hasOutgoing && prevCode && nextCode) {
+        const alreadyExists = this.transitions.controls.some(
+          t => t.value.from === prevCode && t.value.to === nextCode
+        );
+        if (!alreadyExists) {
+          this.addTransitionInternal(prevCode, nextCode);
+        }
+      }
+    }
 
     // If removed state was the initial state, reset it
     if (this.form.get('initialState')?.value === removedCode) {
@@ -797,6 +832,15 @@ export class WorkflowCreateComponent {
   removeTransition(index: number): void {
     this.transitions.removeAt(index);
     this.updateTransitionValidators();
+  }
+
+  /** Programmatically add a transition (used by auto-creation in addState / removeState). */
+  private addTransitionInternal(from: string, to: string): void {
+    const group = this.fb.group({
+      from: [from, Validators.required],
+      to: [to, Validators.required],
+    });
+    this.transitions.push(group);
   }
 
   // ── Cross-field validators ──
