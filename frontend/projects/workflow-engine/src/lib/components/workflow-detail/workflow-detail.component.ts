@@ -85,16 +85,16 @@ import { ErrorBannerComponent } from '../ui';
                 <p class="we-empty-text">No transitions defined.</p>
               }
             </div>
-          </section>
 
-          <!-- Start Execution -->
-          <div class="we-workflow-detail__actions">
-            <we-start-execution
-              [workflowId]="workflowId()"
-              (executionCreated)="onExecutionCreated($event)"
-              (errorEvent)="errorEvent.emit($event)"
-            />
-          </div>
+            <!-- Start Execution -->
+            <div class="we-workflow-detail__actions">
+              <we-start-execution
+                [workflowId]="workflowId()"
+                (executionCreated)="onExecutionCreated($event)"
+                (errorEvent)="errorEvent.emit($event)"
+              />
+            </div>
+          </section>
 
           <!-- Executions list -->
           <section class="we-workflow-detail__executions">
