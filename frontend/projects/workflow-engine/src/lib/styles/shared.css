@@ -190,3 +190,14 @@
   font-size: 0.9rem;
   margin: 0 0 var(--we-spacing, 16px);
 }
+
+/* ═══════════════════════════════════════════════════
+   State Colour Swatch
+   ═══════════════════════════════════════════════════ */
+
+.we-state-swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
