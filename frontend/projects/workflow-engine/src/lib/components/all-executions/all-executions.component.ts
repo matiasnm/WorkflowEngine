@@ -208,7 +208,6 @@ export class AllExecutionsComponent {
     () => this.api.listAllExecutions(),
     {
       errorMessage: 'Failed to load executions.',
-      onError: () => this.errorEvent.emit('Failed to load executions.'),
       destroyRef: this.destroyRef,
     },
   );

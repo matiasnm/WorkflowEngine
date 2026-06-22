@@ -215,7 +215,6 @@ export class WorkflowListComponent {
     () => this.api.listWorkflows(),
     {
       errorMessage: 'Failed to load workflows.',
-      onError: () => this.errorEvent.emit('Failed to load workflows.'),
       destroyRef: this.destroyRef,
     },
   );

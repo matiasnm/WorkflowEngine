@@ -309,7 +309,6 @@ export class WorkflowDetailComponent {
             () => this.workflowApi.getWorkflow(id),
             {
               errorMessage: 'Failed to load workflow.',
-              onError: () => this.errorEvent.emit('Failed to load workflow.'),
               destroyRef: this.destroyRef,
             },
           ),
