@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -84,6 +85,40 @@ public class GlobalExceptionHandler {
         problem.setTitle("Execution Not Found");
         problem.setDetail(ex.getMessage());
         problem.setProperty("type", "execution/not-found");
+        problem.setProperty("timestamp", Instant.now());
+
+        return problem;
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ProblemDetail handleIllegalArgument(IllegalArgumentException ex) {
+
+        ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
+
+        problem.setTitle("Validation Error");
+        problem.setDetail(ex.getMessage());
+        problem.setProperty("type", "validation/domain-error");
+        problem.setProperty("timestamp", Instant.now());
+
+        return problem;
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ProblemDetail handleDataIntegrity(DataIntegrityViolationException ex) {
+
+        String message = ex.getMostSpecificCause().getMessage();
+
+        // Extract a cleaner message for per-workflow duplicate-code constraint violations
+        if (message != null && message.toUpperCase().contains("UK_STATE_WORKFLOW_CODE")) {
+            message = "A state with this code already exists in this workflow";
+        } else if (message != null && message.contains("23505")) {
+            message = "Duplicate key violation";
+        }
+
+        ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.CONFLICT);
+        problem.setTitle("Data Integrity Violation");
+        problem.setDetail(message);
+        problem.setProperty("type", "persistence/data-integrity");
         problem.setProperty("timestamp", Instant.now());
 
         return problem;
