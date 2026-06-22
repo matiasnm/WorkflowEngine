@@ -452,7 +452,7 @@ describe('WorkflowCreateComponent', () => {
       expect(component.submitting()).toBeFalse();
     });
 
-    it('should set submitError signal and emit errorEvent on API error', () => {
+    it('should set submitError signal on API error', () => {
       createComponent();
       apiServiceSpy.createWorkflow.and.returnValue(throwError(() => new Error('API error')));
 
@@ -461,15 +461,10 @@ describe('WorkflowCreateComponent', () => {
       component.states.at(1).patchValue({ code: 'b', name: 'B' });
       component.form.get('initialState')?.setValue('a');
 
-      const emitted: string[] = [];
-      const sub = component.errorEvent.subscribe((val) => emitted.push(val));
-
       component.onSubmit();
       fixture.detectChanges();
 
       expect(component.submitError()).toBeTruthy();
-      expect(emitted.length).toBe(1);
-      sub.unsubscribe();
     });
   });
 
@@ -547,6 +542,83 @@ describe('WorkflowCreateComponent', () => {
     });
   });
 
+  // ── Pending transitions from addState ──
+
+  describe('pending transitions from addState', () => {
+    it('should create a pending transition with FROM pre-filled when adding a state and prev has code', () => {
+      createComponent();
+      expect(component.transitions.length).toBe(0);
+
+      // Fill first two states so they have codes
+      component.states.at(0).get('name')?.setValue('A');
+      component.onStateNameInput(0);
+      component.states.at(1).get('name')?.setValue('B');
+      component.onStateNameInput(1);
+      expect(component.transitions.length).toBe(0);
+
+      // Add a 3rd state → pending transition from state[1] ('b') to ''
+      component.addState();
+      expect(component.transitions.length).toBe(1);
+      expect(component.transitions.at(0).value.from).toBe('b');
+      expect(component.transitions.at(0).value.to).toBe('');
+    });
+
+    it('should NOT create auto-transitions for initial 2 empty states', () => {
+      createComponent();
+      expect(component.transitions.length).toBe(0);
+
+      // Fill both state codes via name input → no transitions auto-created
+      component.states.at(0).get('name')?.setValue('A');
+      component.onStateNameInput(0);
+      component.states.at(1).get('name')?.setValue('B');
+      component.onStateNameInput(1);
+      fixture.detectChanges();
+
+      // Initial 2 states do NOT auto-create transitions
+      expect(component.transitions.length).toBe(0);
+    });
+  });
+
+  // ── Auto-select initial state ──
+
+  describe('auto-select initial state', () => {
+    it('should auto-select the first state (index 0) as initial when its code is set', () => {
+      createComponent();
+      expect(component.form.get('initialState')?.value).toBe('');
+
+      component.states.at(0).get('name')?.setValue('FIRST');
+      component.onStateNameInput(0);
+      fixture.detectChanges();
+
+      expect(component.form.get('initialState')?.value).toBe('first');
+    });
+
+    it('should auto-select state being edited as initial if none selected yet', () => {
+      createComponent();
+      // Set state[1] name (index 1) → should become initial (first state with a code)
+      component.states.at(1).get('name')?.setValue('SECOND');
+      component.onStateNameInput(1);
+      fixture.detectChanges();
+
+      expect(component.form.get('initialState')?.value).toBe('second');
+    });
+
+    it('should NOT overwrite an already selected initial state', () => {
+      createComponent();
+      component.states.at(0).patchValue({ code: 'a', name: 'A' });
+      component.states.at(1).patchValue({ code: 'b', name: 'B' });
+      component.form.get('initialState')?.setValue('b');
+      fixture.detectChanges();
+
+      // State 0 onChange → should not overwrite 'b'
+      component.states.at(0).get('name')?.setValue('X');
+      component.onStateNameInput(0);
+      fixture.detectChanges();
+
+      expect(component.form.get('initialState')?.value).toBe('b');
+    });
+  });
+
   // ── Terminal state guard ──
 
   describe('terminal state transition guard', () => {
@@ -564,6 +636,115 @@ describe('WorkflowCreateComponent', () => {
 
       const terminalErr = findElementByText(fixture.nativeElement, '.we-field-error', 'Terminal states cannot have outgoing transitions');
       expect(terminalErr).toBeTruthy();
+    });
+
+    it('should exclude terminal states from the From dropdown options', () => {
+      createComponent();
+      component.states.at(0).patchValue({ code: 'created', name: 'CREATED', terminal: false });
+      component.states.at(1).patchValue({ code: 'approved', name: 'APPROVED', terminal: true });
+      component.addTransition();
+      fixture.detectChanges();
+
+      const fromSelect = fixture.nativeElement.querySelector('select[formControlName="from"]');
+      const options = fromSelect.querySelectorAll('option');
+
+      // Should only have placeholder + 'created' (not 'approved')
+      expect(options.length).toBe(2);
+      expect(options[0].value).toBe('');
+      expect(options[1].value).toBe('created');
+    });
+
+    it('should include terminal states in the To dropdown', () => {
+      createComponent();
+      component.states.at(0).patchValue({ code: 'created', name: 'CREATED', terminal: false });
+      component.states.at(1).patchValue({ code: 'approved', name: 'APPROVED', terminal: true });
+      component.addTransition();
+      fixture.detectChanges();
+
+      const toSelect = fixture.nativeElement.querySelector('select[formControlName="to"]');
+      const options = toSelect.querySelectorAll('option');
+
+      // Should include placeholder + 'created' + 'approved'
+      expect(options.length).toBe(3);
+    });
+  });
+
+  // ── Duplicate name validation ──
+
+  describe('duplicate name validation', () => {
+    it('should show error when state names are not unique', () => {
+      createComponent();
+      component.states.at(0).patchValue({ code: 'a', name: 'REVIEW' });
+      component.states.at(1).patchValue({ code: 'b', name: 'REVIEW' });
+      fixture.detectChanges();
+
+      // Trigger duplicate name validation
+      (component as any).updateDuplicateNameValidator();
+
+      // Touch the name fields
+      component.states.at(0).get('name')?.markAsTouched();
+      component.states.at(1).get('name')?.markAsTouched();
+      fixture.detectChanges();
+
+      const duplicateErr = findElementByText(fixture.nativeElement, '.we-field-error', 'State names must be unique');
+      expect(duplicateErr).toBeTruthy();
+    });
+
+    it('should deduplicate name on blur by appending a number suffix', () => {
+      createComponent();
+      component.states.at(0).patchValue({ code: 'a', name: 'REVIEW' });
+      component.states.at(1).patchValue({ code: 'b', name: 'REVIEW' });
+      fixture.detectChanges();
+
+      // Call onStateNameBlur for state 1 → should rename to REVIEW_2
+      component.onStateNameBlur(1);
+      fixture.detectChanges();
+
+      expect(component.states.at(1).value.name).toBe('REVIEW_2');
+    });
+  });
+
+  // ── Submit errors (ProblemDetail format) ──
+
+  describe('submit error with ProblemDetail', () => {
+    it('should extract detail from ProblemDetail-shaped error', () => {
+      createComponent();
+      const problemDetailError = {
+        error: {
+          type: 'validation/domain-error',
+          title: 'Validation Error',
+          detail: 'Terminal state cannot have outgoing transitions: approved',
+          timestamp: '2026-06-22T12:00:00Z',
+        },
+      };
+      // Simulate: the HTTP adapter wraps ProblemDetail in HttpErrorResponse
+      apiServiceSpy.createWorkflow.and.returnValue(throwError(() => problemDetailError));
+
+      component.form.get('name')?.setValue('test');
+      component.states.at(0).patchValue({ code: 'a', name: 'A' });
+      component.states.at(1).patchValue({ code: 'b', name: 'B' });
+      component.form.get('initialState')?.setValue('a');
+
+      component.onSubmit();
+      fixture.detectChanges();
+
+      expect(component.submitError()).toContain('Terminal state cannot have outgoing transitions');
+    });
+
+    it('should fall back to default message when no detail or message present', () => {
+      createComponent();
+      // Completely empty error
+      apiServiceSpy.createWorkflow.and.returnValue(throwError(() => ({})));
+
+      component.form.get('name')?.setValue('test');
+      component.states.at(0).patchValue({ code: 'a', name: 'A' });
+      component.states.at(1).patchValue({ code: 'b', name: 'B' });
+      component.form.get('initialState')?.setValue('a');
+
+      component.onSubmit();
+      fixture.detectChanges();
+
+      expect(component.submitError()).toBe('Failed to create workflow.');
     });
   });
 });

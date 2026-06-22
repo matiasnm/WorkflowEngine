@@ -1,5 +1,5 @@
-import { Component, Output, EventEmitter, signal, inject } from '@angular/core';
-import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule } from '@angular/forms';
+import { Component, Output, EventEmitter, ChangeDetectorRef, signal, inject } from '@angular/core';
+import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule, AbstractControl } from '@angular/forms';
 import { WorkflowApiPort, WORKFLOW_API_PORT } from '../../services/workflow-api.port';
 import { CreateWorkflowRequest, WorkflowSummary } from '../../models';
 import { ErrorBannerComponent, SpinnerComponent } from '../ui';
@@ -80,6 +80,7 @@ function toSnakeCase(value: string): string {
                   autocomplete="off"
                   [attr.aria-label]="'State ' + (i + 1) + ' name'"
                   (input)="onStateNameInput(i)"
+                  (blur)="onStateNameBlur(i)"
                   [attr.disabled]="submitting() ? '' : null"
                 />
                 <input
@@ -93,6 +94,7 @@ function toSnakeCase(value: string): string {
                   [attr.title]="!codeEditable().has(i) ? 'Auto-generated from Name. Click to edit.' : 'Code (stable identifier)'"
                   [readonly]="!codeEditable().has(i)"
                   (focus)="enableCodeEditing(i)"
+                  (input)="onStateCodeInput(i)"
                   [attr.disabled]="submitting() ? '' : null"
                 />
                 <label class="we-checkbox-label">
@@ -116,6 +118,11 @@ function toSnakeCase(value: string): string {
               @if (state.get('code')?.errors?.['duplicateCode'] && state.get('code')?.touched) {
                 <div class="we-field-error we-field-error--row">
                   State codes must be unique
+                </div>
+              }
+              @if (state.get('name')?.errors?.['duplicateName'] && state.get('name')?.touched) {
+                <div class="we-field-error we-field-error--row">
+                  State names must be unique
                 </div>
               }
             }
@@ -181,7 +188,7 @@ function toSnakeCase(value: string): string {
                   [attr.disabled]="submitting() ? '' : null"
                 >
                   <option value="" disabled>From...</option>
-                  @for (s of states.controls; track s) {
+                  @for (s of fromStateOptions(); track s) {
                     <option [value]="s.value.code">{{ s.value.name || s.value.code }}</option>
                   }
                 </select>
@@ -193,7 +200,7 @@ function toSnakeCase(value: string): string {
                   [attr.disabled]="submitting() ? '' : null"
                 >
                   <option value="" disabled>To...</option>
-                  @for (s of states.controls; track s) {
+                  @for (s of toStateOptions(); track s) {
                     <option [value]="s.value.code">{{ s.value.name || s.value.code }}</option>
                   }
                 </select>
@@ -223,14 +230,27 @@ function toSnakeCase(value: string): string {
             <p class="we-empty-text">No transitions defined yet.</p>
           }
 
-          <button
-            type="button"
-            class="we-btn we-btn--add"
-            (click)="addTransition()"
-            [disabled]="states.length < 2 || submitting()"
-          >
-            + Add Transition
-          </button>
+          <div class="we-transition-actions">
+            <button
+              type="button"
+              class="we-btn we-btn--add"
+              (click)="addTransition()"
+              [disabled]="states.length < 2 || submitting()"
+            >
+              + Add Transition
+            </button>
+
+            @if (allStatesHaveCodes) {
+              <button
+                type="button"
+                class="we-btn we-btn--autofill"
+                (click)="autoFillTransitions()"
+                [disabled]="submitting()"
+              >
+                Auto-fill Chain
+              </button>
+            }
+          </div>
         </section>
 
         <!-- Footer actions -->
@@ -562,7 +582,49 @@ function toSnakeCase(value: string): string {
       outline-offset: 2px;
     }
 
-    /* ── Empty text ── */
+    /* ── Autofill button ── */
+    .we-transition-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+
+    /* Override the shared margin-top so buttons align horizontally */
+    .we-transition-actions .we-btn--add {
+      margin-top: 0;
+    }
+
+    .we-btn--autofill {
+      padding: 8px 16px;
+      border: 1px solid var(--we-secondary, #388e3c);
+      border-radius: var(--we-border-radius, 8px);
+      background: transparent;
+      color: var(--we-secondary, #388e3c);
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.15s;
+    }
+
+    .we-btn--autofill:hover:not(:disabled) {
+      background: rgba(56, 142, 60, 0.06);
+    }
+
+    .we-btn--autofill:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      border-color: var(--we-border, #e0e0e0);
+      color: var(--we-text-secondary, #757575);
+    }
+
+    .we-btn--autofill:focus-visible {
+      outline: 2px solid var(--we-primary, #1976d2);
+      outline-offset: 2px;
+    }
+
     .we-empty-text {
       color: var(--we-text-secondary, #757575);
       font-size: 0.85rem;
@@ -642,6 +704,7 @@ function toSnakeCase(value: string): string {
 export class WorkflowCreateComponent {
   private readonly fb = inject(FormBuilder);
   private readonly api = inject(WORKFLOW_API_PORT);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   /** Emitted when the API responds successfully, with the new workflow summary. */
   @Output() workflowCreated = new EventEmitter<WorkflowSummary>();
@@ -709,6 +772,16 @@ export class WorkflowCreateComponent {
 
   // ── States management ──
 
+  /** Returns state controls that have a code AND are NOT terminal (valid sources for transitions). */
+  fromStateOptions(): AbstractControl[] {
+    return this.states.controls.filter(s => s.value.code && !s.value.terminal);
+  }
+
+  /** Returns state controls that have a code (valid targets for transitions). */
+  toStateOptions(): AbstractControl[] {
+    return this.states.controls.filter(s => s.value.code);
+  }
+
   addState(): void {
     if (this.states.length >= 10) return;
     const group = this.fb.group({
@@ -731,6 +804,7 @@ export class WorkflowCreateComponent {
     // Re-run cross-field validators after adding
     this.updateTransitionValidators();
     this.updateDuplicateCodeValidator();
+    this.updateDuplicateNameValidator();
   }
 
   removeState(index: number): void {
@@ -791,6 +865,7 @@ export class WorkflowCreateComponent {
     this.states.removeAt(index);
     this.updateTransitionValidators();
     this.updateDuplicateCodeValidator();
+    this.updateDuplicateNameValidator();
   }
 
   onStateNameInput(index: number): void {
@@ -805,6 +880,12 @@ export class WorkflowCreateComponent {
         codeControl.setValue(snake);
       }
     }
+
+    // Lightweight post-processing on input (no transition creation)
+    this.autoSelectInitialState(index);
+    this.syncInitialStateWithCodes();
+    this.updateDuplicateCodeValidator();
+    this.updateDuplicateNameValidator();
   }
 
   /** Makes the code field editable for the given state row (on focus/click). */
@@ -815,6 +896,108 @@ export class WorkflowCreateComponent {
       newSet.add(index);
       return newSet;
     });
+  }
+
+  /**
+   * Called when the code field changes (manual editing).
+   */
+  onStateCodeInput(index: number): void {
+    this.autoSelectInitialState(index);
+    this.syncInitialStateWithCodes();
+    this.updateDuplicateCodeValidator();
+    this.updateDuplicateNameValidator();
+  }
+
+  /**
+   * Called on blur of the name field.
+   * Deduplicates the name if it matches another state's name.
+   */
+  onStateNameBlur(index: number): void {
+    this.deduplicateName(index);
+    this.autoSelectInitialState(index);
+    this.syncInitialStateWithCodes();
+    this.updateDuplicateCodeValidator();
+    this.updateDuplicateNameValidator();
+  }
+
+  /**
+   * Auto-selects the initial state if none has been chosen yet.
+   * Runs change detection first to ensure the `<select>` options have
+   * updated `[value]` bindings before we set the form control value,
+   * otherwise the dropdown won't display the selected option.
+   */
+  private autoSelectInitialState(index: number): void {
+    const initialCtrl = this.form.get('initialState');
+    if (initialCtrl?.value) return; // already set
+
+    // Force change detection so the option [value] bindings are updated
+    // BEFORE we call setValue — otherwise SelectControlValueAccessor
+    // won't find a matching `<option>` in the DOM.
+    this.cdr.detectChanges();
+
+    // Try the state the user is editing first
+    const currentCode = this.states.at(index).value.code;
+    if (currentCode && currentCode.trim()) {
+      initialCtrl?.setValue(currentCode);
+      return;
+    }
+
+    // Fallback: first state with a valid code
+    for (let i = 0; i < this.states.length; i++) {
+      const code = this.states.at(i).value.code;
+      if (code && code.trim()) {
+        initialCtrl?.setValue(code);
+        break;
+      }
+    }
+  }
+
+  /**
+   * Ensure an initial state is selected before submit.
+   * Picks the first state with a valid code.
+   */
+  private ensureInitialStateSelected(): void {
+    const initialCtrl = this.form.get('initialState');
+    if (initialCtrl?.value) return;
+
+    for (let i = 0; i < this.states.length; i++) {
+      const code = this.states.at(i).value.code;
+      if (code && code.trim()) {
+        initialCtrl?.setValue(code);
+        break;
+      }
+    }
+  }
+
+  /**
+   * After any state code change, verify that the current initial state value
+   * still matches an existing state code. If a state's code was edited and the
+   * initial state still referenced the old code, the `<select>` would show blank
+   * because the matching `<option>` no longer exists.
+   */
+  private syncInitialStateWithCodes(): void {
+    const initialCtrl = this.form.get('initialState');
+    if (!initialCtrl?.value) return; // nothing to sync
+
+    const currentCode = initialCtrl.value;
+    const codeStillExists = this.states.controls.some(
+      s => s.value.code === currentCode
+    );
+    if (codeStillExists) return;
+
+    // The code no longer exists (state was renamed/edited). Update initial state
+    // to the first state with a valid code.
+    for (let i = 0; i < this.states.length; i++) {
+      const code = this.states.at(i).value.code;
+      if (code && code.trim()) {
+        this.cdr.detectChanges(); // ensure options are rendered
+        initialCtrl.setValue(code);
+        return;
+      }
+    }
+
+    // No valid state code exists; reset to empty so user sees the placeholder
+    initialCtrl.setValue('');
   }
 
   // ── Transitions management ──
@@ -834,6 +1017,38 @@ export class WorkflowCreateComponent {
     this.updateTransitionValidators();
   }
 
+  /** Returns true when every state row has a non-empty code. */
+  get allStatesHaveCodes(): boolean {
+    for (let i = 0; i < this.states.length; i++) {
+      const code = this.states.at(i).value.code;
+      if (!code || !code.trim()) return false;
+    }
+    return this.states.length >= 2;
+  }
+
+  /**
+   * Replaces all existing transitions with a linear chain:
+   *   state[0] → state[1], state[1] → state[2], …
+   * Only works when all states have codes.
+   */
+  autoFillTransitions(): void {
+    if (!this.allStatesHaveCodes) return;
+
+    // Remove all existing transitions
+    while (this.transitions.length > 0) {
+      this.transitions.removeAt(0);
+    }
+
+    // Create chain: s0 → s1, s1 → s2, …
+    for (let i = 0; i < this.states.length - 1; i++) {
+      const fromCode = this.states.at(i).value.code;
+      const toCode = this.states.at(i + 1).value.code;
+      this.addTransitionInternal(fromCode, toCode);
+    }
+
+    this.updateTransitionValidators();
+  }
+
   /** Programmatically add a transition (used by auto-creation in addState / removeState). */
   private addTransitionInternal(from: string, to: string): void {
     const group = this.fb.group({
@@ -850,7 +1065,6 @@ export class WorkflowCreateComponent {
       const codeControl = this.states.at(i).get('code');
       const codeValue = codeControl?.value;
       if (!codeValue) {
-        codeControl?.setErrors(codeControl.errors ? { ...codeControl.errors, duplicateCode: false } : null);
         this.removeDuplicateCodeError(i);
         continue;
       }
@@ -882,6 +1096,94 @@ export class WorkflowCreateComponent {
     } else {
       codeControl.setErrors(errors);
     }
+  }
+
+  private updateDuplicateNameValidator(): void {
+    for (let i = 0; i < this.states.length; i++) {
+      const nameControl = this.states.at(i).get('name');
+      const nameValue = nameControl?.value;
+      if (!nameValue) {
+        this.removeDuplicateNameError(i);
+        continue;
+      }
+
+      let isDuplicate = false;
+      for (let j = 0; j < this.states.length; j++) {
+        if (i === j) continue;
+        if (this.states.at(j).value.name === nameValue) {
+          isDuplicate = true;
+          break;
+        }
+      }
+
+      if (isDuplicate) {
+        nameControl?.setErrors({ ...(nameControl.errors || {}), duplicateName: true });
+      } else {
+        this.removeDuplicateNameError(i);
+      }
+    }
+  }
+
+  private removeDuplicateNameError(index: number): void {
+    const nameControl = this.states.at(index).get('name');
+    if (!nameControl) return;
+    const errors = { ...(nameControl.errors || {}) };
+    delete errors['duplicateName'];
+    if (Object.keys(errors).length === 0) {
+      nameControl.setErrors(null);
+    } else {
+      nameControl.setErrors(errors);
+    }
+  }
+
+  /**
+   * On blur, if the state name duplicates another state's name, append "_2", "_3", etc.
+   */
+  private deduplicateName(index: number): void {
+    const stateGroup = this.states.at(index);
+    const nameControl = stateGroup.get('name');
+    const codeControl = stateGroup.get('code');
+    const currentName = nameControl?.value;
+    if (!currentName || !currentName.trim()) return;
+
+    // Check if this name is a duplicate
+    let isDuplicate = false;
+    for (let i = 0; i < this.states.length; i++) {
+      if (i === index) continue;
+      if (this.states.at(i).value.name === currentName) {
+        isDuplicate = true;
+        break;
+      }
+    }
+    if (!isDuplicate) return;
+
+    // Find the next available number suffix
+    const baseName = currentName.replace(/_\d+$/, ''); // strip existing suffix if any
+    let suffix = 2;
+    let newName = baseName + '_' + suffix;
+    while (this.isNameUsed(newName, index)) {
+      suffix++;
+      newName = baseName + '_' + suffix;
+    }
+
+    nameControl?.setValue(newName);
+    nameControl?.markAsDirty();
+
+    // Also update the code if it was auto-filled (pristine), so it stays in sync with the new name
+    if (codeControl?.pristine) {
+      const snake = toSnakeCase(newName);
+      if (snake) {
+        codeControl.setValue(snake);
+      }
+    }
+  }
+
+  private isNameUsed(name: string, excludeIndex: number): boolean {
+    for (let i = 0; i < this.states.length; i++) {
+      if (i === excludeIndex) continue;
+      if (this.states.at(i).value.name === name) return true;
+    }
+    return false;
   }
 
   private updateTransitionValidators(): void {
@@ -921,6 +1223,9 @@ export class WorkflowCreateComponent {
   // ── Submit ──
 
   onSubmit(): void {
+    // Fallback: ensure an initial state is selected if the user didn't pick one
+    this.ensureInitialStateSelected();
+
     if (this.form.invalid) {
       // Mark all fields as touched to trigger validation display
       this.form.markAllAsTouched();
@@ -956,9 +1261,18 @@ export class WorkflowCreateComponent {
         this.workflowCreated.emit(summary);
       },
       error: (err) => {
-        const message = err.error?.message || err.message || 'Failed to create workflow.';
+        // Handle Spring ProblemDetail (detail field) and standard Error objects
+        let message = 'Failed to create workflow.';
+        if (err.error) {
+          if (typeof err.error === 'string') {
+            message = err.error;
+          } else {
+            message = err.error.detail || err.error.message || err.message || message;
+          }
+        } else if (err.message) {
+          message = err.message;
+        }
         this.submitError.set(message);
-        this.errorEvent.emit(message);
         this.submitting.set(false);
       },
     });
