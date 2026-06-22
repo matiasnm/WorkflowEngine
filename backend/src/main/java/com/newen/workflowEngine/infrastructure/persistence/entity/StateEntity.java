@@ -9,9 +9,15 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 
 @Entity
-@Table(name = "state")
+@Table(name = "state", uniqueConstraints = {
+    @UniqueConstraint(
+        name = "uk_state_workflow_code",
+        columnNames = {"workflow_id", "code"}
+    )
+})
 public class StateEntity {
 
     @Id
@@ -19,7 +25,7 @@ public class StateEntity {
     @Column(updatable = false)
     private UUID id;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String code;
 
     @Column(nullable = false)
