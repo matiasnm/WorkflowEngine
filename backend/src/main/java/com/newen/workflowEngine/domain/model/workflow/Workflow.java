@@ -38,17 +38,27 @@ public class Workflow {
             throw new IllegalArgumentException("Workflow must have at least one state");
         }
 
-        // 2. initial state pertenece a states
-        if (!states.contains(initialState)) {
+        // 2. initial state pertenece a states (null-safe: List.of.contains(null) throws NPE)
+        if (initialState == null || !states.contains(initialState)) {
             throw new IllegalArgumentException(
                     "Initial state must belong to workflow states"
             );
         }
 
-        // 3. estados duplicados
+        // 3. estados duplicados (mismo code, name, terminal)
         Set<State> uniqueStates = new HashSet<>(states);
         if (uniqueStates.size() != states.size()) {
             throw new IllegalArgumentException("Duplicate states are not allowed");
+        }
+
+        // 3b. códigos duplicados (mismo code aunque difieran name/terminal)
+        Set<String> seenCodes = new HashSet<>();
+        for (State state : states) {
+            if (!seenCodes.add(state.code())) {
+                throw new IllegalArgumentException(
+                        "Duplicate state code: " + state.code()
+                );
+            }
         }
 
         // 4. transiciones duplicadas
