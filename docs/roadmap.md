@@ -44,14 +44,25 @@
 
 ---
 
-## Future (unplanned)
+## v0.6 — Integrations & CRUD (planned)
 
-- [ ] Workflow versioning
+### Backend
+- [ ] Observability: Prometheus metrics + structured JSON logging + Grafana — [spec](features/observability-and-webhooks.md)
+- [ ] Webhooks: per-execution callback URL — [spec](features/observability-and-webhooks.md)
+- [ ] Delete workflow + execution, modify workflow — [spec](features/workflow-execution-crud.md)
+- [ ] Execution context (metadata) — [spec](features/execution-context.md)
+- [ ] API key authentication — [spec](features/api-key-auth.md)
+
+---
+
+## v2 (future, unplanned)
+
+- [ ] Transition guards — [spec](features/v2/transition-guards.md)
+- [ ] State timeouts / SLAs — [spec](features/v2/state-timeouts-slas.md)
+- [ ] Workflow versioning — [spec](features/v2/workflow-versioning.md)
+- [ ] Role-based transitions — [spec](features/v2/role-based-transitions.md)
+- [ ] Retry policies — [spec](features/v2/retry-policies.md)
+- [ ] WebSocket real-time updates — [spec](features/v2/websocket-realtime.md)
+- [ ] Visual workflow graph — [spec](features/v2/visual-workflow-graph.md)
+- [ ] Parallel states — [spec](features/v2/parallel-states.md)
 - [ ] Event sourcing
-- [ ] Parallel states
-- [ ] Timers
-- [ ] Retry policies
-- [ ] Conditional transitions (guards)
-- [ ] Role-based transitions
-- [ ] Visual workflow graph (D3.js / vis-network)
-- [ ] WebSocket real-time updates
