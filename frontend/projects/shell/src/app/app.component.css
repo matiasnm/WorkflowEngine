@@ -1,25 +1,25 @@
 .shell-nav {
   display: flex;
   align-items: center;
-  gap: 24px;
-  padding: 0 24px;
+  gap: var(--we-spacing-lg, 24px);
+  padding: 0 var(--we-spacing-lg, 24px);
   height: 56px;
   background: var(--we-bg, #ffffff);
   border-bottom: 1px solid var(--we-border, #e0e0e0);
   position: sticky;
   top: 0;
-  z-index: 100;
+  z-index: var(--we-z-sticky, 100);
   font-family: var(--we-font-family, system-ui, -apple-system, sans-serif);
 }
 
 .shell-nav__brand {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--we-spacing-sm, 8px);
   text-decoration: none;
   color: var(--we-text, #212121);
   font-weight: 700;
-  font-size: 1.05rem;
+  font-size: var(--we-font-size-lg, 1.1rem);
   margin-right: auto;
 }
 
@@ -30,17 +30,17 @@
 .shell-nav__links {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--we-spacing-xs, 4px);
 }
 
 .shell-nav__link {
-  padding: 8px 16px;
+  padding: var(--we-spacing-sm, 8px) var(--we-spacing, 16px);
   border-radius: var(--we-border-radius, 8px);
   text-decoration: none;
   color: var(--we-text-secondary, #757575);
-  font-size: 0.9rem;
+  font-size: var(--we-font-size-base, 0.9rem);
   font-weight: 500;
-  transition: background 0.15s, color 0.15s;
+  transition: background var(--we-transition, 0.15s), color var(--we-transition, 0.15s);
 }
 
 .shell-nav__link:hover {
@@ -50,25 +50,25 @@
 
 .shell-nav__link--active {
   color: var(--we-primary, #1976d2);
-  background: rgba(25, 118, 210, 0.08);
+  background: var(--we-primary-alpha-low, rgba(25, 118, 210, 0.08));
   font-weight: 600;
 }
 
 .shell-nav__link--active:hover {
-  background: rgba(25, 118, 210, 0.12);
+  background: var(--we-primary-alpha-mid, rgba(25, 118, 210, 0.12));
 }
 
 .shell-btn {
   display: inline-flex;
   align-items: center;
-  padding: 8px 18px;
+  padding: var(--we-spacing-sm, 8px) 18px;
   border-radius: var(--we-border-radius, 8px);
-  font-size: 0.9rem;
+  font-size: var(--we-font-size-base, 0.9rem);
   font-weight: 600;
   font-family: inherit;
   cursor: pointer;
   text-decoration: none;
-  transition: background 0.15s;
+  transition: background var(--we-transition, 0.15s);
   white-space: nowrap;
 }
 
