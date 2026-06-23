@@ -19,7 +19,7 @@ import com.newen.workflowEngine.infrastructure.persistence.repository.jpa.JpaWor
 
 import jakarta.persistence.EntityManager;
 
-@Profile("jpa")
+@Profile({"jpa", "pg"})
 @Component
 public class JpaWorkflowExecutionPersistenceAdapter implements WorkflowExecutionRepository {
     private final JpaWorkflowExecutionRepository repo;
