@@ -139,7 +139,7 @@ import { ErrorBannerComponent } from '../ui';
 
     .we-skeleton-block {
       height: 20px;
-      border-radius: 4px;
+      border-radius: var(--we-border-radius-sm, 4px);
       background: linear-gradient(
         90deg,
         var(--we-bg-secondary, #f5f5f5) 25%,
@@ -147,13 +147,13 @@ import { ErrorBannerComponent } from '../ui';
         var(--we-bg-secondary, #f5f5f5) 75%
       );
       background-size: 200% 100%;
-      animation: we-shimmer 1.5s ease-in-out infinite;
+      animation: we-shimmer var(--we-animation-shimmer, 1.5s) ease-in-out infinite;
     }
 
     .we-skeleton-block--title {
       width: 40%;
       height: 28px;
-      margin-bottom: 8px;
+      margin-bottom: var(--we-spacing-sm, 8px);
     }
 
     .we-skeleton-block--table {
@@ -168,7 +168,7 @@ import { ErrorBannerComponent } from '../ui';
 
     /* ── Workflow name ── */
     .we-workflow-detail__name {
-      font-size: 1.5rem;
+      font-size: var(--we-font-size-2xl, 1.5rem);
       font-weight: 600;
       color: var(--we-text, #212121);
       margin: 0 0 var(--we-spacing, 16px);
@@ -180,10 +180,10 @@ import { ErrorBannerComponent } from '../ui';
     }
 
     .we-workflow-detail__section-title {
-      font-size: 1.1rem;
+      font-size: var(--we-font-size-lg, 1.1rem);
       font-weight: 600;
       color: var(--we-text, #212121);
-      margin: 0 0 8px;
+      margin: 0 0 var(--we-spacing-sm, 8px);
     }
 
     /* ── Table ── */
@@ -201,9 +201,9 @@ import { ErrorBannerComponent } from '../ui';
 
     .we-table th,
     .we-table td {
-      padding: 10px 16px;
+      padding: 10px var(--we-spacing, 16px);
       text-align: left;
-      font-size: 0.9rem;
+      font-size: var(--we-font-size-base, 0.9rem);
     }
 
     .we-table thead {
@@ -214,7 +214,7 @@ import { ErrorBannerComponent } from '../ui';
       font-weight: 600;
       color: var(--we-text-secondary, #757575);
       text-transform: uppercase;
-      font-size: 0.8rem;
+      font-size: var(--we-font-size-sm, 0.85rem);
       letter-spacing: 0.03em;
     }
 
@@ -227,10 +227,10 @@ import { ErrorBannerComponent } from '../ui';
     }
 
     .we-table code {
-      font-size: 0.85rem;
+      font-size: var(--we-font-size-sm, 0.85rem);
       background: var(--we-bg-secondary, #f5f5f5);
       padding: 2px 6px;
-      border-radius: 4px;
+      border-radius: var(--we-border-radius-sm, 4px);
     }
 
     /* ── Transitions list ── */
@@ -243,12 +243,12 @@ import { ErrorBannerComponent } from '../ui';
     .we-transition-item {
       display: flex;
       align-items: center;
-      gap: 8px;
-      padding: 8px 12px;
+      gap: var(--we-spacing-sm, 8px);
+      padding: var(--we-spacing-sm, 8px) var(--we-spacing-md, 12px);
       background: var(--we-bg, #ffffff);
       border: 1px solid var(--we-border, #e0e0e0);
       border-radius: var(--we-border-radius, 8px);
-      font-size: 0.9rem;
+      font-size: var(--we-font-size-base, 0.9rem);
     }
 
     .we-transition-from,
@@ -264,7 +264,7 @@ import { ErrorBannerComponent } from '../ui';
 
     .we-empty-text {
       color: var(--we-text-secondary, #757575);
-      font-size: 0.9rem;
+      font-size: var(--we-font-size-base, 0.9rem);
       margin: 0;
     }
 
@@ -273,7 +273,7 @@ import { ErrorBannerComponent } from '../ui';
       margin-top: var(--we-spacing, 16px);
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: var(--we-spacing-sm, 8px);
     }
   `],
 })

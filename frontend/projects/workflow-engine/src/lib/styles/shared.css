@@ -8,7 +8,7 @@
 /* ── Animations / Keyframes ── */
 
 @keyframes we-shimmer {
-  0% { background-position: 200% 0; }
+  0%   { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
 
@@ -22,7 +22,7 @@
 
 .we-skeleton-line {
   height: 14px;
-  border-radius: 4px;
+  border-radius: var(--we-border-radius-sm, 4px);
   background: linear-gradient(
     90deg,
     var(--we-bg-secondary, #f5f5f5) 25%,
@@ -30,7 +30,7 @@
     var(--we-bg-secondary, #f5f5f5) 75%
   );
   background-size: 200% 100%;
-  animation: we-shimmer 1.5s ease-in-out infinite;
+  animation: we-shimmer var(--we-animation-shimmer, 1.5s) ease-in-out infinite;
 }
 
 .we-skeleton-line--title {
@@ -45,7 +45,7 @@
 .we-skeleton-line--button {
   width: 200px;
   height: 40px;
-  border-radius: 8px;
+  border-radius: var(--we-border-radius, 8px);
 }
 
 .we-skeleton-line--timestamp {
@@ -60,17 +60,17 @@
 .we-error-banner {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px 16px;
-  background: #fff3f3;
+  gap: var(--we-spacing-sm, 8px);
+  padding: var(--we-spacing-md, 12px) var(--we-spacing, 16px);
+  background: var(--we-danger-bg, #fff3f3);
   border: 1px solid var(--we-danger, #d32f2f);
   border-radius: var(--we-border-radius, 8px);
   color: var(--we-danger, #d32f2f);
-  font-size: 0.9rem;
+  font-size: var(--we-font-size-base, 0.9rem);
 }
 
 .we-error-icon {
-  font-size: 1.1rem;
+  font-size: var(--we-font-size-lg, 1.1rem);
   flex-shrink: 0;
 }
 
@@ -89,7 +89,7 @@
   border: 2px solid rgba(255, 255, 255, 0.3);
   border-top-color: #ffffff;
   border-radius: 50%;
-  animation: we-spin 0.6s linear infinite;
+  animation: we-spin var(--we-animation-spin, 0.6s) linear infinite;
 }
 
 .we-spinner--small {
@@ -108,16 +108,16 @@
    ═══════════════════════════════════════════════════ */
 
 .we-btn--retry {
-  padding: 6px 16px;
+  padding: 6px var(--we-spacing, 16px);
   border: 1px solid var(--we-danger, #d32f2f);
   border-radius: var(--we-border-radius, 8px);
   background: var(--we-bg, #ffffff);
   color: var(--we-danger, #d32f2f);
-  font-size: 0.85rem;
+  font-size: var(--we-font-size-sm, 0.85rem);
   font-weight: 500;
   cursor: pointer;
   font-family: inherit;
-  transition: background 0.15s;
+  transition: background var(--we-transition, 0.15s);
 }
 
 .we-btn--retry:hover {
@@ -135,16 +135,16 @@
    ═══════════════════════════════════════════════════ */
 
 .we-btn--back {
-  padding: 6px 16px;
+  padding: 6px var(--we-spacing, 16px);
   border: 1px solid var(--we-border, #e0e0e0);
   border-radius: var(--we-border-radius, 8px);
   background: var(--we-bg, #ffffff);
   color: var(--we-text, #212121);
-  font-size: 0.9rem;
+  font-size: var(--we-font-size-base, 0.9rem);
   font-weight: 500;
   cursor: pointer;
   font-family: inherit;
-  transition: background 0.15s, border-color 0.15s;
+  transition: background var(--we-transition, 0.15s), border-color var(--we-transition, 0.15s);
 }
 
 .we-btn--back:hover {
@@ -163,7 +163,7 @@
 
 .we-empty-state {
   text-align: center;
-  padding: 32px 16px;
+  padding: var(--we-spacing-xl, 32px) var(--we-spacing, 16px);
   color: var(--we-text-secondary, #757575);
   border: 1px dashed var(--we-border, #e0e0e0);
   border-radius: var(--we-border-radius, 8px);
@@ -171,7 +171,7 @@
 
 .we-empty-state p {
   margin: 0;
-  font-size: 0.95rem;
+  font-size: var(--we-font-size-md, 0.95rem);
 }
 
 /* ═══════════════════════════════════════════════════
@@ -179,15 +179,15 @@
    ═══════════════════════════════════════════════════ */
 
 .we-section-title {
-  font-size: 1.1rem;
+  font-size: var(--we-font-size-lg, 1.1rem);
   font-weight: 600;
   color: var(--we-text, #212121);
-  margin: 0 0 12px;
+  margin: 0 0 var(--we-spacing-md, 12px);
 }
 
 .we-empty-text {
   color: var(--we-text-secondary, #757575);
-  font-size: 0.9rem;
+  font-size: var(--we-font-size-base, 0.9rem);
   margin: 0 0 var(--we-spacing, 16px);
 }
 

@@ -30,23 +30,23 @@ import { ErrorBannerComponent, SpinnerComponent } from '../ui';
     .we-start-execution {
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: var(--we-spacing-sm, 8px);
     }
 
     .we-btn--start {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      padding: 10px 24px;
+      gap: var(--we-spacing-sm, 8px);
+      padding: 10px var(--we-spacing-lg, 24px);
       border: none;
       border-radius: var(--we-border-radius, 8px);
       background: var(--we-primary, #1976d2);
       color: #ffffff;
-      font-size: 0.95rem;
+      font-size: var(--we-font-size-md, 0.95rem);
       font-weight: 600;
       cursor: pointer;
       font-family: inherit;
-      transition: background 0.15s, opacity 0.15s;
+      transition: background var(--we-transition, 0.15s), opacity var(--we-transition, 0.15s);
       align-self: flex-start;
     }
 

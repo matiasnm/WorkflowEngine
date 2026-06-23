@@ -165,12 +165,12 @@ import { ErrorBannerComponent, SpinnerComponent } from '../ui';
     .we-execution-detail__header {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: var(--we-spacing-md, 12px);
       margin-bottom: var(--we-spacing, 16px);
     }
 
     .we-execution-detail__id {
-      font-size: 0.95rem;
+      font-size: var(--we-font-size-md, 0.95rem);
       font-weight: 600;
       color: var(--we-text-secondary, #757575);
     }
@@ -186,13 +186,13 @@ import { ErrorBannerComponent, SpinnerComponent } from '../ui';
     }
 
     .we-skeleton-state-card {
-      padding: 24px;
+      padding: var(--we-spacing-lg, 24px);
       border: 1px solid var(--we-border, #e0e0e0);
       border-radius: var(--we-border-radius, 8px);
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 8px;
+      gap: var(--we-spacing-sm, 8px);
     }
 
     .we-skeleton-line--state-code {
@@ -208,19 +208,19 @@ import { ErrorBannerComponent, SpinnerComponent } from '../ui';
     .we-skeleton-transitions {
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: var(--we-spacing-sm, 8px);
     }
 
     .we-skeleton-line--button {
       width: 200px;
       height: 40px;
-      border-radius: 8px;
+      border-radius: var(--we-border-radius, 8px);
     }
 
     .we-skeleton-history {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: var(--we-spacing-md, 12px);
     }
 
     .we-skeleton-line--history-title {
@@ -231,7 +231,7 @@ import { ErrorBannerComponent, SpinnerComponent } from '../ui';
     .we-skeleton-timeline-row {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: var(--we-spacing-md, 12px);
     }
 
     .we-skeleton-timeline-node {
@@ -240,7 +240,7 @@ import { ErrorBannerComponent, SpinnerComponent } from '../ui';
       min-width: 24px;
       border-radius: 50%;
       background: var(--we-bg-secondary, #f5f5f5);
-      animation: we-shimmer 1.5s ease-in-out infinite;
+      animation: we-shimmer var(--we-animation-shimmer, 1.5s) ease-in-out infinite;
       background-image: linear-gradient(
         90deg,
         var(--we-bg-secondary, #f5f5f5) 25%,
@@ -263,8 +263,8 @@ import { ErrorBannerComponent, SpinnerComponent } from '../ui';
       display: flex;
       align-items: center;
       gap: 10px;
-      padding: 20px 24px;
-      background: #f1faf1;
+      padding: 20px var(--we-spacing-lg, 24px);
+      background: var(--we-success-bg, #f1faf1);
       border: 1px solid var(--we-success, #388e3c);
       border-radius: var(--we-border-radius, 8px);
       margin-bottom: var(--we-spacing, 16px);
@@ -295,7 +295,7 @@ import { ErrorBannerComponent, SpinnerComponent } from '../ui';
 
     .we-state-card {
       text-align: center;
-      padding: 32px 24px;
+      padding: var(--we-spacing-xl, 32px) var(--we-spacing-lg, 24px);
       background: var(--we-bg, #ffffff);
       border: 2px solid var(--we-state-color, var(--we-primary, #1976d2));
       border-radius: var(--we-border-radius, 8px);
@@ -314,23 +314,23 @@ import { ErrorBannerComponent, SpinnerComponent } from '../ui';
     }
 
     .we-state-card__code {
-      font-size: 1.8rem;
+      font-size: var(--we-font-size-3xl, 1.8rem);
       font-weight: 700;
       color: var(--we-state-color, var(--we-primary, #1976d2));
       letter-spacing: 0.02em;
-      margin-bottom: 4px;
+      margin-bottom: var(--we-spacing-xs, 4px);
       text-transform: uppercase;
     }
 
     .we-state-card__name {
-      font-size: 1.1rem;
+      font-size: var(--we-font-size-lg, 1.1rem);
       font-weight: 500;
       color: var(--we-text, #212121);
-      margin-bottom: 4px;
+      margin-bottom: var(--we-spacing-xs, 4px);
     }
 
     .we-state-card__since {
-      font-size: 0.85rem;
+      font-size: var(--we-font-size-sm, 0.85rem);
       color: var(--we-text-secondary, #757575);
     }
 
@@ -345,23 +345,23 @@ import { ErrorBannerComponent, SpinnerComponent } from '../ui';
     .we-transitions-grid {
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: var(--we-spacing-sm, 8px);
     }
 
     .we-btn--transition {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
+      gap: var(--we-spacing-sm, 8px);
       padding: 10px 20px;
       border: 1px solid var(--we-primary, #1976d2);
       border-radius: var(--we-border-radius, 8px);
       background: var(--we-bg, #ffffff);
       color: var(--we-primary, #1976d2);
-      font-size: 0.95rem;
+      font-size: var(--we-font-size-md, 0.95rem);
       font-weight: 600;
       cursor: pointer;
       font-family: inherit;
-      transition: background 0.15s, color 0.15s, opacity 0.15s;
+      transition: background var(--we-transition, 0.15s), color var(--we-transition, 0.15s), opacity var(--we-transition, 0.15s);
       align-self: flex-start;
     }
 
@@ -381,7 +381,7 @@ import { ErrorBannerComponent, SpinnerComponent } from '../ui';
     }
 
     .we-btn__arrow {
-      font-size: 1.1rem;
+      font-size: var(--we-font-size-lg, 1.1rem);
       font-weight: 700;
     }
 

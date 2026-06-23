@@ -85,8 +85,8 @@ import { StateColorService } from '../../services/state-color.service';
     }
 
     .we-all-executions__title {
-      margin: 0 0 16px;
-      font-size: 1.25rem;
+      margin: 0 0 var(--we-spacing, 16px);
+      font-size: var(--we-font-size-xl, 1.25rem);
       font-weight: 600;
       color: var(--we-text, #212121);
     }
@@ -94,13 +94,13 @@ import { StateColorService } from '../../services/state-color.service';
     .we-all-executions__skeleton {
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: var(--we-spacing-sm, 8px);
     }
 
     .we-skeleton-row {
       display: flex;
-      gap: 16px;
-      padding: 12px 16px;
+      gap: var(--we-spacing, 16px);
+      padding: var(--we-spacing-md, 12px) var(--we-spacing, 16px);
       background: var(--we-bg, #ffffff);
       border: 1px solid var(--we-border, #e0e0e0);
       border-radius: var(--we-border-radius, 8px);
@@ -125,7 +125,7 @@ import { StateColorService } from '../../services/state-color.service';
 
     .we-all-executions__empty {
       text-align: center;
-      padding: 48px 16px;
+      padding: var(--we-spacing-2xl, 48px) var(--we-spacing, 16px);
       color: var(--we-text-secondary, #757575);
       border: 1px dashed var(--we-border, #e0e0e0);
       border-radius: var(--we-border-radius, 8px);
@@ -133,7 +133,7 @@ import { StateColorService } from '../../services/state-color.service';
 
     .we-all-executions__empty p {
       margin: 0;
-      font-size: 0.95rem;
+      font-size: var(--we-font-size-md, 0.95rem);
     }
 
     .we-all-executions__table-wrapper {
@@ -150,9 +150,9 @@ import { StateColorService } from '../../services/state-color.service';
 
     .we-all-executions__table th,
     .we-all-executions__table td {
-      padding: 10px 16px;
+      padding: 10px var(--we-spacing, 16px);
       text-align: left;
-      font-size: 0.9rem;
+      font-size: var(--we-font-size-base, 0.9rem);
     }
 
     .we-all-executions__table thead {
@@ -163,14 +163,14 @@ import { StateColorService } from '../../services/state-color.service';
       font-weight: 600;
       color: var(--we-text-secondary, #757575);
       text-transform: uppercase;
-      font-size: 0.8rem;
+      font-size: var(--we-font-size-sm, 0.85rem);
       letter-spacing: 0.03em;
     }
 
     .we-all-executions__table tbody tr {
       border-top: 1px solid var(--we-border, #e0e0e0);
       cursor: pointer;
-      transition: background 0.15s;
+      transition: background var(--we-transition, 0.15s);
     }
 
     .we-all-executions__table tbody tr:hover {
@@ -184,10 +184,10 @@ import { StateColorService } from '../../services/state-color.service';
 
     .we-all-executions__table code {
       font-family: var(--we-font-family-mono, 'Cascadia Code', 'Fira Code', 'Consolas', monospace);
-      font-size: 0.85rem;
+      font-size: var(--we-font-size-sm, 0.85rem);
       background: var(--we-bg-secondary, #f5f5f5);
       padding: 2px 6px;
-      border-radius: 4px;
+      border-radius: var(--we-border-radius-sm, 4px);
     }
 
     .we-execution-state {
@@ -197,8 +197,8 @@ import { StateColorService } from '../../services/state-color.service';
 
     .we-execution-state-code {
       color: var(--we-text-secondary, #757575);
-      font-size: 0.85rem;
-      margin-left: 4px;
+      font-size: var(--we-font-size-sm, 0.85rem);
+      margin-left: var(--we-spacing-xs, 4px);
     }
   `],
 })

@@ -24,7 +24,7 @@ import { Component, input } from '@angular/core';
     .we-spinner__container {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
+      gap: var(--we-spacing-sm, 8px);
     }
 
     .we-spinner {
@@ -34,7 +34,7 @@ import { Component, input } from '@angular/core';
       border: 2px solid rgba(255, 255, 255, 0.3);
       border-top-color: #ffffff;
       border-radius: 50%;
-      animation: we-spin 0.6s linear infinite;
+      animation: we-spin var(--we-animation-spin, 0.6s) linear infinite;
     }
 
     .we-spinner--small {
@@ -48,7 +48,7 @@ import { Component, input } from '@angular/core';
     }
 
     .we-spinner__label {
-      font-size: 0.9rem;
+      font-size: var(--we-font-size-base, 0.9rem);
       color: var(--we-text, #212121);
     }
 

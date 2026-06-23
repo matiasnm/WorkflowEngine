@@ -22,17 +22,17 @@ import { Component, input, Output, EventEmitter } from '@angular/core';
     .we-error-banner {
       display: flex;
       align-items: center;
-      gap: 8px;
-      padding: 12px 16px;
-      background: #fff3f3;
+      gap: var(--we-spacing-sm, 8px);
+      padding: var(--we-spacing-md, 12px) var(--we-spacing, 16px);
+      background: var(--we-danger-bg, #fff3f3);
       border: 1px solid var(--we-danger, #d32f2f);
       border-radius: var(--we-border-radius, 8px);
       color: var(--we-danger, #d32f2f);
-      font-size: 0.9rem;
+      font-size: var(--we-font-size-base, 0.9rem);
     }
 
     .we-error-icon {
-      font-size: 1.1rem;
+      font-size: var(--we-font-size-lg, 1.1rem);
       flex-shrink: 0;
     }
 
@@ -41,16 +41,16 @@ import { Component, input, Output, EventEmitter } from '@angular/core';
     }
 
     .we-btn--retry {
-      padding: 6px 16px;
+      padding: 6px var(--we-spacing, 16px);
       border: 1px solid var(--we-danger, #d32f2f);
       border-radius: var(--we-border-radius, 8px);
       background: var(--we-bg, #ffffff);
       color: var(--we-danger, #d32f2f);
-      font-size: 0.85rem;
+      font-size: var(--we-font-size-sm, 0.85rem);
       font-weight: 500;
       cursor: pointer;
       font-family: inherit;
-      transition: background 0.15s;
+      transition: background var(--we-transition, 0.15s);
     }
 
     .we-btn--retry:hover {

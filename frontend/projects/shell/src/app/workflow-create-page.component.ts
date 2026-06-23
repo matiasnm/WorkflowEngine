@@ -1,7 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { WorkflowCreateComponent, WorkflowCacheService, WorkflowSummary } from 'workflow-engine';
-import { ErrorService } from './error.service';
 
 @Component({
   selector: 'shell-workflow-create-page',
@@ -11,13 +10,11 @@ import { ErrorService } from './error.service';
     <we-workflow-create
       (workflowCreated)="onWorkflowCreated($event)"
       (cancel)="onCancel()"
-      (errorEvent)="onError($event)"
     />
   `,
 })
 export class WorkflowCreatePageComponent {
   private readonly router = inject(Router);
-  private readonly errorService = inject(ErrorService);
   private readonly workflowCache = inject(WorkflowCacheService);
 
   onWorkflowCreated(workflow: WorkflowSummary): void {
@@ -27,9 +24,5 @@ export class WorkflowCreatePageComponent {
 
   onCancel(): void {
     this.router.navigate(['/']);
-  }
-
-  onError(message: string): void {
-    this.errorService.addError(message);
   }
 }

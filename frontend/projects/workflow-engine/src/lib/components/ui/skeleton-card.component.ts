@@ -40,12 +40,12 @@ export interface SkeletonLineConfig {
       padding: var(--we-spacing, 16px);
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: var(--we-spacing-sm, 8px);
     }
 
     .we-skeleton-card__line {
       height: 14px;
-      border-radius: 4px;
+      border-radius: var(--we-border-radius-sm, 4px);
       background: linear-gradient(
         90deg,
         var(--we-bg-secondary, #f5f5f5) 25%,
@@ -53,7 +53,7 @@ export interface SkeletonLineConfig {
         var(--we-bg-secondary, #f5f5f5) 75%
       );
       background-size: 200% 100%;
-      animation: we-shimmer 1.5s ease-in-out infinite;
+      animation: we-shimmer var(--we-animation-shimmer, 1.5s) ease-in-out infinite;
     }
 
     .we-skeleton-card__line--title {
@@ -66,7 +66,7 @@ export interface SkeletonLineConfig {
 
     .we-skeleton-card__line--button {
       height: 40px;
-      border-radius: 8px;
+      border-radius: var(--we-border-radius, 8px);
     }
 
     .we-skeleton-card__line--timestamp {

@@ -184,8 +184,8 @@ import { ErrorBannerComponent } from '../ui';
     .we-skeleton-timeline {
       display: flex;
       align-items: flex-start;
-      gap: 12px;
-      padding: 12px 0;
+      gap: var(--we-spacing-md, 12px);
+      padding: var(--we-spacing-md, 12px) 0;
     }
 
     .we-skeleton-timeline__node {
@@ -194,7 +194,7 @@ import { ErrorBannerComponent } from '../ui';
       min-width: 24px;
       border-radius: 50%;
       background: var(--we-bg-secondary, #f5f5f5);
-      animation: we-shimmer 1.5s ease-in-out infinite;
+      animation: we-shimmer var(--we-animation-shimmer, 1.5s) ease-in-out infinite;
       background-image: linear-gradient(
         90deg,
         var(--we-bg-secondary, #f5f5f5) 25%,
@@ -227,12 +227,12 @@ import { ErrorBannerComponent } from '../ui';
 
     .we-history-empty {
       text-align: center;
-      padding: 32px 16px;
+      padding: var(--we-spacing-xl, 32px) var(--we-spacing, 16px);
       margin: 0;
       color: var(--we-text-secondary, #757575);
       border: 1px dashed var(--we-border, #e0e0e0);
       border-radius: var(--we-border-radius, 8px);
-      font-size: 0.95rem;
+      font-size: var(--we-font-size-md, 0.95rem);
     }
 
     /* ═══════════════════════════════════════════════════
@@ -244,19 +244,19 @@ import { ErrorBannerComponent } from '../ui';
       border: 1px solid var(--we-border, #e0e0e0);
       border-radius: var(--we-border-radius, 8px);
       overflow: hidden;
-      margin-bottom: 16px;
+      margin-bottom: var(--we-spacing, 16px);
     }
 
     .we-display-toggle__btn {
-      padding: 6px 16px;
+      padding: 6px var(--we-spacing, 16px);
       border: none;
       background: var(--we-bg, #ffffff);
       color: var(--we-text-secondary, #757575);
-      font-size: 0.85rem;
+      font-size: var(--we-font-size-sm, 0.85rem);
       font-weight: 500;
       cursor: pointer;
       font-family: inherit;
-      transition: background 0.15s, color 0.15s;
+      transition: background var(--we-transition, 0.15s), color var(--we-transition, 0.15s);
     }
 
     .we-display-toggle__btn:not(:last-child) {
@@ -329,7 +329,7 @@ import { ErrorBannerComponent } from '../ui';
 
     .we-timeline__from,
     .we-timeline__to {
-      font-size: 0.9rem;
+      font-size: var(--we-font-size-base, 0.9rem);
       font-weight: 500;
       color: var(--we-text, #212121);
     }
@@ -337,12 +337,12 @@ import { ErrorBannerComponent } from '../ui';
     .we-timeline__arrow {
       color: var(--we-primary, #1976d2);
       font-weight: 600;
-      font-size: 0.9rem;
+      font-size: var(--we-font-size-base, 0.9rem);
     }
 
     .we-timeline__timestamp {
       width: 100%;
-      font-size: 0.8rem;
+      font-size: var(--we-font-size-sm, 0.85rem);
       color: var(--we-text-secondary, #757575);
       margin-top: -2px;
     }
@@ -374,13 +374,13 @@ import { ErrorBannerComponent } from '../ui';
       width: 24px;
       min-width: 24px;
       height: 24px;
-      font-size: 0.9rem;
+      font-size: var(--we-font-size-base, 0.9rem);
       color: var(--we-primary, #1976d2);
       font-weight: 700;
     }
 
     .we-timeline__current-label {
-      font-size: 0.8rem;
+      font-size: var(--we-font-size-sm, 0.85rem);
       font-style: italic;
       color: var(--we-primary, #1976d2);
     }
@@ -394,7 +394,7 @@ import { ErrorBannerComponent } from '../ui';
       align-items: center;
       flex-wrap: wrap;
       gap: 0;
-      padding: 16px 0;
+      padding: var(--we-spacing, 16px) 0;
       overflow-x: auto;
     }
 
@@ -402,7 +402,7 @@ import { ErrorBannerComponent } from '../ui';
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 4px;
+      gap: var(--we-spacing-xs, 4px);
       min-width: 60px;
       position: relative;
     }
@@ -419,10 +419,10 @@ import { ErrorBannerComponent } from '../ui';
     }
 
     .we-timeline__step-name {
-      font-size: 0.9rem;
+      font-size: var(--we-font-size-base, 0.9rem);
       font-weight: 500;
       color: var(--we-text, #212121);
-      padding: 4px 8px;
+      padding: var(--we-spacing-xs, 4px) var(--we-spacing-sm, 8px);
       border-radius: var(--we-border-radius, 8px);
       white-space: nowrap;
     }
@@ -430,29 +430,29 @@ import { ErrorBannerComponent } from '../ui';
     .we-timeline__step-name--current {
       font-weight: 700;
       color: var(--we-primary, #1976d2);
-      background-color: rgba(25, 118, 210, 0.08);
+      background-color: var(--we-primary-alpha-low, rgba(25, 118, 210, 0.08));
     }
 
     .we-timeline__step-label {
-      font-size: 0.75rem;
+      font-size: var(--we-font-size-xs, 0.75rem);
       color: var(--we-text-secondary, #757575);
       text-align: center;
       min-height: 1.2em;
     }
 
     .we-timeline__current-label {
-      font-size: 0.75rem;
+      font-size: var(--we-font-size-xs, 0.75rem);
       font-style: italic;
       color: var(--we-primary, #1976d2);
     }
 
     .we-timeline__step-time {
-      font-size: 0.75rem;
+      font-size: var(--we-font-size-xs, 0.75rem);
       color: var(--we-text-secondary, #757575);
     }
 
     .we-timeline__arrow--horizontal {
-      font-size: 1.1rem;
+      font-size: var(--we-font-size-lg, 1.1rem);
       color: var(--we-primary, #1976d2);
       font-weight: 600;
       margin: 0 6px;

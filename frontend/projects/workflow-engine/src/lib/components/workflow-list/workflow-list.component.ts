@@ -107,13 +107,13 @@ import { ErrorBannerComponent, SkeletonCardComponent } from '../ui';
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
+      gap: var(--we-spacing-md, 12px);
       margin-bottom: var(--we-spacing, 16px);
       flex-wrap: wrap;
     }
 
     .we-workflow-list__title {
-      font-size: 1.5rem;
+      font-size: var(--we-font-size-2xl, 1.5rem);
       font-weight: 600;
       color: var(--we-text, #212121);
       margin: 0;
@@ -123,23 +123,23 @@ import { ErrorBannerComponent, SkeletonCardComponent } from '../ui';
     .we-input--search {
       width: 100%;
       max-width: 260px;
-      padding: 8px 12px;
+      padding: var(--we-spacing-sm, 8px) var(--we-spacing-md, 12px);
       border: 1px solid var(--we-border-color, #ccc);
       border-radius: var(--we-border-radius, 4px);
       font-family: inherit;
-      font-size: 0.9rem;
+      font-size: var(--we-font-size-base, 0.9rem);
       box-sizing: border-box;
     }
 
     .we-input--search:focus {
       outline: none;
       border-color: var(--we-primary, #1976d2);
-      box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.12);
+      box-shadow: 0 0 0 2px var(--we-primary-alpha-mid, rgba(25, 118, 210, 0.12));
     }
 
     .we-workflow-list__search-empty {
       text-align: center;
-      padding: 32px 16px;
+      padding: var(--we-spacing-xl, 32px) var(--we-spacing, 16px);
       color: var(--we-text-secondary, #757575);
       border: 1px dashed var(--we-border, #e0e0e0);
       border-radius: var(--we-border-radius, 8px);
@@ -148,7 +148,7 @@ import { ErrorBannerComponent, SkeletonCardComponent } from '../ui';
 
     .we-workflow-list__search-empty p {
       margin: 0;
-      font-size: 0.95rem;
+      font-size: var(--we-font-size-md, 0.95rem);
     }
 
     /* ── Skeleton / Shimmer container ── */
@@ -161,7 +161,7 @@ import { ErrorBannerComponent, SkeletonCardComponent } from '../ui';
     /* ── Empty state ── */
     .we-workflow-list__empty {
       text-align: center;
-      padding: 48px 16px;
+      padding: var(--we-spacing-2xl, 48px) var(--we-spacing, 16px);
       color: var(--we-text-secondary, #757575);
       border: 1px dashed var(--we-border, #e0e0e0);
       border-radius: var(--we-border-radius, 8px);
@@ -169,7 +169,7 @@ import { ErrorBannerComponent, SkeletonCardComponent } from '../ui';
 
     .we-workflow-list__empty p {
       margin: 0;
-      font-size: 0.95rem;
+      font-size: var(--we-font-size-md, 0.95rem);
     }
 
     /* ── Workflow cards ── */
@@ -182,7 +182,7 @@ import { ErrorBannerComponent, SkeletonCardComponent } from '../ui';
     .we-workflow-card {
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: var(--we-spacing-xs, 4px);
       width: 100%;
       text-align: left;
       padding: var(--we-spacing, 16px);
@@ -190,14 +190,14 @@ import { ErrorBannerComponent, SkeletonCardComponent } from '../ui';
       border: 1px solid var(--we-border, #e0e0e0);
       border-radius: var(--we-border-radius, 8px);
       cursor: pointer;
-      transition: border-color 0.15s, box-shadow 0.15s;
+      transition: border-color var(--we-transition, 0.15s), box-shadow var(--we-transition, 0.15s);
       font-family: inherit;
       font-size: inherit;
     }
 
     .we-workflow-card:hover {
       border-color: var(--we-primary, #1976d2);
-      box-shadow: 0 1px 4px rgba(25, 118, 210, 0.12);
+      box-shadow: 0 1px 4px var(--we-primary-alpha-mid, rgba(25, 118, 210, 0.12));
     }
 
     .we-workflow-card:focus-visible {
@@ -206,13 +206,13 @@ import { ErrorBannerComponent, SkeletonCardComponent } from '../ui';
     }
 
     .we-workflow-card__name {
-      font-size: 1.05rem;
+      font-size: var(--we-font-size-lg, 1.1rem);
       font-weight: 600;
       color: var(--we-text, #212121);
     }
 
     .we-workflow-card__summary {
-      font-size: 0.85rem;
+      font-size: var(--we-font-size-sm, 0.85rem);
       color: var(--we-text-secondary, #757575);
     }
   `],

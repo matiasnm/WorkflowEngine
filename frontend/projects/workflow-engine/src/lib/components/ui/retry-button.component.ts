@@ -14,16 +14,16 @@ import { Component, Output, EventEmitter } from '@angular/core';
   `,
   styles: [`
     .we-btn--retry {
-      padding: 6px 16px;
+      padding: 6px var(--we-spacing, 16px);
       border: 1px solid var(--we-danger, #d32f2f);
       border-radius: var(--we-border-radius, 8px);
       background: var(--we-bg, #ffffff);
       color: var(--we-danger, #d32f2f);
-      font-size: 0.85rem;
+      font-size: var(--we-font-size-sm, 0.85rem);
       font-weight: 500;
       cursor: pointer;
       font-family: inherit;
-      transition: background 0.15s;
+      transition: background var(--we-transition, 0.15s);
     }
 
     .we-btn--retry:hover {

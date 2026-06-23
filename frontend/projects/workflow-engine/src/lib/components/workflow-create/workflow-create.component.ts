@@ -293,11 +293,11 @@ function toSnakeCase(value: string): string {
     }
 
     .we-workflow-create__header {
-      margin-bottom: 24px;
+      margin-bottom: var(--we-spacing-lg, 24px);
     }
 
     .we-workflow-create__title {
-      font-size: 1.5rem;
+      font-size: var(--we-font-size-2xl, 1.5rem);
       font-weight: 600;
       color: var(--we-text, #212121);
       margin: 0;
@@ -310,7 +310,7 @@ function toSnakeCase(value: string): string {
 
     .we-label {
       display: block;
-      font-size: 0.9rem;
+      font-size: var(--we-font-size-base, 0.9rem);
       font-weight: 600;
       color: var(--we-text, #212121);
       margin-bottom: 6px;
@@ -318,21 +318,21 @@ function toSnakeCase(value: string): string {
 
     .we-input {
       width: 100%;
-      padding: 10px 12px;
+      padding: 10px var(--we-spacing-md, 12px);
       border: 1px solid var(--we-border, #e0e0e0);
       border-radius: var(--we-border-radius, 8px);
-      font-size: 0.9rem;
+      font-size: var(--we-font-size-base, 0.9rem);
       font-family: inherit;
       background: var(--we-bg, #ffffff);
       color: var(--we-text, #212121);
-      transition: border-color 0.15s;
+      transition: border-color var(--we-transition, 0.15s);
       box-sizing: border-box;
     }
 
     .we-input:focus {
       outline: none;
       border-color: var(--we-primary, #1976d2);
-      box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.12);
+      box-shadow: 0 0 0 2px var(--we-primary-alpha-mid, rgba(25, 118, 210, 0.12));
     }
 
     .we-input--error {
@@ -340,7 +340,7 @@ function toSnakeCase(value: string): string {
     }
 
     .we-input--error:focus {
-      box-shadow: 0 0 0 2px rgba(211, 47, 47, 0.12);
+      box-shadow: 0 0 0 2px var(--we-danger-alpha, rgba(211, 47, 47, 0.12));
     }
 
     .we-input--readonly {
@@ -365,14 +365,14 @@ function toSnakeCase(value: string): string {
     /* ── Select ── */
     .we-select {
       width: 100%;
-      padding: 10px 12px;
+      padding: 10px var(--we-spacing-md, 12px);
       border: 1px solid var(--we-border, #e0e0e0);
       border-radius: var(--we-border-radius, 8px);
-      font-size: 0.9rem;
+      font-size: var(--we-font-size-base, 0.9rem);
       font-family: inherit;
       background: var(--we-bg, #ffffff);
       color: var(--we-text, #212121);
-      transition: border-color 0.15s;
+      transition: border-color var(--we-transition, 0.15s);
       box-sizing: border-box;
       cursor: pointer;
     }
@@ -380,7 +380,7 @@ function toSnakeCase(value: string): string {
     .we-select:focus {
       outline: none;
       border-color: var(--we-primary, #1976d2);
-      box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.12);
+      box-shadow: 0 0 0 2px var(--we-primary-alpha-mid, rgba(25, 118, 210, 0.12));
     }
 
     .we-select:disabled {
@@ -393,30 +393,30 @@ function toSnakeCase(value: string): string {
     .we-field-error {
       display: block;
       color: var(--we-danger, #d32f2f);
-      font-size: 0.8rem;
-      margin-top: 4px;
+      font-size: var(--we-font-size-sm, 0.85rem);
+      margin-top: var(--we-spacing-xs, 4px);
     }
 
     .we-field-error--row {
       margin: -8px 0 8px 0;
-      padding-left: 4px;
+      padding-left: var(--we-spacing-xs, 4px);
     }
 
     /* ── Form section ── */
     .we-form-section {
-      margin-bottom: 24px;
-      padding: 16px;
+      margin-bottom: var(--we-spacing-lg, 24px);
+      padding: var(--we-spacing, 16px);
       background: var(--we-bg, #ffffff);
       border: 1px solid var(--we-border, #e0e0e0);
       border-radius: var(--we-border-radius, 8px);
     }
 
     .we-form-section__header {
-      margin-bottom: 12px;
+      margin-bottom: var(--we-spacing-md, 12px);
     }
 
     .we-form-section__title {
-      font-size: 1.05rem;
+      font-size: var(--we-font-size-lg, 1.1rem);
       font-weight: 600;
       color: var(--we-text, #212121);
       margin: 0;
@@ -426,17 +426,17 @@ function toSnakeCase(value: string): string {
     .we-dynamic-list {
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: var(--we-spacing-sm, 8px);
     }
 
     .we-dynamic-list--headers {
-      margin-bottom: 4px;
+      margin-bottom: var(--we-spacing-xs, 4px);
     }
 
     .we-dynamic-row {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: var(--we-spacing-sm, 8px);
     }
 
     .we-dynamic-row--header {
@@ -444,7 +444,7 @@ function toSnakeCase(value: string): string {
     }
 
     .we-dynamic-header {
-      font-size: 0.8rem;
+      font-size: var(--we-font-size-sm, 0.85rem);
       font-weight: 600;
       color: var(--we-text-secondary, #757575);
       text-transform: uppercase;
@@ -489,7 +489,7 @@ function toSnakeCase(value: string): string {
       display: flex;
       align-items: center;
       gap: 6px;
-      font-size: 0.85rem;
+      font-size: var(--we-font-size-sm, 0.85rem);
       color: var(--we-text, #212121);
       cursor: pointer;
       white-space: nowrap;
@@ -515,7 +515,7 @@ function toSnakeCase(value: string): string {
       text-align: center;
       color: var(--we-primary, #1976d2);
       font-weight: 600;
-      font-size: 1.1rem;
+      font-size: var(--we-font-size-lg, 1.1rem);
     }
 
     /* ── Icon button ── */
@@ -529,14 +529,14 @@ function toSnakeCase(value: string): string {
       border-radius: 50%;
       background: transparent;
       color: var(--we-text-secondary, #757575);
-      font-size: 0.9rem;
+      font-size: var(--we-font-size-base, 0.9rem);
       cursor: pointer;
-      transition: background 0.15s, color 0.15s;
+      transition: background var(--we-transition, 0.15s), color var(--we-transition, 0.15s);
       flex-shrink: 0;
     }
 
     .we-btn-icon:hover {
-      background: #fff3f3;
+      background: var(--we-danger-bg, #fff3f3);
       color: var(--we-danger, #d32f2f);
       border-color: var(--we-danger, #d32f2f);
     }
@@ -553,21 +553,21 @@ function toSnakeCase(value: string): string {
 
     /* ── Add button ── */
     .we-btn--add {
-      margin-top: 8px;
-      padding: 8px 16px;
+      margin-top: var(--we-spacing-sm, 8px);
+      padding: var(--we-spacing-sm, 8px) var(--we-spacing, 16px);
       border: 1px dashed var(--we-primary, #1976d2);
       border-radius: var(--we-border-radius, 8px);
       background: transparent;
       color: var(--we-primary, #1976d2);
-      font-size: 0.85rem;
+      font-size: var(--we-font-size-sm, 0.85rem);
       font-weight: 500;
       cursor: pointer;
       font-family: inherit;
-      transition: background 0.15s;
+      transition: background var(--we-transition, 0.15s);
     }
 
     .we-btn--add:hover:not(:disabled) {
-      background: rgba(25, 118, 210, 0.06);
+      background: var(--we-primary-alpha-low, rgba(25, 118, 210, 0.08));
     }
 
     .we-btn--add:disabled {
@@ -586,8 +586,8 @@ function toSnakeCase(value: string): string {
     .we-transition-actions {
       display: flex;
       align-items: center;
-      gap: 8px;
-      margin-top: 8px;
+      gap: var(--we-spacing-sm, 8px);
+      margin-top: var(--we-spacing-sm, 8px);
       flex-wrap: wrap;
     }
 
@@ -597,20 +597,20 @@ function toSnakeCase(value: string): string {
     }
 
     .we-btn--autofill {
-      padding: 8px 16px;
+      padding: var(--we-spacing-sm, 8px) var(--we-spacing, 16px);
       border: 1px solid var(--we-secondary, #388e3c);
       border-radius: var(--we-border-radius, 8px);
       background: transparent;
       color: var(--we-secondary, #388e3c);
-      font-size: 0.85rem;
+      font-size: var(--we-font-size-sm, 0.85rem);
       font-weight: 500;
       cursor: pointer;
       font-family: inherit;
-      transition: background 0.15s;
+      transition: background var(--we-transition, 0.15s);
     }
 
     .we-btn--autofill:hover:not(:disabled) {
-      background: rgba(56, 142, 60, 0.06);
+      background: var(--we-success-alpha, rgba(56, 142, 60, 0.06));
     }
 
     .we-btn--autofill:disabled {
@@ -627,8 +627,8 @@ function toSnakeCase(value: string): string {
 
     .we-empty-text {
       color: var(--we-text-secondary, #757575);
-      font-size: 0.85rem;
-      margin: 8px 0;
+      font-size: var(--we-font-size-sm, 0.85rem);
+      margin: var(--we-spacing-sm, 8px) 0;
     }
 
     /* ── Footer ── */
@@ -636,21 +636,21 @@ function toSnakeCase(value: string): string {
       display: flex;
       justify-content: flex-end;
       align-items: center;
-      gap: 12px;
-      margin-top: 24px;
+      gap: var(--we-spacing-md, 12px);
+      margin-top: var(--we-spacing-lg, 24px);
     }
 
     .we-btn--cancel {
-      padding: 10px 24px;
+      padding: 10px var(--we-spacing-lg, 24px);
       border: 1px solid var(--we-border, #e0e0e0);
       border-radius: var(--we-border-radius, 8px);
       background: var(--we-bg, #ffffff);
       color: var(--we-text, #212121);
-      font-size: 0.9rem;
+      font-size: var(--we-font-size-base, 0.9rem);
       font-weight: 500;
       cursor: pointer;
       font-family: inherit;
-      transition: background 0.15s, border-color 0.15s;
+      transition: background var(--we-transition, 0.15s), border-color var(--we-transition, 0.15s);
     }
 
     .we-btn--cancel:hover:not(:disabled) {
@@ -671,17 +671,17 @@ function toSnakeCase(value: string): string {
     .we-btn--submit {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      padding: 10px 24px;
+      gap: var(--we-spacing-sm, 8px);
+      padding: 10px var(--we-spacing-lg, 24px);
       border: none;
       border-radius: var(--we-border-radius, 8px);
       background: var(--we-primary, #1976d2);
       color: #ffffff;
-      font-size: 0.95rem;
+      font-size: var(--we-font-size-md, 0.95rem);
       font-weight: 600;
       cursor: pointer;
       font-family: inherit;
-      transition: background 0.15s, opacity 0.15s;
+      transition: background var(--we-transition, 0.15s), opacity var(--we-transition, 0.15s);
     }
 
     .we-btn--submit:hover:not(:disabled) {
