@@ -13,6 +13,7 @@ import { ErrorService } from './error.service';
       [workflowId]="workflowId"
       (executionCreated)="onExecutionCreated($event)"
       (executionSelected)="onExecutionSelected($event)"
+      (editWorkflow)="onEditWorkflow($event)"
       (workflowDeleted)="onWorkflowDeleted($event)"
       (back)="onBack()"
       (errorEvent)="onError($event)"
@@ -29,6 +30,10 @@ export class WorkflowDetailPageComponent {
   private readonly navigatedFromCreate =
     this.router.getCurrentNavigation()?.extras?.state?.['from'] === 'create';
 
+  /** Whether the user arrived here after editing the workflow. */
+  private readonly navigatedFromEdit =
+    this.router.getCurrentNavigation()?.extras?.state?.['from'] === 'edit';
+
   get workflowId(): string {
     return this.route.snapshot.paramMap.get('id') ?? '';
   }
@@ -41,12 +46,16 @@ export class WorkflowDetailPageComponent {
     this.router.navigate(['/executions', executionId]);
   }
 
+  onEditWorkflow(workflowId: string): void {
+    this.router.navigate(['/workflows', workflowId, 'edit']);
+  }
+
   onWorkflowDeleted(_id: string): void {
     this.router.navigate(['/']);
   }
 
   onBack(): void {
-    if (this.navigatedFromCreate) {
+    if (this.navigatedFromCreate || this.navigatedFromEdit) {
       this.router.navigate(['/']);
     } else {
       this.location.back();

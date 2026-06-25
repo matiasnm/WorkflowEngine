@@ -12,6 +12,11 @@ export const routes: Routes = [
     title: 'Create Workflow',
   },
   {
+    path: 'workflows/:id/edit',
+    loadComponent: () => import('./workflow-edit-page.component').then(m => m.WorkflowEditPageComponent),
+    title: 'Edit Workflow',
+  },
+  {
     path: 'workflows/:id',
     loadComponent: () => import('./workflow-detail-page.component').then(m => m.WorkflowDetailPageComponent),
     title: 'Workflow Detail',
