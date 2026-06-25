@@ -51,4 +51,8 @@ export class ExecutionApiHttpAdapter implements ExecutionApiPort {
   listAllExecutions(): Observable<AllExecutionResponse[]> {
     return this.http.get<AllExecutionResponse[]>(`${this.config.apiBaseUrl}/executions`);
   }
+
+  deleteExecution(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.config.apiBaseUrl}/executions/${id}`);
+  }
 }

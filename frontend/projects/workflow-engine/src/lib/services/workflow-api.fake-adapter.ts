@@ -69,6 +69,12 @@ export class WorkflowApiFakeAdapter implements WorkflowApiPort {
     ];
     return of({ workflowId: id });
   }
+
+  deleteWorkflow(id: string): Observable<void> {
+    this.details.delete(id);
+    this.workflows = this.workflows.filter(w => w.id !== id);
+    return of(void 0);
+  }
 }
 
 // ── Default seed data ──

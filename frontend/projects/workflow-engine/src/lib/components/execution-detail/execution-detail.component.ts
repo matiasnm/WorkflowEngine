@@ -15,7 +15,7 @@ import { ErrorBannerComponent, SpinnerComponent } from '../ui';
   styleUrl: '../../styles/shared.css',
   template: `
     <div class="we-execution-detail">
-      <!-- ── Header: back button + truncated execution ID ── -->
+      <!-- ── Header: back button + truncated execution ID + delete ── -->
       <div class="we-execution-detail__header">
         <button
           class="we-btn we-btn--back"
@@ -25,6 +25,13 @@ import { ErrorBannerComponent, SpinnerComponent } from '../ui';
           ← Back
         </button>
         <span class="we-execution-detail__id">Execution #{{ truncatedId }}</span>
+        <button
+          class="we-btn we-btn--delete"
+          (click)="deleteExecution()"
+          aria-label="Delete execution"
+        >
+          Delete
+        </button>
       </div>
 
       <!-- ════════════════════════════════════════════
@@ -167,6 +174,10 @@ import { ErrorBannerComponent, SpinnerComponent } from '../ui';
       align-items: center;
       gap: var(--we-spacing-md, 12px);
       margin-bottom: var(--we-spacing, 16px);
+    }
+
+    .we-execution-detail__header .we-btn--delete {
+      margin-left: auto;
     }
 
     .we-execution-detail__id {
@@ -405,6 +416,9 @@ export class ExecutionDetailComponent {
   /** Emitted when a transition is successfully executed. */
   @Output() transitionExecuted = new EventEmitter<TransitionResponse>();
 
+  /** Emitted when the execution is successfully deleted. */
+  @Output() executionDeleted = new EventEmitter<string>();
+
   /** Emitted when the user clicks back. */
   @Output() back = new EventEmitter<void>();
 
@@ -537,5 +551,20 @@ export class ExecutionDetailComponent {
 
   protected goBack(): void {
     this.back.emit();
+  }
+
+  protected deleteExecution(): void {
+    if (!confirm('Are you sure you want to delete this execution? This action cannot be undone.')) {
+      return;
+    }
+    this.api.deleteExecution(this.executionId()).subscribe({
+      next: () => {
+        this.executionDeleted.emit(this.executionId());
+      },
+      error: (err) => {
+        const message = err?.error?.detail ?? err?.message ?? 'Failed to delete execution.';
+        this.errorEvent.emit(message);
+      },
+    });
   }
 }

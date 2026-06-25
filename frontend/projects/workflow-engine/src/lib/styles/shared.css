@@ -158,6 +158,33 @@
 }
 
 /* ═══════════════════════════════════════════════════
+   Delete / Danger Button
+   ═══════════════════════════════════════════════════ */
+
+.we-btn--delete {
+  padding: 6px var(--we-spacing, 16px);
+  border: 1px solid var(--we-danger, #d32f2f);
+  border-radius: var(--we-border-radius, 8px);
+  background: var(--we-bg, #ffffff);
+  color: var(--we-danger, #d32f2f);
+  font-size: var(--we-font-size-base, 0.9rem);
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background var(--we-transition, 0.15s), color var(--we-transition, 0.15s);
+}
+
+.we-btn--delete:hover {
+  background: var(--we-danger, #d32f2f);
+  color: #ffffff;
+}
+
+.we-btn--delete:focus-visible {
+  outline: 2px solid var(--we-primary, #1976d2);
+  outline-offset: 2px;
+}
+
+/* ═══════════════════════════════════════════════════
    Empty State
    ═══════════════════════════════════════════════════ */
 

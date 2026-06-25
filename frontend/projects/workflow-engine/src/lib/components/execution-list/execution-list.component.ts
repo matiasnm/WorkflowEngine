@@ -47,6 +47,7 @@ import { StateColorService } from '../../services/state-color.service';
                 <th>ID</th>
                 <th>State</th>
                 <th>Since</th>
+                <th aria-label="Actions"></th>
               </tr>
             </thead>
             <tbody>
@@ -66,6 +67,14 @@ import { StateColorService } from '../../services/state-color.service';
                     @if (exec.currentStateSince) {
                       {{ exec.currentStateSince | date:'short' }}
                     }
+                  </td>
+                  <td class="we-execution-row__actions">
+                    <button
+                      class="we-execution-row__delete"
+                      (click)="deleteExecution($event, exec.id)"
+                      [attr.aria-label]="'Delete execution ' + truncateId(exec.id)"
+                      title="Delete execution"
+                    >✕</button>
                   </td>
                 </tr>
               }
@@ -157,17 +166,14 @@ import { StateColorService } from '../../services/state-color.service';
 
     .we-execution-list__table tbody tr {
       border-top: 1px solid var(--we-border, #e0e0e0);
-      cursor: pointer;
-      transition: background var(--we-transition, 0.15s);
     }
 
     .we-execution-list__table tbody tr:hover {
       background: var(--we-bg-secondary, #f5f5f5);
     }
 
-    .we-execution-list__table tbody tr:focus-visible {
-      outline: 2px solid var(--we-primary, #1976d2);
-      outline-offset: -2px;
+    .we-execution-row__clickable {
+      cursor: pointer;
     }
 
     .we-execution-list__table code {
@@ -188,6 +194,41 @@ import { StateColorService } from '../../services/state-color.service';
       font-size: var(--we-font-size-sm, 0.85rem);
       margin-left: var(--we-spacing-xs, 4px);
     }
+
+    .we-execution-row__actions {
+      width: 40px;
+      text-align: center;
+    }
+
+    .we-execution-row__delete {
+      width: 24px;
+      height: 24px;
+      padding: 0;
+      border: 1px solid transparent;
+      border-radius: var(--we-border-radius-sm, 4px);
+      background: transparent;
+      color: var(--we-text-secondary, #757575);
+      font-size: 0.75rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: color var(--we-transition, 0.15s), background var(--we-transition, 0.15s), border-color var(--we-transition, 0.15s);
+      line-height: 1;
+      opacity: 0.6;
+    }
+
+    .we-execution-row__delete:hover {
+      opacity: 1;
+      color: var(--we-danger, #d32f2f);
+      background: var(--we-danger-bg, #fff3f3);
+      border-color: var(--we-danger, #d32f2f);
+    }
+
+    .we-execution-row__delete:focus-visible {
+      outline: 2px solid var(--we-primary, #1976d2);
+      outline-offset: 2px;
+    }
   `],
 })
 export class ExecutionListComponent {
@@ -200,6 +241,9 @@ export class ExecutionListComponent {
 
   /** Emitted when user clicks an execution row. */
   @Output() executionSelected = new EventEmitter<string>();
+
+  /** Emitted when an execution is successfully deleted. */
+  @Output() executionDeleted = new EventEmitter<string>();
 
   /** Emitted on API error, for host app integration. */
   @Output() errorEvent = new EventEmitter<string>();
@@ -244,5 +288,22 @@ export class ExecutionListComponent {
 
   protected getStateColor(stateCode: string): string | null {
     return this.stateColorService.getColor(this.workflowId(), stateCode);
+  }
+
+  protected deleteExecution(event: MouseEvent, id: string): void {
+    event.stopPropagation();
+    if (!confirm('Are you sure you want to delete this execution?')) {
+      return;
+    }
+    this.api.deleteExecution(id).subscribe({
+      next: () => {
+        this.executionDeleted.emit(id);
+        this.execsAsync()?.refresh();
+      },
+      error: (err) => {
+        const message = err?.error?.detail ?? err?.message ?? 'Failed to delete execution.';
+        this.errorEvent.emit(message);
+      },
+    });
   }
 }

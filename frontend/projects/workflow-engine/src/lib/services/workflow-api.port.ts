@@ -6,6 +6,7 @@ export abstract class WorkflowApiPort {
   abstract listWorkflows(): Observable<WorkflowSummary[]>;
   abstract getWorkflow(id: string): Observable<WorkflowDetail>;
   abstract createWorkflow(request: CreateWorkflowRequest): Observable<{ workflowId: string }>;
+  abstract deleteWorkflow(id: string): Observable<void>;
 }
 
 export const WORKFLOW_API_PORT = new InjectionToken<WorkflowApiPort>('WORKFLOW_API_PORT');

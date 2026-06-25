@@ -72,10 +72,18 @@ import { ErrorBannerComponent, SkeletonCardComponent } from '../ui';
                 (click)="selectWorkflow(wf.id)"
                 [attr.aria-label]="'View workflow ' + wf.name"
               >
-                <span class="we-workflow-card__name">{{ wf.name }}</span>
-                <span class="we-workflow-card__summary">
-                  {{ wf.statesCount ?? '?' }} states · {{ wf.transitionsCount ?? '?' }} transitions
-                </span>
+                <div class="we-workflow-card__body">
+                  <span class="we-workflow-card__name">{{ wf.name }}</span>
+                  <span class="we-workflow-card__summary">
+                    {{ wf.statesCount ?? '?' }} states · {{ wf.transitionsCount ?? '?' }} transitions
+                  </span>
+                </div>
+                <button
+                  class="we-workflow-card__delete"
+                  (click)="deleteWorkflow($event, wf.id)"
+                  [attr.aria-label]="'Delete workflow ' + wf.name"
+                  title="Delete workflow"
+                >✕</button>
               </button>
             }
           </div>
@@ -181,8 +189,8 @@ import { ErrorBannerComponent, SkeletonCardComponent } from '../ui';
 
     .we-workflow-card {
       display: flex;
-      flex-direction: column;
-      gap: var(--we-spacing-xs, 4px);
+      align-items: flex-start;
+      gap: var(--we-spacing-sm, 8px);
       width: 100%;
       text-align: left;
       padding: var(--we-spacing, 16px);
@@ -205,6 +213,14 @@ import { ErrorBannerComponent, SkeletonCardComponent } from '../ui';
       outline-offset: 2px;
     }
 
+    .we-workflow-card__body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: var(--we-spacing-xs, 4px);
+      min-width: 0;
+    }
+
     .we-workflow-card__name {
       font-size: var(--we-font-size-lg, 1.1rem);
       font-weight: 600;
@@ -214,6 +230,35 @@ import { ErrorBannerComponent, SkeletonCardComponent } from '../ui';
     .we-workflow-card__summary {
       font-size: var(--we-font-size-sm, 0.85rem);
       color: var(--we-text-secondary, #757575);
+    }
+
+    .we-workflow-card__delete {
+      flex-shrink: 0;
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      border: 1px solid transparent;
+      border-radius: var(--we-border-radius-sm, 4px);
+      background: transparent;
+      color: var(--we-text-secondary, #757575);
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color var(--we-transition, 0.15s), background var(--we-transition, 0.15s), border-color var(--we-transition, 0.15s);
+      line-height: 1;
+    }
+
+    .we-workflow-card__delete:hover {
+      color: var(--we-danger, #d32f2f);
+      background: var(--we-danger-bg, #fff3f3);
+      border-color: var(--we-danger, #d32f2f);
+    }
+
+    .we-workflow-card__delete:focus-visible {
+      outline: 2px solid var(--we-primary, #1976d2);
+      outline-offset: 2px;
     }
   `],
 })
@@ -226,6 +271,9 @@ export class WorkflowListComponent {
 
   /** Emitted when the user clicks a workflow card. */
   @Output() workflowSelected = new EventEmitter<string>();
+
+  /** Emitted when a workflow is successfully deleted. */
+  @Output() workflowDeleted = new EventEmitter<string>();
 
   /** Emitted when an error occurs, so the host app can react (toast, etc.). */
   @Output() errorEvent = new EventEmitter<string>();
@@ -267,5 +315,22 @@ export class WorkflowListComponent {
 
   protected selectWorkflow(id: string): void {
     this.workflowSelected.emit(id);
+  }
+
+  protected deleteWorkflow(event: MouseEvent, id: string): void {
+    event.stopPropagation();
+    if (!confirm('Are you sure you want to delete this workflow?')) {
+      return;
+    }
+    this.api.deleteWorkflow(id).subscribe({
+      next: () => {
+        this.workflowDeleted.emit(id);
+        this.workflows.refresh();
+      },
+      error: (err) => {
+        const message = err?.error?.detail ?? err?.message ?? 'Failed to delete workflow.';
+        this.errorEvent.emit(message);
+      },
+    });
   }
 }

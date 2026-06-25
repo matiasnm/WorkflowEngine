@@ -162,6 +162,12 @@ export class ExecutionApiFakeAdapter implements ExecutionApiPort {
     return of(results);
   }
 
+  deleteExecution(id: string): Observable<void> {
+    this.executions.delete(id);
+    this.history.delete(id);
+    return of(void 0);
+  }
+
   listAllExecutions(): Observable<AllExecutionResponse[]> {
     const results: AllExecutionResponse[] = [];
     for (const execution of this.executions.values()) {

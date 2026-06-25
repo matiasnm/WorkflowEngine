@@ -26,4 +26,8 @@ export class WorkflowApiHttpAdapter implements WorkflowApiPort {
       request,
     );
   }
+
+  deleteWorkflow(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.config.apiBaseUrl}/workflows/${id}`);
+  }
 }

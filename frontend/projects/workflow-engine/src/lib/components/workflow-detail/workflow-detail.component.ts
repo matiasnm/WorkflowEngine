@@ -14,7 +14,7 @@ import { ErrorBannerComponent } from '../ui';
   styleUrl: '../../styles/shared.css',
   template: `
     <div class="we-workflow-detail">
-      <!-- Header with back button -->
+      <!-- Header with back button and delete button -->
       <div class="we-workflow-detail__header">
         <button
           class="we-btn we-btn--back"
@@ -22,6 +22,13 @@ import { ErrorBannerComponent } from '../ui';
           aria-label="Back to workflows"
         >
           ← Back
+        </button>
+        <button
+          class="we-btn we-btn--delete"
+          (click)="deleteWorkflow()"
+          aria-label="Delete workflow"
+        >
+          Delete
         </button>
       </div>
 
@@ -127,7 +134,14 @@ import { ErrorBannerComponent } from '../ui';
 
     /* ── Header ── */
     .we-workflow-detail__header {
+      display: flex;
+      align-items: center;
+      gap: var(--we-spacing-sm, 8px);
       margin-bottom: var(--we-spacing, 16px);
+    }
+
+    .we-workflow-detail__header .we-btn--delete {
+      margin-left: auto;
     }
 
     /* ── Skeleton / Shimmer ── */
@@ -291,6 +305,9 @@ export class WorkflowDetailComponent {
   /** Emitted when the user clicks an execution in the list. */
   @Output() executionSelected = new EventEmitter<string>();
 
+  /** Emitted when the workflow is successfully deleted. */
+  @Output() workflowDeleted = new EventEmitter<string>();
+
   /** Emitted when the user clicks back. */
   @Output() back = new EventEmitter<void>();
 
@@ -349,5 +366,20 @@ export class WorkflowDetailComponent {
 
   protected goBack(): void {
     this.back.emit();
+  }
+
+  protected deleteWorkflow(): void {
+    if (!confirm('Are you sure you want to delete this workflow? This action cannot be undone.')) {
+      return;
+    }
+    this.workflowApi.deleteWorkflow(this.workflowId()).subscribe({
+      next: () => {
+        this.workflowDeleted.emit(this.workflowId());
+      },
+      error: (err) => {
+        const message = err?.error?.detail ?? err?.message ?? 'Failed to delete workflow.';
+        this.errorEvent.emit(message);
+      },
+    });
   }
 }
