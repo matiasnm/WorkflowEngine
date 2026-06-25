@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable, of, throwError } from 'rxjs';
-import { WorkflowSummary, WorkflowDetail, CreateWorkflowRequest } from '../models';
+import { WorkflowSummary, WorkflowDetail, CreateWorkflowRequest, UpdateWorkflowRequest, WorkflowEditability } from '../models';
 import { WorkflowApiPort } from './workflow-api.port';
 
 /**
@@ -70,10 +70,56 @@ export class WorkflowApiFakeAdapter implements WorkflowApiPort {
     return of({ workflowId: id });
   }
 
+  updateWorkflow(id: string, request: UpdateWorkflowRequest): Observable<{ workflowId: string }> {
+    const existing = this.details.get(id);
+    if (!existing) {
+      return throwError(() => new Error(`Workflow '${id}' not found`));
+    }
+    const updated: WorkflowDetail = {
+      id,
+      name: request.name,
+      states: request.states,
+      transitions: request.transitions,
+      initialState: request.initialState,
+    };
+    this.details.set(id, updated);
+    this.workflows = this.workflows.map(w =>
+      w.id === id
+        ? { ...w, name: request.name, statesCount: request.states.length, transitionsCount: request.transitions.length }
+        : w,
+    );
+    return of({ workflowId: id });
+  }
+
   deleteWorkflow(id: string): Observable<void> {
     this.details.delete(id);
     this.workflows = this.workflows.filter(w => w.id !== id);
     return of(void 0);
+  }
+
+  getWorkflowEditability(id: string): Observable<WorkflowEditability> {
+    const detail = this.details.get(id);
+    if (!detail) {
+      return throwError(() => new Error(`Workflow '${id}' not found`));
+    }
+    // Fake: no executions, so all restrictions lifted
+    return of({
+      workflowId: id,
+      hasExecutions: false,
+      executionCount: 0,
+      restrictions: {
+        renameableStates: detail.states.map(s => s.code),
+        lockedStates: [],
+        lockedReason: null,
+        canChangeTerminal: true,
+        canRemoveStates: true,
+        canRenameWorkflow: true,
+        canAddStates: true,
+        canChangeInitialState: true,
+        canAddTransitions: true,
+        canRemoveTransitions: true,
+      },
+    });
   }
 }
 

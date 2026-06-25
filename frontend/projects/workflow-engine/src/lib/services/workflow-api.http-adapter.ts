@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { WorkflowSummary, WorkflowDetail, CreateWorkflowRequest } from '../models';
+import { WorkflowSummary, WorkflowDetail, CreateWorkflowRequest, UpdateWorkflowRequest, WorkflowEditability } from '../models';
 import { WORKFLOW_ENGINE_CONFIG } from '../config/workflow-engine.config';
 import { WorkflowApiPort } from './workflow-api.port';
 
@@ -27,7 +27,20 @@ export class WorkflowApiHttpAdapter implements WorkflowApiPort {
     );
   }
 
+  updateWorkflow(id: string, request: UpdateWorkflowRequest): Observable<{ workflowId: string }> {
+    return this.http.put<{ workflowId: string }>(
+      `${this.config.apiBaseUrl}/workflows/${id}`,
+      request,
+    );
+  }
+
   deleteWorkflow(id: string): Observable<void> {
     return this.http.delete<void>(`${this.config.apiBaseUrl}/workflows/${id}`);
+  }
+
+  getWorkflowEditability(id: string): Observable<WorkflowEditability> {
+    return this.http.get<WorkflowEditability>(
+      `${this.config.apiBaseUrl}/workflows/${id}/editable`,
+    );
   }
 }

@@ -30,3 +30,23 @@ export interface CreateWorkflowRequest {
   transitions: TransitionDefinition[];
   initialState: string;
 }
+
+export interface WorkflowEditability {
+  workflowId: string;
+  hasExecutions: boolean;
+  executionCount: number;
+  restrictions: {
+    renameableStates: string[];
+    lockedStates: string[];
+    lockedReason: string | null;
+    canChangeTerminal: boolean;
+    canRemoveStates: boolean;
+    canRenameWorkflow: boolean;
+    canAddStates: boolean;
+    canChangeInitialState: boolean;
+    canAddTransitions: boolean;
+    canRemoveTransitions: boolean;
+  };
+}
+
+export type UpdateWorkflowRequest = CreateWorkflowRequest;

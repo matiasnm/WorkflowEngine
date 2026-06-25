@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { WorkflowApiHttpAdapter } from './workflow-api.http-adapter';
 import { WORKFLOW_ENGINE_CONFIG } from '../config/workflow-engine.config';
-import { WorkflowSummary, WorkflowDetail, CreateWorkflowRequest } from '../models';
+import { WorkflowSummary, WorkflowDetail, CreateWorkflowRequest, UpdateWorkflowRequest, WorkflowEditability } from '../models';
 
 describe('WorkflowApiHttpAdapter', () => {
   let service: WorkflowApiHttpAdapter;
@@ -153,6 +153,102 @@ describe('WorkflowApiHttpAdapter', () => {
       });
 
       const req = httpMock.expectOne(`${apiBaseUrl}/workflows/non-existent`);
+      expect(req.request.method).toBe('GET');
+      req.flush(null, { status: 404, statusText: 'Not Found' });
+    });
+  });
+
+  describe('updateWorkflow()', () => {
+    it('should call PUT /workflows/{id} with correct request body', () => {
+      const request: UpdateWorkflowRequest = {
+        name: 'updated-workflow',
+        states: [
+          { code: 'created', name: 'CREATED', terminal: false },
+          { code: 'approved', name: 'APPROVED', terminal: true },
+        ],
+        transitions: [
+          { from: 'created', to: 'approved' },
+        ],
+        initialState: 'created',
+      };
+
+      service.updateWorkflow('uuid-1', request).subscribe((response) => {
+        expect(response.workflowId).toBe('uuid-1');
+      });
+
+      const req = httpMock.expectOne(`${apiBaseUrl}/workflows/uuid-1`);
+      expect(req.request.method).toBe('PUT');
+      expect(req.request.body).toEqual(request);
+      req.flush({ workflowId: 'uuid-1' });
+    });
+
+    it('should propagate HTTP errors', () => {
+      const request: UpdateWorkflowRequest = {
+        name: 'test',
+        states: [
+          { code: 'a', name: 'A', terminal: false },
+          { code: 'b', name: 'B', terminal: false },
+        ],
+        transitions: [],
+        initialState: 'a',
+      };
+
+      service.updateWorkflow('uuid-1', request).subscribe({
+        next: () => fail('Expected an error, not a response'),
+        error: (error) => {
+          expect(error.status).toBe(409);
+        },
+      });
+
+      const req = httpMock.expectOne(`${apiBaseUrl}/workflows/uuid-1`);
+      expect(req.request.method).toBe('PUT');
+      req.flush(
+        { detail: 'Cannot update workflow', violations: ['state X has executions'] },
+        { status: 409, statusText: 'Conflict' },
+      );
+    });
+  });
+
+  describe('getWorkflowEditability()', () => {
+    it('should call GET /workflows/{id}/editable and return WorkflowEditability', () => {
+      const mockResponse: WorkflowEditability = {
+        workflowId: 'uuid-1',
+        hasExecutions: true,
+        executionCount: 3,
+        restrictions: {
+          renameableStates: ['created', 'in_review'],
+          lockedStates: ['approved', 'rejected'],
+          lockedReason: 'Referenced by 3 execution(s)',
+          canChangeTerminal: false,
+          canRemoveStates: false,
+          canRenameWorkflow: true,
+          canAddStates: true,
+          canChangeInitialState: true,
+          canAddTransitions: true,
+          canRemoveTransitions: true,
+        },
+      };
+
+      service.getWorkflowEditability('uuid-1').subscribe((result) => {
+        expect(result).toEqual(mockResponse);
+        expect(result.workflowId).toBe('uuid-1');
+        expect(result.restrictions.lockedStates).toEqual(['approved', 'rejected']);
+      });
+
+      const req = httpMock.expectOne(`${apiBaseUrl}/workflows/uuid-1/editable`);
+      expect(req.request.method).toBe('GET');
+      req.flush(mockResponse);
+    });
+
+    it('should propagate 404 error when workflow is not found', () => {
+      service.getWorkflowEditability('non-existent').subscribe({
+        next: () => fail('Expected an error, not a response'),
+        error: (error) => {
+          expect(error.status).toBe(404);
+        },
+      });
+
+      const req = httpMock.expectOne(`${apiBaseUrl}/workflows/non-existent/editable`);
       expect(req.request.method).toBe('GET');
       req.flush(null, { status: 404, statusText: 'Not Found' });
     });
