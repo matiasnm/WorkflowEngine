@@ -17,19 +17,22 @@ export class StateColorService {
   /**
    * Gets existing colors for a workflow or generates and caches new ones.
    * First checks in-memory cache, then localStorage, then generates fresh.
+   * If the cached/stored map doesn't cover all the requested states (e.g. after
+   * a workflow edit that added new states), it reconciles by generating colors
+   * for the missing entries while preserving existing colors.
    */
   getOrCreateColors(workflowId: string, states: StateDefinition[]): Map<string, string> {
     // Check in-memory cache first
     const cached = this.cache.get(workflowId);
     if (cached) {
-      return cached;
+      return this.reconcileColors(workflowId, cached, states);
     }
 
     // Check localStorage
     const stored = loadColorMap(workflowId);
     if (stored) {
       this.cache.set(workflowId, stored);
-      return stored;
+      return this.reconcileColors(workflowId, stored, states);
     }
 
     // Generate new colors
@@ -40,6 +43,28 @@ export class StateColorService {
     this.cache.set(workflowId, colorMap);
     saveColorMap(workflowId, colorMap);
     
+    return colorMap;
+  }
+
+  /**
+   * Ensures the color map covers all requested states.
+   * If states have been added since the map was generated, it regenerates
+   * the full palette so that first=green / last=red is maintained for the
+   * complete set of states.
+   */
+  private reconcileColors(workflowId: string, existing: Map<string, string>, states: StateDefinition[]): Map<string, string> {
+    const missing = states.filter(s => !existing.has(s.code));
+    if (missing.length === 0) {
+      return existing;
+    }
+
+    // Regenerate colours for the full set so the green‑first / red‑last
+    // colour contract is preserved regardless of which states were added.
+    const stateCodes = states.map(s => ({ code: s.code }));
+    const colorMap = generateStateColors(stateCodes);
+
+    this.cache.set(workflowId, colorMap);
+    saveColorMap(workflowId, colorMap);
     return colorMap;
   }
 

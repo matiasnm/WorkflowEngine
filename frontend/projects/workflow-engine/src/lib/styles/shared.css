@@ -158,6 +158,33 @@
 }
 
 /* ═══════════════════════════════════════════════════
+   Edit Button
+   ═══════════════════════════════════════════════════ */
+
+.we-btn--edit {
+  padding: 6px var(--we-spacing, 16px);
+  border: 1px solid var(--we-primary, #1976d2);
+  border-radius: var(--we-border-radius, 8px);
+  background: var(--we-bg, #ffffff);
+  color: var(--we-primary, #1976d2);
+  font-size: var(--we-font-size-base, 0.9rem);
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background var(--we-transition, 0.15s), color var(--we-transition, 0.15s);
+}
+
+.we-btn--edit:hover {
+  background: var(--we-primary, #1976d2);
+  color: #ffffff;
+}
+
+.we-btn--edit:focus-visible {
+  outline: 2px solid var(--we-primary, #1976d2);
+  outline-offset: 2px;
+}
+
+/* ═══════════════════════════════════════════════════
    Delete / Danger Button
    ═══════════════════════════════════════════════════ */
 
