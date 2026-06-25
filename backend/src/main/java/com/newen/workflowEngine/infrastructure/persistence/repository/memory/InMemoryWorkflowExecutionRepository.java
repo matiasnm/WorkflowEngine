@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
@@ -58,5 +59,42 @@ public class InMemoryWorkflowExecutionRepository
             WorkflowExecution execution
     ) {
         storage.put(execution.getId(), execution);
+    }
+
+    @Override
+    public boolean existsByWorkflowId(WorkflowId workflowId) {
+        return !storage.values().stream()
+                .filter(execution -> execution.getWorkflowId().equals(workflowId))
+                .toList().isEmpty();
+    }
+
+    @Override
+    public void deleteById(WorkflowExecutionId id) {
+        storage.remove(id);
+    }
+
+    @Override
+    public boolean existsNonTerminalByWorkflowId(WorkflowId workflowId, Set<String> terminalStateCodes) {
+        return storage.values().stream()
+                .filter(execution -> execution.getWorkflowId().equals(workflowId))
+                .anyMatch(execution -> !terminalStateCodes.contains(execution.getCurrentState().code()));
+    }
+
+    @Override
+    public long countByCurrentStateCode(String stateCode) {
+        return storage.values().stream()
+                .filter(execution -> execution.getCurrentState().code().equals(stateCode))
+                .count();
+    }
+
+    @Override
+    public long countByStateCodeInHistory(String stateCode) {
+        return storage.values().stream()
+                .filter(execution ->
+                    execution.getHistory().stream()
+                        .anyMatch(event ->
+                            event.getFrom().code().equals(stateCode)
+                            || event.getTo().code().equals(stateCode)))
+                .count();
     }
 }

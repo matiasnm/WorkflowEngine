@@ -23,6 +23,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.newen.workflowEngine.api.dto.ExecutionResponse;
 import com.newen.workflowEngine.api.dto.StateResponse;
 import com.newen.workflowEngine.api.mapper.ExecutionResponseMapper;
+import com.newen.workflowEngine.application.usecase.commands.DeleteExecutionUseCase;
 import com.newen.workflowEngine.application.usecase.commands.ExecuteTransitionUseCase;
 import com.newen.workflowEngine.application.usecase.commands.StartWorkflowExecutionUseCase;
 import com.newen.workflowEngine.application.usecase.commands.dto.ExecuteTransitionResult;
@@ -62,6 +63,9 @@ class ExecutionControllerTest {
 
     @MockitoBean
     private ExecutionResponseMapper executionResponseMapper;
+
+    @MockitoBean
+    private DeleteExecutionUseCase deleteExecutionUseCase;
 
 
     @Test

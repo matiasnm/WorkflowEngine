@@ -31,7 +31,18 @@ public class InMemoryWorkflowRepository
     }
 
     @Override
+    public void update(Workflow workflow) {
+        // In-memory has no JPA merge concern — same as save
+        storage.put(workflow.getId(), workflow);
+    }
+
+    @Override
     public List<Workflow> findAll() {
         return List.copyOf(storage.values());
+    }
+
+    @Override
+    public void deleteById(WorkflowId id) {
+        storage.remove(id);
     }
 }

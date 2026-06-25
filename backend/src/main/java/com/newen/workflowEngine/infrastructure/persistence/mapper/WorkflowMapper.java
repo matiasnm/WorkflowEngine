@@ -87,5 +87,73 @@ public class WorkflowMapper {
 
     }
 
+    /**
+     * Reconciles a domain {@link Workflow} with an existing {@link WorkflowEntity}
+     * for UPDATE operations.
+     * <p>
+     * States are matched by {@code code} — existing {@link StateEntity} instances
+     * keep their JPA IDs and are updated in-place; new ones are created; removed
+     * ones are dropped via orphan removal. Transitions are always replaced entirely.
+     * </p>
+     */
+    public WorkflowEntity toEntityForUpdate(Workflow workflow, WorkflowEntity existing) {
+        existing.setName(workflow.getName());
+
+        // Index existing states by code (preserve JPA IDs)
+        Map<String, StateEntity> existingByCode = existing.getStates().stream()
+                .collect(Collectors.toMap(StateEntity::getCode, s -> s));
+
+        List<StateEntity> reconciled = new ArrayList<>();
+
+        for (State state : workflow.getStates()) {
+            StateEntity se = existingByCode.get(state.code());
+            if (se != null) {
+                // Update in-place — keeps same JPA ID
+                se.setName(state.name());
+                se.setTerminal(state.terminal());
+                reconciled.add(se);
+            } else {
+                // New state
+                se = new StateEntity();
+                se.setCode(state.code());
+                se.setName(state.name());
+                se.setTerminal(state.terminal());
+                se.setWorkflow(existing);
+                reconciled.add(se);
+            }
+        }
+        existing.setStates(reconciled);
+
+        // Resolve initial state reference
+        String initialCode = workflow.getInitialState().code();
+        StateEntity initialEntity = reconciled.stream()
+                .filter(s -> s.getCode().equals(initialCode))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException(
+                        "Initial state '" + initialCode + "' not found in reconciled states"));
+        existing.setInitialState(initialEntity);
+
+        // Replace transitions entirely
+        List<TransitionEntity> transitionEntities = workflow.getTransitions().stream()
+                .map(t -> {
+                    TransitionEntity te = new TransitionEntity();
+                    te.setWorkflow(existing);
+                    te.setFrom(findStateEntity(reconciled, t.getFrom().code()));
+                    te.setTo(findStateEntity(reconciled, t.getTo().code()));
+                    return te;
+                })
+                .toList();
+        existing.setTransitions(transitionEntities);
+
+        return existing;
+    }
+
+    private static StateEntity findStateEntity(List<StateEntity> states, String code) {
+        return states.stream()
+                .filter(s -> s.getCode().equals(code))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException(
+                        "State '" + code + "' not found in reconciled states"));
+    }
 
 }

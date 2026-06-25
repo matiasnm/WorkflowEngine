@@ -15,7 +15,11 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.newen.workflowEngine.domain.exception.InvalidTransitionException;
 import com.newen.workflowEngine.domain.exception.StateNotFoundInWorkflowException;
+import com.newen.workflowEngine.domain.exception.ExecutionNotTerminalException;
+import com.newen.workflowEngine.domain.exception.WorkflowEditException;
 import com.newen.workflowEngine.domain.exception.WorkflowExecutionNotFoundException;
+import com.newen.workflowEngine.domain.exception.WorkflowHasActiveExecutionsException;
+import com.newen.workflowEngine.domain.exception.WorkflowHasExecutionsException;
 import com.newen.workflowEngine.domain.exception.WorkflowNotFoundException;
 
 import jakarta.validation.ConstraintViolationException;
@@ -132,6 +136,59 @@ public class GlobalExceptionHandler {
         problem.setTitle("State Not Found");
         problem.setDetail(ex.getMessage());
         problem.setProperty("type", "workflow/state-not-found");
+        problem.setProperty("timestamp", Instant.now());
+
+        return problem;
+    }
+
+    @ExceptionHandler(WorkflowHasExecutionsException.class)
+    public ProblemDetail handleWorkflowHasExecutions(WorkflowHasExecutionsException ex) {
+
+        ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.CONFLICT);
+
+        problem.setTitle("Workflow Has Executions");
+        problem.setDetail(ex.getMessage());
+        problem.setProperty("type", "persistence/data-integrity");
+        problem.setProperty("timestamp", Instant.now());
+
+        return problem;
+    }
+
+    @ExceptionHandler(ExecutionNotTerminalException.class)
+    public ProblemDetail handleExecutionNotTerminal(ExecutionNotTerminalException ex) {
+
+        ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.CONFLICT);
+
+        problem.setTitle("Execution Not Terminal");
+        problem.setDetail(ex.getMessage());
+        problem.setProperty("type", "execution/not-terminal");
+        problem.setProperty("timestamp", Instant.now());
+
+        return problem;
+    }
+
+    @ExceptionHandler(WorkflowHasActiveExecutionsException.class)
+    public ProblemDetail handleWorkflowHasActiveExecutions(WorkflowHasActiveExecutionsException ex) {
+
+        ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.CONFLICT);
+
+        problem.setTitle("Workflow Has Active Executions");
+        problem.setDetail(ex.getMessage());
+        problem.setProperty("type", "workflow/has-active-executions");
+        problem.setProperty("timestamp", Instant.now());
+
+        return problem;
+    }
+
+    @ExceptionHandler(WorkflowEditException.class)
+    public ProblemDetail handleWorkflowEdit(WorkflowEditException ex) {
+
+        ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.CONFLICT);
+
+        problem.setTitle("Workflow Edit Constraint Violation");
+        problem.setDetail(ex.getMessage());
+        problem.setProperty("type", "workflow/edit-constraint");
+        problem.setProperty("violations", ex.getViolations());
         problem.setProperty("timestamp", Instant.now());
 
         return problem;

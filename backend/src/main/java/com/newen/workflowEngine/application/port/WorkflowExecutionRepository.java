@@ -2,6 +2,7 @@ package com.newen.workflowEngine.application.port;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import com.newen.workflowEngine.domain.model.execution.WorkflowExecution;
 import com.newen.workflowEngine.domain.model.execution.WorkflowExecutionId;
@@ -18,4 +19,14 @@ public interface WorkflowExecutionRepository {
     int countByWorkflowId(WorkflowId workflowId);
 
     void save(WorkflowExecution instance);
+
+    boolean existsByWorkflowId(WorkflowId workflowId);
+
+    void deleteById(WorkflowExecutionId id);
+
+    boolean existsNonTerminalByWorkflowId(WorkflowId workflowId, Set<String> terminalStateCodes);
+
+    long countByCurrentStateCode(String stateCode);
+
+    long countByStateCodeInHistory(String stateCode);
 }

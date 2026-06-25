@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import com.newen.workflowEngine.application.port.WorkflowRepository;
 import com.newen.workflowEngine.domain.model.workflow.Workflow;
 import com.newen.workflowEngine.domain.model.workflow.WorkflowId;
+import com.newen.workflowEngine.infrastructure.persistence.entity.WorkflowEntity;
 import com.newen.workflowEngine.infrastructure.persistence.mapper.WorkflowMapper;
 import com.newen.workflowEngine.infrastructure.persistence.repository.jpa.JpaWorkflowRepository;
 
@@ -35,9 +36,15 @@ public class JpaWorkflowPersistenceAdapter implements WorkflowRepository {
 
     @Override
     public void save(Workflow workflow) {
-        repository.save(
-                mapper.toEntity(workflow)
-        );
+        repository.save(mapper.toEntity(workflow));
+    }
+
+    @Override
+    public void update(Workflow workflow) {
+        WorkflowEntity existing = repository.findById(workflow.getId().value())
+                .orElseThrow(() -> new RuntimeException(
+                        "Workflow not found for update: " + workflow.getId().value()));
+        repository.save(mapper.toEntityForUpdate(workflow, existing));
     }
 
     @Override
@@ -45,6 +52,11 @@ public class JpaWorkflowPersistenceAdapter implements WorkflowRepository {
         return repository.findAll().stream()
                 .map(mapper::toDomain)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public void deleteById(WorkflowId workflowId) {
+        repository.deleteById(workflowId.value());    
     }
     
 }

@@ -2,6 +2,7 @@ package com.newen.workflowEngine.infrastructure.persistence.adapter;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.context.annotation.Profile;
 import org.springframework.data.domain.PageRequest;
@@ -81,5 +82,30 @@ public class JpaWorkflowExecutionPersistenceAdapter implements WorkflowExecution
                 execution.getWorkflowId().value()
         );
         repo.save(mapper.toEntity(execution, workflowRef));
+    }
+
+    @Override
+    public boolean existsByWorkflowId(WorkflowId workflowId) {
+        return repo.existsByWorkflow_Id(workflowId.value());
+    }
+
+    @Override
+    public void deleteById(WorkflowExecutionId id) {
+        repo.deleteById(id.value());
+    }
+
+    @Override
+    public boolean existsNonTerminalByWorkflowId(WorkflowId workflowId, Set<String> terminalStateCodes) {
+        return repo.existsNonTerminalByWorkflowId(workflowId.value(), terminalStateCodes);
+    }
+
+    @Override
+    public long countByCurrentStateCode(String stateCode) {
+        return repo.countByCurrentStateCode(stateCode);
+    }
+
+    @Override
+    public long countByStateCodeInHistory(String stateCode) {
+        return repo.countByStateCodeInHistory(stateCode);
     }
 }

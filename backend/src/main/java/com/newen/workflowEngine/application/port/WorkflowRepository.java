@@ -12,5 +12,9 @@ public interface WorkflowRepository {
 
     void save(Workflow workflow);
 
+    void update(Workflow workflow);
+
     List<Workflow> findAll();
+
+    void deleteById(WorkflowId id);
 }

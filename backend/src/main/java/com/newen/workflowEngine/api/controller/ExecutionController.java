@@ -4,12 +4,16 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+
+import org.springframework.http.HttpStatus;
 
 import com.newen.workflowEngine.api.dto.ExecutionPageResponse;
 import com.newen.workflowEngine.api.dto.ExecutionResponse;
@@ -19,6 +23,7 @@ import com.newen.workflowEngine.api.dto.TransitionRequest;
 import com.newen.workflowEngine.api.dto.TransitionResponse;
 import com.newen.workflowEngine.api.dto.WorkflowExecutionCreatedResponse;
 import com.newen.workflowEngine.api.mapper.ExecutionResponseMapper;
+import com.newen.workflowEngine.application.usecase.commands.DeleteExecutionUseCase;
 import com.newen.workflowEngine.application.usecase.commands.ExecuteTransitionUseCase;
 import com.newen.workflowEngine.application.usecase.commands.StartWorkflowExecutionUseCase;
 import com.newen.workflowEngine.application.usecase.commands.dto.ExecuteTransitionResult;
@@ -53,6 +58,7 @@ public class ExecutionController {
     private final GetExecutionUseCase getExecutionUseCase;
     private final ListExecutionsUseCase listExecutionsUseCase;
     private final ExecutionResponseMapper executionResponseMapper;
+    private final DeleteExecutionUseCase deleteExecutionUseCase;
 
     public ExecutionController(
             StartWorkflowExecutionUseCase startUseCase,
@@ -61,7 +67,8 @@ public class ExecutionController {
             GetHistoryUseCase historyUseCase,
             GetExecutionUseCase getExecutionUseCase,
             ListExecutionsUseCase listExecutionsUseCase,
-            ExecutionResponseMapper executionResponseMapper
+            ExecutionResponseMapper executionResponseMapper,
+            DeleteExecutionUseCase deleteExecutionUseCase
     ) {
         this.startUseCase = startUseCase;
         this.transitionUseCase = transitionUseCase;
@@ -70,6 +77,7 @@ public class ExecutionController {
         this.getExecutionUseCase = getExecutionUseCase;
         this.listExecutionsUseCase = listExecutionsUseCase;
         this.executionResponseMapper = executionResponseMapper;
+        this.deleteExecutionUseCase = deleteExecutionUseCase;
     }
 
 
@@ -152,6 +160,20 @@ public class ExecutionController {
         return executionResponseMapper.toExecutionResponse(execution);
     }
 
+
+    @DeleteMapping("/executions/{executionId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Operation(summary = "Delete a terminal execution")
+    @ApiResponse(responseCode = "204", description = "Execution deleted")
+    @ApiResponse(responseCode = "404", description = "Execution not found",
+        content = @Content(schema = @Schema(implementation = org.springframework.http.ProblemDetail.class)))
+    @ApiResponse(responseCode = "409", description = "Execution is not in a terminal state",
+        content = @Content(schema = @Schema(implementation = org.springframework.http.ProblemDetail.class)))
+    public void deleteExecution(
+            @Parameter(description = "Execution unique identifier")
+            @PathVariable("executionId") UUID executionId) {
+        deleteExecutionUseCase.execute(new WorkflowExecutionId(executionId));
+    }
 
     @GetMapping("/executions/{executionId}/next-states")
     @Operation(summary = "Get available next states for an execution")

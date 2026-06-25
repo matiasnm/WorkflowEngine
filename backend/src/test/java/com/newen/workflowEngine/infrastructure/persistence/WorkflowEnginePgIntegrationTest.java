@@ -1,9 +1,11 @@
 package com.newen.workflowEngine.infrastructure.persistence;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import java.util.List;
 import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +35,8 @@ import com.newen.workflowEngine.infrastructure.persistence.adapter.JpaWorkflowPe
 import com.newen.workflowEngine.infrastructure.persistence.mapper.StateChangedMapper;
 import com.newen.workflowEngine.infrastructure.persistence.mapper.WorkflowExecutionMapper;
 import com.newen.workflowEngine.infrastructure.persistence.mapper.WorkflowMapper;
+
+import jakarta.persistence.EntityManager;
 
 /**
  * Integration test que valida el persistence layer completo (Workflow + Execution + History)
@@ -82,6 +86,7 @@ class WorkflowEnginePgIntegrationTest {
         registry.add("spring.datasource.url", postgres::getJdbcUrl);
         registry.add("spring.datasource.username", postgres::getUsername);
         registry.add("spring.datasource.password", postgres::getPassword);
+        registry.add("spring.datasource.driver-class-name", () -> "org.postgresql.Driver");
         registry.add("spring.jpa.database-platform", () -> "org.hibernate.dialect.PostgreSQLDialect");
         registry.add("spring.jpa.hibernate.ddl-auto", () -> "update");
     }
@@ -94,6 +99,130 @@ class WorkflowEnginePgIntegrationTest {
 
     @Autowired
     private TestEntityManager em;
+
+    @Test
+    void should_cascade_delete_workflow_to_states_and_transitions() {
+        // ── Arrange ────────────────────────────────────
+        State created = new State("created", "CREATED", false);
+        State review  = new State("review", "REVIEW", false);
+
+        Workflow workflow = new Workflow(
+                new WorkflowId(UUID.randomUUID()),
+                "Cascade Test Workflow",
+                List.of(created, review),
+                List.of(new Transition(created, review)),
+                created
+        );
+
+        workflowRepository.save(workflow);
+        em.flush();
+        em.clear();
+
+        // Verify data exists before delete
+        var workflowId = workflow.getId().value();
+        Long stateCount = (Long) em.getEntityManager()
+                .createNativeQuery("SELECT COUNT(*) FROM state WHERE workflow_id = ?1")
+                .setParameter(1, workflowId)
+                .getSingleResult();
+        assertEquals(2, stateCount, "Should have 2 states before delete");
+
+        Long transitionCount = (Long) em.getEntityManager()
+                .createNativeQuery("SELECT COUNT(*) FROM transition WHERE workflow_id = ?1")
+                .setParameter(1, workflowId)
+                .getSingleResult();
+        assertEquals(1, transitionCount, "Should have 1 transition before delete");
+
+        // ── Act: delete via repository (uses JPA CascadeType.ALL) ──
+        workflowRepository.deleteById(workflow.getId());
+
+        em.flush();
+        em.clear();
+
+        // ── Assert: cascade deleted states and transitions ──
+        Long stateCountAfter = (Long) em.getEntityManager()
+                .createNativeQuery("SELECT COUNT(*) FROM state WHERE workflow_id = ?1")
+                .setParameter(1, workflowId)
+                .getSingleResult();
+        assertEquals(0, stateCountAfter, "States should be cascade-deleted");
+
+        Long transitionCountAfter = (Long) em.getEntityManager()
+                .createNativeQuery("SELECT COUNT(*) FROM transition WHERE workflow_id = ?1")
+                .setParameter(1, workflowId)
+                .getSingleResult();
+        assertEquals(0, transitionCountAfter, "Transitions should be cascade-deleted");
+
+        // Workflow itself should be gone
+        assertFalse(workflowRepository.findById(workflow.getId()).isPresent(),
+                "Workflow should be deleted");
+    }
+
+    @Test
+    void should_cascade_delete_execution_to_state_changed_history() {
+        // ── Arrange ────────────────────────────────────
+        State created = new State("created", "CREATED", false);
+        State review  = new State("review", "REVIEW", false);
+        State approved = new State("approved", "APPROVED", true);
+
+        Workflow workflow = new Workflow(
+                new WorkflowId(UUID.randomUUID()),
+                "Cascade Execution Test",
+                List.of(created, review, approved),
+                List.of(
+                        new Transition(created, review),
+                        new Transition(review, approved)
+                ),
+                created
+        );
+
+        workflowRepository.save(workflow);
+
+        Workflow loadedWorkflow = workflowRepository
+                .findById(workflow.getId())
+                .orElseThrow();
+
+        WorkflowExecution execution = new WorkflowExecution(
+                new WorkflowExecutionId(UUID.randomUUID()),
+                loadedWorkflow.getId(),
+                created
+        );
+
+        // Execute a transition to create history
+        WorkflowEngine engine = new WorkflowEngine();
+        var result = engine.transition(loadedWorkflow, execution, review);
+        executionRepository.save(result.execution());
+
+        em.flush();
+        em.clear();
+
+        // Verify history exists before delete
+        var executionId = execution.getId().value();
+        Long historyCount = (Long) em.getEntityManager()
+                .createNativeQuery("SELECT COUNT(*) FROM state_changed WHERE execution_id = ?1")
+                .setParameter(1, executionId)
+                .getSingleResult();
+        assertEquals(1, historyCount, "Should have 1 history entry before delete");
+
+        // ── Act: delete via repository (uses JPA CascadeType.ALL) ──
+        executionRepository.deleteById(execution.getId());
+
+        em.flush();
+        em.clear();
+
+        // ── Assert: cascade deleted state_changed rows ──
+        Long historyCountAfter = (Long) em.getEntityManager()
+                .createNativeQuery("SELECT COUNT(*) FROM state_changed WHERE execution_id = ?1")
+                .setParameter(1, executionId)
+                .getSingleResult();
+        assertEquals(0, historyCountAfter, "State changed history should be cascade-deleted");
+
+        // Execution itself should be gone
+        assertFalse(executionRepository.findById(execution.getId()).isPresent(),
+                "Execution should be deleted");
+
+        // Workflow should still exist (execution cascade should not affect workflow)
+        assertTrue(workflowRepository.findById(workflow.getId()).isPresent(),
+                "Workflow should still exist after execution delete");
+    }
 
     @Test
     void should_execute_transition_and_persist_execution_and_event_in_postgres() {

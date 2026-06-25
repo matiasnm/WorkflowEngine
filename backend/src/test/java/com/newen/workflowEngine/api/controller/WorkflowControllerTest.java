@@ -22,6 +22,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.newen.workflowEngine.api.mapper.WorkflowRequestMapper;
 import com.newen.workflowEngine.api.mapper.WorkflowResponseMapper;
 import com.newen.workflowEngine.application.usecase.commands.CreateWorkflowUseCase;
+import com.newen.workflowEngine.application.usecase.commands.DeleteWorkflowUseCase;
+import com.newen.workflowEngine.application.usecase.commands.UpdateWorkflowUseCase;
 import com.newen.workflowEngine.application.usecase.queries.GetWorkflowUseCase;
 import com.newen.workflowEngine.application.usecase.queries.ListWorkflowsUseCase;
 import com.newen.workflowEngine.domain.model.workflow.State;
@@ -49,6 +51,12 @@ class WorkflowControllerTest {
 
     @MockitoBean
     private WorkflowResponseMapper workflowResponseMapper;
+
+    @MockitoBean
+    private DeleteWorkflowUseCase deleteWorkflowUseCase;
+
+    @MockitoBean
+    private UpdateWorkflowUseCase updateWorkflowUseCase;
 
     @Test
     void should_create_workflow() throws Exception {
