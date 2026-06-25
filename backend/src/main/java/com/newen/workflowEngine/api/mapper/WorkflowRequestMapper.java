@@ -1,5 +1,6 @@
 package com.newen.workflowEngine.api.mapper;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -21,7 +22,9 @@ public class WorkflowRequestMapper {
         return request.states().stream()
                 .collect(Collectors.toMap(
                         StateRequest::code,
-                        s -> new State(s.code(), s.name(), s.terminal())
+                        s -> new State(s.code(), s.name(), s.terminal()),
+                        (a, b) -> a,
+                        LinkedHashMap::new
                 ));
     }
     public List<Transition> buildTransitions(

@@ -1,5 +1,6 @@
 package com.newen.workflowEngine.infrastructure.persistence.mapper;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -21,7 +22,9 @@ final class WorkflowContext {
         Map<String, State> states = entity.getStates().stream()
             .collect(Collectors.toMap(
                     StateEntity::getCode,
-                    s -> new State(s.getCode(), s.getName(), s.isTerminal())
+                    s -> new State(s.getCode(), s.getName(), s.isTerminal()),
+                    (a, b) -> a,
+                    LinkedHashMap::new
             ));
         return new WorkflowContext(states);
     }
