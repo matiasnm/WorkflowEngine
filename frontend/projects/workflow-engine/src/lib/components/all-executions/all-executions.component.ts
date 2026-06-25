@@ -44,36 +44,48 @@ import { StateColorService } from '../../services/state-color.service';
       @if (!executions.loading() && !executions.error() && (executions.data() ?? []).length > 0) {
         <div class="we-all-executions__table-wrapper">
           <table class="we-all-executions__table">
-            <thead>
-              <tr>
-                <th>Workflow</th>
-                <th>ID</th>
-                <th>State</th>
-                <th>Since</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (exec of executions.data(); track exec.id) {
-                <tr
-                  class="we-execution-row"
-                  (click)="selectExecution(exec.id)"
-                  [attr.aria-label]="'View execution ' + truncateId(exec.id)"
-                >
-                  <td>{{ exec.workflowName }}</td>
-                  <td><code>{{ truncateId(exec.id) }}</code></td>
-                  <td>
-                    <span class="we-state-swatch" [style.background-color]="getStateColor(exec.workflowId, exec.currentState.code)"></span>
-                    <span class="we-execution-state">{{ exec.currentState.name }}</span>
-                    <span class="we-execution-state-code">({{ exec.currentState.code }})</span>
-                  </td>
-                  <td>
-                    @if (exec.currentStateSince) {
-                      {{ exec.currentStateSince | date:'short' }}
-                    }
-                  </td>
+              <thead>
+                <tr>
+                  <th>Workflow</th>
+                  <th>ID</th>
+                  <th>State</th>
+                  <th>Since</th>
+                  <th aria-label="Actions"></th>
                 </tr>
-              }
-            </tbody>
+              </thead>
+              <tbody>
+                @for (exec of executions.data(); track exec.id) {
+                  <tr
+                    class="we-execution-row"
+                    (click)="selectExecution(exec.id)"
+                    [attr.aria-label]="'View execution ' + truncateId(exec.id)"
+                  >
+                    <td>{{ exec.workflowName }}</td>
+                    <td><code>{{ truncateId(exec.id) }}</code></td>
+                    <td>
+                      <span class="we-state-swatch" [style.background-color]="getStateColor(exec.workflowId, exec.currentState.code)"></span>
+                      <span class="we-execution-state">{{ exec.currentState.name }}</span>
+                      <span class="we-execution-state-code">({{ exec.currentState.code }})</span>
+                    </td>
+                    <td>
+                      @if (exec.currentStateSince) {
+                        {{ exec.currentStateSince | date:'short' }}
+                      }
+                    </td>
+                    <td class="we-execution-actions">
+                      <button
+                        type="button"
+                        class="we-btn-icon we-btn-icon--delete"
+                        (click)="deleteExecution($event, exec.id)"
+                        aria-label="Delete execution"
+                        title="Delete execution"
+                      >
+                        ✕
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
           </table>
         </div>
       }
@@ -200,6 +212,27 @@ import { StateColorService } from '../../services/state-color.service';
       font-size: var(--we-font-size-sm, 0.85rem);
       margin-left: var(--we-spacing-xs, 4px);
     }
+
+    .we-execution-actions {
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .we-btn-icon--delete {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px 8px;
+      font-size: 1rem;
+      color: var(--we-text-secondary, #757575);
+      border-radius: var(--we-border-radius-sm, 4px);
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .we-btn-icon--delete:hover {
+      background: var(--we-error-alpha-low, rgba(244, 67, 54, 0.08));
+      color: var(--we-error, #e53935);
+    }
   `],
 })
 export class AllExecutionsComponent {
@@ -286,5 +319,21 @@ export class AllExecutionsComponent {
 
   protected getStateColor(workflowId: string, stateCode: string): string | null {
     return this.stateColorService.getColor(workflowId, stateCode);
+  }
+
+  protected deleteExecution(event: MouseEvent, id: string): void {
+    event.stopPropagation();
+    if (!confirm('Are you sure you want to delete this execution?')) {
+      return;
+    }
+    this.api.deleteExecution(id).subscribe({
+      next: () => {
+        this.executions.refresh();
+      },
+      error: (err) => {
+        const message = err?.error?.detail ?? err?.message ?? 'Failed to delete execution.';
+        this.errorEvent.emit(message);
+      },
+    });
   }
 }

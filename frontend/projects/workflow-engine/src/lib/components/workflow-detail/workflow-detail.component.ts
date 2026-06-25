@@ -14,7 +14,7 @@ import { ErrorBannerComponent } from '../ui';
   styleUrl: '../../styles/shared.css',
   template: `
     <div class="we-workflow-detail">
-      <!-- Header with back button and delete button -->
+      <!-- Header with back button, edit button, and delete button -->
       <div class="we-workflow-detail__header">
         <button
           class="we-btn we-btn--back"
@@ -22,6 +22,13 @@ import { ErrorBannerComponent } from '../ui';
           aria-label="Back to workflows"
         >
           ← Back
+        </button>
+        <button
+          class="we-btn we-btn--edit"
+          (click)="goToEdit()"
+          aria-label="Edit workflow"
+        >
+          Edit
         </button>
         <button
           class="we-btn we-btn--delete"
@@ -140,7 +147,7 @@ import { ErrorBannerComponent } from '../ui';
       margin-bottom: var(--we-spacing, 16px);
     }
 
-    .we-workflow-detail__header .we-btn--delete {
+    .we-workflow-detail__header .we-btn--edit {
       margin-left: auto;
     }
 
@@ -305,6 +312,9 @@ export class WorkflowDetailComponent {
   /** Emitted when the user clicks an execution in the list. */
   @Output() executionSelected = new EventEmitter<string>();
 
+  /** Emitted when the user clicks the Edit button. */
+  @Output() editWorkflow = new EventEmitter<string>();
+
   /** Emitted when the workflow is successfully deleted. */
   @Output() workflowDeleted = new EventEmitter<string>();
 
@@ -366,6 +376,10 @@ export class WorkflowDetailComponent {
 
   protected goBack(): void {
     this.back.emit();
+  }
+
+  protected goToEdit(): void {
+    this.editWorkflow.emit(this.workflowId());
   }
 
   protected deleteWorkflow(): void {
