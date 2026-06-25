@@ -79,7 +79,7 @@ public class WorkflowMapper {
                         );
                         return te;
                 })
-                .toList();
+                .collect(Collectors.toList());
 
         entity.setTransitions(transitions);
 
@@ -99,51 +99,57 @@ public class WorkflowMapper {
     public WorkflowEntity toEntityForUpdate(Workflow workflow, WorkflowEntity existing) {
         existing.setName(workflow.getName());
 
-        // Index existing states by code (preserve JPA IDs)
+        // ── Reconcile states in-place ──
+        // Build set of incoming state codes so we can remove any state that no longer exists.
+        java.util.Set<String> incomingCodes = workflow.getStates().stream()
+                .map(State::code)
+                .collect(Collectors.toSet());
+
+        // Remove states whose code is NOT in the incoming set → orphan removal deletes them
+        existing.getStates().removeIf(se -> !incomingCodes.contains(se.getCode()));
+
+        // Index remaining (still-managed) states by code for fast lookup
         Map<String, StateEntity> existingByCode = existing.getStates().stream()
                 .collect(Collectors.toMap(StateEntity::getCode, s -> s));
 
-        List<StateEntity> reconciled = new ArrayList<>();
-
+        // Update existing states in-place and add new ones to the managed collection
         for (State state : workflow.getStates()) {
             StateEntity se = existingByCode.get(state.code());
             if (se != null) {
-                // Update in-place — keeps same JPA ID
+                // Update in-place — keeps same JPA ID, Hibernate tracks the change
                 se.setName(state.name());
                 se.setTerminal(state.terminal());
-                reconciled.add(se);
             } else {
-                // New state
+                // New state — add directly to the managed collection
                 se = new StateEntity();
                 se.setCode(state.code());
                 se.setName(state.name());
                 se.setTerminal(state.terminal());
                 se.setWorkflow(existing);
-                reconciled.add(se);
+                existing.getStates().add(se);
             }
         }
-        existing.setStates(reconciled);
 
-        // Resolve initial state reference
+        // ── Resolve initial state ──
         String initialCode = workflow.getInitialState().code();
-        StateEntity initialEntity = reconciled.stream()
+        StateEntity initialEntity = existing.getStates().stream()
                 .filter(s -> s.getCode().equals(initialCode))
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException(
                         "Initial state '" + initialCode + "' not found in reconciled states"));
         existing.setInitialState(initialEntity);
 
-        // Replace transitions entirely
-        List<TransitionEntity> transitionEntities = workflow.getTransitions().stream()
-                .map(t -> {
-                    TransitionEntity te = new TransitionEntity();
-                    te.setWorkflow(existing);
-                    te.setFrom(findStateEntity(reconciled, t.getFrom().code()));
-                    te.setTo(findStateEntity(reconciled, t.getTo().code()));
-                    return te;
-                })
-                .toList();
-        existing.setTransitions(transitionEntities);
+        // ── Replace transitions entirely ──
+        // Clear the managed collection first (orphan removal deletes removed transitions),
+        // then add each new transition to the SAME collection (never replace the reference).
+        existing.getTransitions().clear();
+        for (Transition t : workflow.getTransitions()) {
+            TransitionEntity te = new TransitionEntity();
+            te.setWorkflow(existing);
+            te.setFrom(findStateEntity(existing.getStates(), t.getFrom().code()));
+            te.setTo(findStateEntity(existing.getStates(), t.getTo().code()));
+            existing.getTransitions().add(te);
+        }
 
         return existing;
     }

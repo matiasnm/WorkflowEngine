@@ -15,12 +15,14 @@ import org.springframework.web.bind.annotation.RestController;
 import com.newen.workflowEngine.api.dto.CreateWorkflowRequest;
 import com.newen.workflowEngine.api.dto.CreateWorkflowResponse;
 import com.newen.workflowEngine.api.dto.WorkflowDetailResponse;
+import com.newen.workflowEngine.api.dto.WorkflowEditabilityResponse;
 import com.newen.workflowEngine.api.dto.WorkflowSummaryResponse;
 import com.newen.workflowEngine.api.mapper.WorkflowRequestMapper;
 import com.newen.workflowEngine.api.mapper.WorkflowResponseMapper;
 import com.newen.workflowEngine.application.usecase.commands.CreateWorkflowUseCase;
 import com.newen.workflowEngine.application.usecase.commands.DeleteWorkflowUseCase;
 import com.newen.workflowEngine.application.usecase.commands.UpdateWorkflowUseCase;
+import com.newen.workflowEngine.application.usecase.queries.GetWorkflowEditabilityUseCase;
 import com.newen.workflowEngine.application.usecase.queries.GetWorkflowUseCase;
 import com.newen.workflowEngine.application.usecase.queries.ListWorkflowsUseCase;
 import com.newen.workflowEngine.domain.model.workflow.State;
@@ -47,6 +49,7 @@ public class WorkflowController {
     private final WorkflowResponseMapper workflowResponseMapper;
     private final DeleteWorkflowUseCase deleteWorkflowUseCase;
     private final UpdateWorkflowUseCase updateWorkflowUseCase;
+    private final GetWorkflowEditabilityUseCase getWorkflowEditabilityUseCase;
 
     public WorkflowController(
             CreateWorkflowUseCase createUseCase,
@@ -55,7 +58,8 @@ public class WorkflowController {
             WorkflowRequestMapper workflowRequestMapper,
             WorkflowResponseMapper workflowResponseMapper,
             DeleteWorkflowUseCase deleteWorkflowUseCase,
-            UpdateWorkflowUseCase updateWorkflowUseCase
+            UpdateWorkflowUseCase updateWorkflowUseCase,
+            GetWorkflowEditabilityUseCase getWorkflowEditabilityUseCase
     ) {
         this.createUseCase = createUseCase;
         this.listWorkflowsUseCase = listWorkflowsUseCase;
@@ -64,6 +68,7 @@ public class WorkflowController {
         this.workflowResponseMapper = workflowResponseMapper;
         this.deleteWorkflowUseCase = deleteWorkflowUseCase;
         this.updateWorkflowUseCase = updateWorkflowUseCase;
+        this.getWorkflowEditabilityUseCase = getWorkflowEditabilityUseCase;
     }
 
 
@@ -128,6 +133,17 @@ public class WorkflowController {
             statesByCode.get(request.initialState())
         );
         return workflowResponseMapper.toDetail(workflow);
+    }
+
+    @GetMapping("/workflows/{workflowId}/editable")
+    @Operation(summary = "Get workflow editability pre-flight information")
+    @ApiResponse(responseCode = "200", description = "Editability info retrieved")
+    @ApiResponse(responseCode = "404", description = "Workflow not found",
+        content = @Content(schema = @Schema(implementation = org.springframework.http.ProblemDetail.class)))
+    public WorkflowEditabilityResponse getWorkflowEditability(
+            @Parameter(description = "Workflow unique identifier")
+            @PathVariable("workflowId") UUID workflowId) {
+        return getWorkflowEditabilityUseCase.execute(workflowId);
     }
 
     @DeleteMapping("/workflows/{workflowId}")
