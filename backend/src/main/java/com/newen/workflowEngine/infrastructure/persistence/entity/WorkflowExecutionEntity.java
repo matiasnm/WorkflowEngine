@@ -37,6 +37,9 @@ public class WorkflowExecutionEntity {
     )
     private List<StateChangedEntity> history = new ArrayList<>();
 
+    @Column(name = "context", columnDefinition = "TEXT")
+    private String context;
+
     public UUID getId() {
         return id;
     }
@@ -67,5 +70,13 @@ public class WorkflowExecutionEntity {
 
     public void setHistory(List<StateChangedEntity> history) {
         this.history = history;
+    }
+
+    public String getContext() {
+        return context;
+    }
+
+    public void setContext(String context) {
+        this.context = context;
     }
 }

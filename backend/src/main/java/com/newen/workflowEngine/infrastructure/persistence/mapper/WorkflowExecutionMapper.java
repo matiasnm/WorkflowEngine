@@ -1,10 +1,14 @@
 package com.newen.workflowEngine.infrastructure.persistence.mapper;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.newen.workflowEngine.domain.event.StateChanged;
 import com.newen.workflowEngine.domain.model.execution.WorkflowExecution;
 import com.newen.workflowEngine.domain.model.execution.WorkflowExecutionId;
@@ -18,6 +22,7 @@ import com.newen.workflowEngine.infrastructure.persistence.entity.WorkflowExecut
 public class WorkflowExecutionMapper {
 
     private final StateChangedMapper stateChangedMapper;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public WorkflowExecutionMapper(StateChangedMapper stateChangedMapper) {
         this.stateChangedMapper = stateChangedMapper;
@@ -32,6 +37,7 @@ public class WorkflowExecutionMapper {
         entity.setId(execution.getId().value());
         entity.setWorkflow(workflowEntity);
         entity.setCurrentStateCode(execution.getCurrentState().code());
+        entity.setContext(serializeContext(execution.getContext()));
         
         List<StateChangedEntity> historyEntities = execution.getHistory().stream()
             .map(event -> stateChangedMapper.toEntity(event, entity))
@@ -66,8 +72,27 @@ public class WorkflowExecutionMapper {
             new WorkflowExecutionId(entity.getId()),
             workflow.getId(),
             current,
-            history
+            history,
+            deserializeContext(entity.getContext())
         );   
+    }
+
+    Map<String, Object> deserializeContext(String json) {
+        if (json == null || json.isBlank()) return Map.of();
+        try {
+            return objectMapper.readValue(json, new TypeReference<Map<String, Object>>() {});
+        } catch (JsonProcessingException e) {
+            return Map.of();
+        }
+    }
+
+    String serializeContext(Map<String, Object> context) {
+        if (context == null || context.isEmpty()) return null;
+        try {
+            return objectMapper.writeValueAsString(context);
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Failed to serialize execution context", e);
+        }
     }
 
 }
