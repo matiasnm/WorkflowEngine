@@ -42,16 +42,36 @@
 - [x] Shell-level error handling (global toast/snackbar)
 - [x] Workflow list search/filter — [spec](features/frontend-polish.md)
 
+### Frontend polish iteration 2
+- [x] Move "New Workflow" button to navbar
+- [x] Back navigation after create → home
+- [x] Back button on executions page
+- [x] Executions tab: aggregate per-workflow API calls via `WorkflowCacheService`
+- [x] Auto-create transitions when adding states
+- [x] History toggle: detail vs condensed view
+- [x] Remove redundant toast + inline error for load failures
+
 ---
 
-## v0.6 — Integrations & CRUD (planned)
+## v0.5 — Workflow & Execution CRUD ✅
+
+- [x] Delete workflow (guarded: blocks if any executions exist) — [spec](features/v1/workflow-execution-crud.md)
+- [x] Delete execution (guarded: terminal state only) — [spec](features/v1/workflow-execution-crud.md)
+- [x] Modify/update workflow (PUT, with smart edit-constraint validation) — [spec](features/v1/workflow-execution-crud.md)
+- [x] Pre-flight editability endpoint (`GET /workflows/{id}/editable`)
+- [x] Frontend: delete buttons with confirmation dialogs
+- [x] Frontend: pre-filled edit workflow form
+- [x] DB cascade deletes (Flyway V3)
+
+---
+
+## v0.6 — Integrations (planned)
 
 ### Backend
-- [ ] Observability: Prometheus metrics + structured JSON logging + Grafana — [spec](features/observability-and-webhooks.md)
-- [ ] Webhooks: per-execution callback URL — [spec](features/observability-and-webhooks.md)
-- [ ] Delete workflow + execution, modify workflow — [spec](features/workflow-execution-crud.md)
-- [ ] Execution context (metadata) — [spec](features/execution-context.md)
-- [ ] API key authentication — [spec](features/api-key-auth.md)
+- [ ] Observability: Prometheus metrics + structured JSON logging + Grafana — [spec](features/v1/observability-and-webhooks.md)
+- [ ] Webhooks: per-execution callback URL — [spec](features/v1/observability-and-webhooks.md)
+- [x] Execution context (metadata) — [spec](features/v1/execution-context.md)
+- [ ] API key authentication — [spec](features/v1/api-key-auth.md)
 
 ---
 
