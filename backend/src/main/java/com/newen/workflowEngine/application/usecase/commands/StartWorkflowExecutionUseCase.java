@@ -1,5 +1,6 @@
 package com.newen.workflowEngine.application.usecase.commands;
 
+import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -31,6 +32,14 @@ public class StartWorkflowExecutionUseCase {
     public WorkflowExecution execute(
             WorkflowId workflowId
     ) {
+        return execute(workflowId, null);
+    }
+
+    @Transactional
+    public WorkflowExecution execute(
+            WorkflowId workflowId,
+            Map<String, Object> context
+    ) {
 
         Workflow workflow = workflowRepository.findById(workflowId)
         .orElseThrow(() -> new WorkflowNotFoundException("Workflow not found"));
@@ -41,7 +50,8 @@ public class StartWorkflowExecutionUseCase {
                 new WorkflowExecution(
                         new WorkflowExecutionId(UUID.randomUUID()),
                         workflow.getId(),
-                        workflow.getInitialState()
+                        workflow.getInitialState(),
+                        context
                 );
 
         executionRepository.save(execution);

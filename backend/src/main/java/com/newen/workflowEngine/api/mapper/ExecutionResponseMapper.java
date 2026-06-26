@@ -1,6 +1,7 @@
 package com.newen.workflowEngine.api.mapper;
 
 import java.time.Instant;
+import java.util.Map;
 
 import org.springframework.stereotype.Component;
 
@@ -17,11 +18,13 @@ public class ExecutionResponseMapper {
         Instant currentStateSince = execution.getHistory().isEmpty()
                 ? null
                 : execution.getHistory().getLast().getTimestamp();
+        Map<String, Object> context = execution.getContext().isEmpty() ? null : execution.getContext();
         return new ExecutionResponse(
                 execution.getId().value(),
                 execution.getWorkflowId().value(),
                 new StateResponse(current.code(), current.name(), current.terminal()),
-                currentStateSince
+                currentStateSince,
+                context
         );
     }
 }

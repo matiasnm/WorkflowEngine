@@ -1,6 +1,7 @@
 package com.newen.workflowEngine.api.dto;
 
 import java.time.Instant;
+import java.util.Map;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -17,5 +18,7 @@ public record ExecutionResponse(
     @Schema(description = "Current state of the execution")
     StateResponse currentState,
     @Schema(description = "When the execution entered the current state", example = "2026-06-20T10:30:00Z")
-    Instant currentStateSince
+    Instant currentStateSince,
+    @Schema(description = "Arbitrary JSON metadata attached when the execution was started")
+    Map<String, Object> context
 ) {}

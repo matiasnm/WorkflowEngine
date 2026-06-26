@@ -1,6 +1,7 @@
 package com.newen.workflowEngine.api.controller;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.validation.annotation.Validated;
@@ -19,6 +20,7 @@ import com.newen.workflowEngine.api.dto.ExecutionPageResponse;
 import com.newen.workflowEngine.api.dto.ExecutionResponse;
 import com.newen.workflowEngine.api.dto.HistoryItemResponse;
 import com.newen.workflowEngine.api.dto.NextStatesResponse;
+import com.newen.workflowEngine.api.dto.StartExecutionRequest;
 import com.newen.workflowEngine.api.dto.TransitionRequest;
 import com.newen.workflowEngine.api.dto.TransitionResponse;
 import com.newen.workflowEngine.api.dto.WorkflowExecutionCreatedResponse;
@@ -88,10 +90,12 @@ public class ExecutionController {
         content = @Content(schema = @Schema(implementation = org.springframework.http.ProblemDetail.class)))
     public WorkflowExecutionCreatedResponse start(
             @Parameter(description = "Workflow unique identifier")
-            @PathVariable("workflowId") UUID workflowId
+            @PathVariable("workflowId") UUID workflowId,
+            @RequestBody(required = false) StartExecutionRequest request
     ) {
+        Map<String, Object> context = request != null ? request.context() : null;
         return new WorkflowExecutionCreatedResponse(
-            startUseCase.execute(new WorkflowId(workflowId)).getId().value()
+            startUseCase.execute(new WorkflowId(workflowId), context).getId().value()
         );
     }
 
