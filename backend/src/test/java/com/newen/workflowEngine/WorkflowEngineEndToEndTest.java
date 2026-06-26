@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -147,5 +148,91 @@ class WorkflowEngineEndToEndTest {
                 .value("review"))
         .andExpect(jsonPath("$[0].toStateName")
                 .value("REVIEW"));
+    }
+
+    @Test
+    void should_start_execution_with_context() throws Exception {
+
+        String workflowJson = """
+        {
+          "name": "Context Test Workflow",
+          "states": [
+            {
+              "code": "created",
+              "name": "CREATED",
+              "terminal": false
+            },
+            {
+              "code": "done",
+              "name": "DONE",
+              "terminal": true
+            }
+          ],
+          "transitions": [
+            {
+              "from": "created",
+              "to": "done"
+            }
+          ],
+          "initialState": "created"
+        }
+        """;
+
+        // CREATE WORKFLOW
+        MvcResult workflowResult =
+                mockMvc.perform(
+                        post("/workflows")
+                                .contentType("application/json")
+                                .content(workflowJson)
+                )
+                .andExpect(status().isOk())
+                .andReturn();
+
+        UUID workflowId = UUID.fromString(
+                objectMapper.readTree(workflowResult.getResponse().getContentAsString())
+                        .get("workflowId").asString()
+        );
+
+        // START EXECUTION WITH CONTEXT
+        String startRequest = """
+        {
+          "context": {
+            "orderId": "ORD-123",
+            "amount": 4500,
+            "customer": "acme-corp"
+          }
+        }
+        """;
+
+        MvcResult executionResult =
+                mockMvc.perform(
+                        post("/workflows/{workflowId}/executions", workflowId)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(startRequest)
+                )
+                .andExpect(status().isOk())
+                .andReturn();
+
+        UUID executionId = UUID.fromString(
+                objectMapper.readTree(executionResult.getResponse().getContentAsString())
+                        .get("executionId").asString()
+        );
+
+        // GET EXECUTION AND VERIFY CONTEXT
+        mockMvc.perform(
+                get("/executions/{executionId}", executionId)
+        )
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.context.orderId").value("ORD-123"))
+        .andExpect(jsonPath("$.context.amount").value(4500))
+        .andExpect(jsonPath("$.context.customer").value("acme-corp"));
+
+        // LIST EXECUTIONS AND VERIFY CONTEXT IN LIST
+        mockMvc.perform(
+                get("/workflows/{workflowId}/executions", workflowId)
+        )
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content[0].context.orderId").value("ORD-123"))
+        .andExpect(jsonPath("$.content[0].context.amount").value(4500));
     }
 }

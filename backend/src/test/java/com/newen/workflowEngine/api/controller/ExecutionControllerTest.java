@@ -2,6 +2,7 @@ package com.newen.workflowEngine.api.controller;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -78,11 +79,45 @@ class ExecutionControllerTest {
                 new WorkflowId(workflowId),
                 new State("created", "CREATED", false)
         );
-        when(startUseCase.execute(any(WorkflowId.class))).thenReturn(execution);
+        when(startUseCase.execute(any(WorkflowId.class), any())).thenReturn(execution);
 
         // Act & Assert
         mockMvc.perform(
                 post("/workflows/{workflowId}/executions", workflowId)
+        )
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.executionId").value(executionId.toString()));
+    }
+
+    @Test
+    void should_start_execution_with_context() throws Exception {
+        // Arrange
+        UUID workflowId = UUID.randomUUID();
+        UUID executionId = UUID.randomUUID();
+        Map<String, Object> context = Map.of("orderId", "ORD-123", "amount", 4500);
+        WorkflowExecution execution = new WorkflowExecution(
+                new WorkflowExecutionId(executionId),
+                new WorkflowId(workflowId),
+                new State("created", "CREATED", false),
+                context
+        );
+        when(startUseCase.execute(any(WorkflowId.class), any())).thenReturn(execution);
+
+        String requestBody = """
+                {
+                    "context": {
+                        "orderId": "ORD-123",
+                        "amount": 4500
+                    }
+                }
+                """;
+
+        // Act & Assert
+        mockMvc.perform(
+                post("/workflows/{workflowId}/executions", workflowId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody)
         )
         .andDo(print())
         .andExpect(status().isOk())
@@ -107,7 +142,8 @@ class ExecutionControllerTest {
                 executionId,
                 workflowId,
                 new StateResponse("created", "CREATED", false),
-                now
+                now,
+                null
         );
 
         when(listExecutionsUseCase.execute(any(WorkflowId.class), anyInt(), anyInt())).thenReturn(executions);
@@ -147,6 +183,7 @@ class ExecutionControllerTest {
                 executionId,
                 workflowId,
                 new StateResponse(currentState.code(), currentState.name(), currentState.terminal()),
+                null,
                 null
         );
 

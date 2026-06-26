@@ -1,6 +1,7 @@
 package com.newen.workflowEngine.infrastructure.persistence.adapter;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -126,6 +127,51 @@ class JpaWorkflowExecutionPersistenceAdapterTest {
         assertEquals(execution.getId(), loaded.getId());
         assertEquals(created, loaded.getCurrentState());
         assertEquals(0, loaded.getHistory().size());
+        assertTrue(loaded.getContext().isEmpty());
+    }
+
+    @Test
+    void should_persist_and_reconstruct_execution_with_context() {
+
+        State created = new State("created", "CREATED", false);
+        State review = new State("review", "REVIEW", false);
+
+        Workflow workflow = new Workflow(
+                new WorkflowId(UUID.randomUUID()),
+                "Context Workflow",
+                List.of(created, review),
+                List.of(new Transition(created, review)),
+                created
+        );
+
+        workflowRepository.save(workflow);
+
+        Workflow loadedWorkflow =
+                workflowRepository.findById(workflow.getId()).orElseThrow();
+
+        Map<String, Object> context = Map.of(
+            "orderId", "ORD-123",
+            "amount", 4500,
+            "customer", "acme-corp"
+        );
+
+        WorkflowExecution execution =
+                new WorkflowExecution(
+                        new WorkflowExecutionId(UUID.randomUUID()),
+                        loadedWorkflow.getId(),
+                        created,
+                        context
+                );
+
+        executionRepository.save(execution);
+
+        WorkflowExecution loaded =
+                executionRepository.findById(execution.getId())
+                        .orElseThrow();
+
+        assertEquals(execution.getId(), loaded.getId());
+        assertEquals(created, loaded.getCurrentState());
+        assertEquals(context, loaded.getContext());
     }
     
 }

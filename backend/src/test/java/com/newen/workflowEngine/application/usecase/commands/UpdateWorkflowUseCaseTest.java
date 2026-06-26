@@ -194,7 +194,8 @@ class UpdateWorkflowUseCaseTest {
                 done,
                 List.of(new StateChanged(
                         new WorkflowExecutionId(UUID.randomUUID()),
-                        review, done, Instant.now()))
+                        review, done, Instant.now())),
+                null
         );
 
         InMemoryWorkflowRepository workflowRepo = new InMemoryWorkflowRepository();

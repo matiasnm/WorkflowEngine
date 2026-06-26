@@ -1,9 +1,11 @@
 package com.newen.workflowEngine.application.usecase.commands;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 
 import com.newen.workflowEngine.domain.model.execution.WorkflowExecution;
@@ -42,6 +44,37 @@ class StartWorkflowExecutionUseCaseTest {
 
         assertEquals(created, execution.getCurrentState());
         assertEquals(workflow.getId(), execution.getWorkflowId());
+        assertTrue(execution.getContext().isEmpty());
+    }
+
+    @Test
+    void should_start_workflow_execution_with_context() {
+
+        State created = new State("created", "CREATED", false);
+        State review = new State("review", "REVIEW", false);
+
+        Workflow workflow = new Workflow(
+                new WorkflowId(UUID.randomUUID()),
+                "Workflow",
+                List.of(created, review),
+                List.of(new Transition(created, review)),
+                created
+        );
+
+        InMemoryWorkflowRepository workflowRepo = new InMemoryWorkflowRepository();
+        workflowRepo.save(workflow);
+
+        InMemoryWorkflowExecutionRepository executionRepo = new InMemoryWorkflowExecutionRepository();
+
+        StartWorkflowExecutionUseCase useCase =
+                new StartWorkflowExecutionUseCase(workflowRepo, executionRepo);
+
+        Map<String, Object> context = Map.of("orderId", "ORD-123", "amount", 4500);
+        WorkflowExecution execution = useCase.execute(workflow.getId(), context);
+
+        assertEquals(created, execution.getCurrentState());
+        assertEquals(workflow.getId(), execution.getWorkflowId());
+        assertEquals(context, execution.getContext());
     }
 
 }
