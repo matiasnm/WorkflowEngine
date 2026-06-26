@@ -1,5 +1,5 @@
 import { Component, input, Output, EventEmitter, signal, computed, inject, ViewChild, DestroyRef, effect } from '@angular/core';
-import { DatePipe } from '@angular/common';
+import { DatePipe, JsonPipe } from '@angular/common';
 import { forkJoin } from 'rxjs';
 import { ExecutionApiPort, EXECUTION_API_PORT } from '../../services/execution-api.port';
 import { StateColorService } from '../../services/state-color.service';
@@ -11,7 +11,7 @@ import { ErrorBannerComponent, SpinnerComponent } from '../ui';
 @Component({
   selector: 'we-execution-detail',
   standalone: true,
-  imports: [DatePipe, ExecutionHistoryComponent, ErrorBannerComponent, SpinnerComponent],
+  imports: [DatePipe, JsonPipe, ExecutionHistoryComponent, ErrorBannerComponent, SpinnerComponent],
   styleUrl: '../../styles/shared.css',
   template: `
     <div class="we-execution-detail">
@@ -101,6 +101,29 @@ import { ErrorBannerComponent, SpinnerComponent } from '../ui';
                 }
               </div>
             </div>
+          }
+
+          <!-- ── Context (metadata) key-value table ── -->
+          @if (exec.context && contextEntries(exec.context).length > 0) {
+            <section class="we-execution-detail__context">
+              <h3 class="we-section-title">Context</h3>
+              <table class="we-context-table">
+                <tbody>
+                  @for (entry of contextEntries(exec.context); track entry.key) {
+                    <tr class="we-context-row">
+                      <td class="we-context-key"><code>{{ entry.key }}</code></td>
+                      <td class="we-context-value">
+                        @if (isSimpleValue(entry.value)) {
+                          {{ entry.value }}
+                        } @else {
+                          <pre class="we-context-pre">{{ entry.value | json }}</pre>
+                        }
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </section>
           }
 
           <!-- ── Available Transitions (hidden when terminal) ── -->
@@ -346,6 +369,62 @@ import { ErrorBannerComponent, SpinnerComponent } from '../ui';
     }
 
     /* ═══════════════════════════════════════════════════
+       CONTEXT SECTION
+       ═══════════════════════════════════════════════════ */
+
+    .we-execution-detail__context {
+      margin-bottom: var(--we-spacing, 16px);
+    }
+
+    .we-context-table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid var(--we-border, #e0e0e0);
+      border-radius: var(--we-border-radius, 8px);
+      overflow: hidden;
+    }
+
+    .we-context-row {
+      border-bottom: 1px solid var(--we-border, #e0e0e0);
+    }
+
+    .we-context-row:last-child {
+      border-bottom: none;
+    }
+
+    .we-context-key {
+      width: 30%;
+      padding: 8px var(--we-spacing, 16px);
+      vertical-align: top;
+      background: var(--we-bg-secondary, #f5f5f5);
+    }
+
+    .we-context-key code {
+      font-family: var(--we-font-family-mono, 'Cascadia Code', 'Fira Code', 'Consolas', monospace);
+      font-size: var(--we-font-size-sm, 0.85rem);
+      color: var(--we-text, #212121);
+      font-weight: 600;
+    }
+
+    .we-context-value {
+      padding: 8px var(--we-spacing, 16px);
+      font-size: var(--we-font-size-base, 0.9rem);
+      color: var(--we-text, #212121);
+      word-break: break-word;
+    }
+
+    .we-context-pre {
+      margin: 0;
+      font-family: var(--we-font-family-mono, 'Cascadia Code', 'Fira Code', 'Consolas', monospace);
+      font-size: var(--we-font-size-sm, 0.85rem);
+      white-space: pre-wrap;
+      word-break: break-word;
+      background: var(--we-bg-secondary, #f5f5f5);
+      padding: var(--we-spacing-sm, 8px);
+      border-radius: var(--we-border-radius-sm, 4px);
+    }
+
+    /* ═══════════════════════════════════════════════════
        TRANSITIONS SECTION
        ═══════════════════════════════════════════════════ */
 
@@ -547,6 +626,24 @@ export class ExecutionDetailComponent {
         this.nextStates.set([]);
       },
     });
+  }
+
+  /** Returns sorted context entries for display. */
+  protected contextEntries(context: Record<string, unknown>): { key: string; value: unknown }[] {
+    return Object.keys(context)
+      .sort()
+      .map((key) => ({ key, value: context[key] }));
+  }
+
+  /** True for simple (renderable inline) value types. */
+  protected isSimpleValue(value: unknown): boolean {
+    return (
+      value === null ||
+      value === undefined ||
+      typeof value === 'string' ||
+      typeof value === 'number' ||
+      typeof value === 'boolean'
+    );
   }
 
   protected goBack(): void {

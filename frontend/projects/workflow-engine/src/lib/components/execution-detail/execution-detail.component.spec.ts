@@ -588,6 +588,95 @@ describe('ExecutionDetailComponent', () => {
   });
 
   // ═══════════════════════════════════════════════════════════
+  //  CONTEXT DISPLAY
+  // ═══════════════════════════════════════════════════════════
+
+  describe('context display', () => {
+    const executionWithContext: ExecutionResponse = {
+      ...mockExecution,
+      context: { orderId: 'ORD-123', amount: 4500, currency: 'USD', nested: { key: 'val' } },
+    };
+
+    it('should show context section when execution has context', () => {
+      initWithData(executionWithContext);
+      const contextSection = fixture.nativeElement.querySelector('.we-execution-detail__context');
+      expect(contextSection).toBeTruthy();
+    });
+
+    it('should render "Context" section heading', () => {
+      initWithData(executionWithContext);
+      const headings = fixture.nativeElement.querySelectorAll('.we-section-title');
+      const allHeadings = Array.from(headings) as HTMLElement[];
+      const ctxHeading = allHeadings.find((h) => h.textContent?.trim() === 'Context');
+      expect(ctxHeading).toBeTruthy();
+    });
+
+    it('should render a row for each context key', () => {
+      initWithData(executionWithContext);
+      const rows = fixture.nativeElement.querySelectorAll('.we-context-row');
+      expect(rows.length).toBe(4);
+    });
+
+    it('should display sorted context keys in monospace code elements', () => {
+      initWithData(executionWithContext);
+      const keyCells = fixture.nativeElement.querySelectorAll('.we-context-key code');
+      expect(keyCells.length).toBe(4);
+      // Keys should be sorted alphabetically
+      expect(keyCells[0].textContent).toContain('amount');
+      expect(keyCells[1].textContent).toContain('currency');
+      expect(keyCells[2].textContent).toContain('nested');
+      expect(keyCells[3].textContent).toContain('orderId');
+    });
+
+    it('should render simple values inline', () => {
+      initWithData(executionWithContext);
+      const valueCells = fixture.nativeElement.querySelectorAll('.we-context-value');
+      // amount (number) and currency (string) should be inline (no <pre>)
+      expect(valueCells[0].textContent).toContain('4500');
+      expect(valueCells[1].textContent).toContain('USD');
+    });
+
+    it('should render complex values in a <pre> block', () => {
+      initWithData(executionWithContext);
+      const preBlocks = fixture.nativeElement.querySelectorAll('.we-context-pre');
+      // nested object should be rendered as JSON in a <pre>
+      expect(preBlocks.length).toBe(1);
+      expect(preBlocks[0].textContent).toContain('"key"');
+      expect(preBlocks[0].textContent).toContain('"val"');
+    });
+
+    it('should not show context section when execution has no context', () => {
+      initWithData(); // mockExecution has no context
+      const contextSection = fixture.nativeElement.querySelector('.we-execution-detail__context');
+      expect(contextSection).toBeFalsy();
+    });
+
+    it('should not show context section when context is empty object', () => {
+      initWithData({ ...mockExecution, context: {} });
+      const contextSection = fixture.nativeElement.querySelector('.we-execution-detail__context');
+      expect(contextSection).toBeFalsy();
+    });
+
+    it('should not show context section during loading', () => {
+      const execSub = new Subject<ExecutionResponse>();
+      const nextSub = new Subject<NextStatesResponse[]>();
+      apiSpy.getExecution.and.returnValue(execSub.asObservable());
+      apiSpy.getNextStates.and.returnValue(nextSub.asObservable());
+      createComponent();
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('.we-execution-detail__context')).toBeFalsy();
+    });
+
+    it('should not show context section in error state', () => {
+      apiSpy.getExecution.and.returnValue(throwError(() => new Error('fail')));
+      apiSpy.getNextStates.and.returnValue(of([]));
+      createComponent();
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('.we-execution-detail__context')).toBeFalsy();
+    });
+  });
+
+  // ═══════════════════════════════════════════════════════════
   //  EMPTY NEXT STATES
   // ═══════════════════════════════════════════════════════════
 

@@ -4,6 +4,8 @@ export interface ExecutionResponse {
   currentState: import('./workflow.model').StateDefinition;
   /** ISO-8601 timestamp of when the execution entered its current state. */
   currentStateSince?: string;
+  /** Arbitrary JSON context attached at execution creation (nullable). */
+  context?: Record<string, unknown>;
 }
 
 export interface TransitionResponse {
@@ -42,4 +44,6 @@ export interface AllExecutionResponse {
   workflowName: string;
   currentState: import('./workflow.model').StateDefinition;
   currentStateSince?: string;
+  /** Arbitrary JSON context attached at execution creation (nullable). */
+  context?: Record<string, unknown>;
 }

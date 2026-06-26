@@ -39,7 +39,7 @@ export class ExecutionApiFakeAdapter implements ExecutionApiPort {
     this.history = createDefaultHistory();
   }
 
-  startExecution(workflowId: string): Observable<{ executionId: string }> {
+  startExecution(workflowId: string, context?: Record<string, unknown>): Observable<{ executionId: string }> {
     const id = crypto.randomUUID();
     const execution: ExecutionResponse = {
       id,
@@ -47,6 +47,9 @@ export class ExecutionApiFakeAdapter implements ExecutionApiPort {
       currentState: { code: 'pending', name: 'PENDING', terminal: false },
       currentStateSince: new Date().toISOString(),
     };
+    if (context !== undefined && context !== null) {
+      execution.context = context;
+    }
     this.executions.set(id, execution);
     this.history.set(id, []);
     return of({ executionId: id });

@@ -10,6 +10,27 @@ describe('ExecutionModel', () => {
     expect(response.currentState).toBeDefined();
   });
 
+  it('should accept optional context on ExecutionResponse', () => {
+    const response: import('./execution.model').ExecutionResponse = {
+      id: '1',
+      workflowId: '2',
+      currentState: { code: 'created', name: 'CREATED', terminal: false },
+      context: { orderId: 'ORD-123', amount: 4500 },
+    };
+    expect(response.context).toEqual({ orderId: 'ORD-123', amount: 4500 });
+  });
+
+  it('should accept optional context on AllExecutionResponse', () => {
+    const response: import('./execution.model').AllExecutionResponse = {
+      id: '1',
+      workflowId: '2',
+      workflowName: 'test',
+      currentState: { code: 'created', name: 'CREATED', terminal: false },
+      context: { orderId: 'ORD-456' },
+    };
+    expect(response.context).toEqual({ orderId: 'ORD-456' });
+  });
+
   it('should have the correct structure for TransitionResponse', () => {
     const response: import('./execution.model').TransitionResponse = {
       executionId: '123e4567-e89b-12d3-a456-426614174001',

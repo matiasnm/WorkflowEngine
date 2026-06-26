@@ -3,7 +3,7 @@ import { Observable } from 'rxjs';
 import { ExecutionResponse, TransitionResponse, HistoryItem, NextStatesResponse, AllExecutionResponse } from '../models';
 
 export abstract class ExecutionApiPort {
-  abstract startExecution(workflowId: string): Observable<{ executionId: string }>;
+  abstract startExecution(workflowId: string, context?: Record<string, unknown>): Observable<{ executionId: string }>;
   abstract getExecution(id: string): Observable<ExecutionResponse>;
   abstract transition(executionId: string, targetStateCode: string): Observable<TransitionResponse>;
   abstract getNextStates(executionId: string): Observable<NextStatesResponse[]>;

@@ -12,10 +12,14 @@ export class ExecutionApiHttpAdapter implements ExecutionApiPort {
   private readonly http = inject(HttpClient);
   private readonly config = inject(WORKFLOW_ENGINE_CONFIG);
 
-  startExecution(workflowId: string): Observable<{ executionId: string }> {
+  startExecution(workflowId: string, context?: Record<string, unknown>): Observable<{ executionId: string }> {
+    const body: Record<string, unknown> = {};
+    if (context !== undefined && context !== null) {
+      body['context'] = context;
+    }
     return this.http.post<{ executionId: string }>(
       `${this.config.apiBaseUrl}/workflows/${workflowId}/executions`,
-      {}
+      body
     );
   }
 

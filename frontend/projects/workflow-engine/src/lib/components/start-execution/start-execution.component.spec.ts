@@ -123,4 +123,99 @@ describe('StartExecutionComponent', () => {
     expect(errorEl).toBeFalsy();
     expect(component.executionError()).toBeNull();
   });
+
+  // ═══════════════════════════════════════════════════════════
+  //  CONTEXT EDITOR
+  // ═══════════════════════════════════════════════════════════
+
+  describe('context editor', () => {
+    it('should have a toggle button to show/hide the context editor', () => {
+      createComponent();
+      const toggleBtn = fixture.nativeElement.querySelector('.we-btn--context-toggle');
+      expect(toggleBtn).toBeTruthy();
+      expect(toggleBtn.textContent).toContain('+ Add Context');
+    });
+
+    it('should show the context textarea when toggle is clicked', () => {
+      createComponent();
+      expect(fixture.nativeElement.querySelector('#context-input')).toBeFalsy();
+
+      const toggleBtn = fixture.nativeElement.querySelector('.we-btn--context-toggle');
+      toggleBtn.click();
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('#context-input')).toBeTruthy();
+      expect(toggleBtn.textContent).toContain('− Hide Context');
+    });
+
+    it('should pass entered JSON context to startExecution', () => {
+      createComponent();
+      const toggleBtn = fixture.nativeElement.querySelector('.we-btn--context-toggle');
+      toggleBtn.click();
+      fixture.detectChanges();
+
+      const textarea = fixture.nativeElement.querySelector('#context-input') as HTMLTextAreaElement;
+      textarea.value = '{"orderId":"ORD-123","amount":4500}';
+      textarea.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+
+      expect(component.contextParseError()).toBeNull();
+
+      const startBtn = fixture.nativeElement.querySelector('.we-btn--start');
+      startBtn.click();
+      fixture.detectChanges();
+
+      expect(executionApiSpy.startExecution).toHaveBeenCalledWith(
+        'uuid-1',
+        { orderId: 'ORD-123', amount: 4500 },
+      );
+    });
+
+    it('should show parse error for invalid JSON', () => {
+      createComponent();
+      const toggleBtn = fixture.nativeElement.querySelector('.we-btn--context-toggle');
+      toggleBtn.click();
+      fixture.detectChanges();
+
+      const textarea = fixture.nativeElement.querySelector('#context-input') as HTMLTextAreaElement;
+      textarea.value = '{invalid json}';
+      textarea.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+
+      expect(component.contextParseError()).toBe('Invalid JSON');
+      const errorEl = fixture.nativeElement.querySelector('.we-context-editor__error');
+      expect(errorEl).toBeTruthy();
+      expect(errorEl.textContent).toContain('Invalid JSON');
+    });
+
+    it('should not pass context when textarea is empty', () => {
+      createComponent();
+      const toggleBtn = fixture.nativeElement.querySelector('.we-btn--context-toggle');
+      toggleBtn.click();
+      fixture.detectChanges();
+
+      const startBtn = fixture.nativeElement.querySelector('.we-btn--start');
+      startBtn.click();
+      fixture.detectChanges();
+
+      expect(executionApiSpy.startExecution).toHaveBeenCalledWith('uuid-1', undefined);
+    });
+
+    it('should use programmatic @Input() context when provided', () => {
+      createComponent();
+      const ctx = { orderId: 'PROG-123' };
+      fixture.componentRef.setInput('context', ctx);
+      fixture.detectChanges();
+
+      // Editor should be hidden when programmatic context is provided
+      const toggleBtn = fixture.nativeElement.querySelector('.we-btn--context-toggle');
+      expect(toggleBtn).toBeFalsy();
+
+      const startBtn = fixture.nativeElement.querySelector('.we-btn--start');
+      startBtn.click();
+      fixture.detectChanges();
+
+      expect(executionApiSpy.startExecution).toHaveBeenCalledWith('uuid-1', ctx);
+    });
+  });
 });

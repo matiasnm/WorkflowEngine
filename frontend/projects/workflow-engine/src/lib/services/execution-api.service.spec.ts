@@ -42,6 +42,35 @@ describe('ExecutionApiHttpAdapter', () => {
       req.flush(mockResponse);
     });
 
+    it('should include context in the POST body when provided', () => {
+      const workflowId = 'uuid-1';
+      const context = { orderId: 'ORD-123', amount: 4500 };
+      const mockResponse = { executionId: 'exec-uuid-1' };
+
+      service.startExecution(workflowId, context).subscribe((response) => {
+        expect(response).toEqual(mockResponse);
+      });
+
+      const req = httpMock.expectOne(`${apiBaseUrl}/workflows/${workflowId}/executions`);
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toEqual({ context });
+      req.flush(mockResponse);
+    });
+
+    it('should omit context from body when context is undefined', () => {
+      const workflowId = 'uuid-1';
+      const mockResponse = { executionId: 'exec-uuid-1' };
+
+      service.startExecution(workflowId, undefined).subscribe((response) => {
+        expect(response).toEqual(mockResponse);
+      });
+
+      const req = httpMock.expectOne(`${apiBaseUrl}/workflows/${workflowId}/executions`);
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toEqual({});
+      req.flush(mockResponse);
+    });
+
     it('should propagate HTTP errors', () => {
       const workflowId = 'uuid-1';
 

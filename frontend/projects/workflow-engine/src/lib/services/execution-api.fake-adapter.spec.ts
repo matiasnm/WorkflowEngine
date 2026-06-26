@@ -71,6 +71,29 @@ describe('ExecutionApiFakeAdapter', () => {
       });
     });
 
+    it('should store context on the execution when provided', (done) => {
+      const workflowId = 'd290f1ee-6c54-4b01-90e6-d701748f0851';
+      const context = { orderId: 'ORD-123', amount: 4500 };
+
+      adapter.startExecution(workflowId, context).subscribe((response) => {
+        adapter.getExecution(response.executionId).subscribe((execution) => {
+          expect(execution.context).toEqual(context);
+          done();
+        });
+      });
+    });
+
+    it('should omit context when not provided', (done) => {
+      const workflowId = 'd290f1ee-6c54-4b01-90e6-d701748f0851';
+
+      adapter.startExecution(workflowId).subscribe((response) => {
+        adapter.getExecution(response.executionId).subscribe((execution) => {
+          expect(execution.context).toBeUndefined();
+          done();
+        });
+      });
+    });
+
     it('should add the execution to the workflow list', (done) => {
       const workflowId = 'd290f1ee-6c54-4b01-90e6-d701748f0851';
 
