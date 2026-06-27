@@ -1,17 +1,18 @@
-# Workflow Engine (Mini Temporal-like System)
-![Java](https://img.shields.io/badge/Java-21-blue)
-![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.0.6-green)
-![Architecture](https://img.shields.io/badge/Architecture-Hexagonal-orange)
-![DDD](https://img.shields.io/badge/DDD-Aggregates-purple)
-![CQRS](https://img.shields.io/badge/CQRS-Light-red)
-![Build Tool](https://img.shields.io/badge/Gradle-Kotlin_DSL-darkgreen)
-![Angular](https://img.shields.io/badge/Angular-19-red)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue)
+# WorkflowEngine
+
+![Java 21](https://img.shields.io/badge/Java-21-blue)
+![Spring Boot 4](https://img.shields.io/badge/Spring_Boot-4.0.6-green)
+![Angular 19](https://img.shields.io/badge/Angular-19-red)
+![TypeScript 5.7](https://img.shields.io/badge/TypeScript-5.7-blue)
+![Architecture](https://img.shields.io/badge/Architecture-Hexagonal_+_DDD_+_CQRS-purple)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue)
+![Prometheus](https://img.shields.io/badge/Metrics-Prometheus_+_Grafana-orange)
+![License](https://img.shields.io/badge/License-MIT-green)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/matiasnm/WorkflowEngine)
 
-A lightweight workflow runtime engine inspired by Temporal and Camunda, built using Domain-Driven Design (DDD), Hexagonal Architecture and CQRS principles.
+A lightweight **workflow orchestration engine** — inspired by [Temporal](https://temporal.io/), [Camunda](https://camunda.com/), and [AWS Step Functions](https://aws.amazon.com/step-functions/) — built with Domain-Driven Design, Hexagonal Architecture, and CQRS principles.
 
-> Educational and portfolio project focused on workflow orchestration, state machines and clean architecture.
+> Educational and portfolio project demonstrating clean architecture patterns, event-driven orchestration, and a full-stack TypeScript + Java implementation.
 
 ---
 
@@ -137,19 +138,44 @@ Pure domain service that:
 
 ## Main Capabilities
 
-- Define workflows with states and transitions
-- Start executions from a workflow
-- Perform validated state transitions
-- Track full execution history via events
-- Query next possible states
-- Inspect execution history
+### Core Engine
+- Define workflows with states (code, name, terminal flag) and transitions
+- Start executions from a workflow with optional execution context (metadata)
+- Perform validated state transitions with domain rule enforcement
+- Track full execution history via `StateChanged` domain events
+- Query next possible states for any execution
+- Immutable aggregate pattern — transitions produce new `WorkflowExecution` instances
+
+### API & Integration
+- **Full CQRS REST API** — separate command and query endpoints
+- **OpenAPI / Swagger UI** — auto-generated docs at `/swagger-ui.html`
 - **Paginated execution list** (`?page=0&size=20`)
+- **Workflow CRUD** — create, read, update (with edit-constraint validation), delete (guarded)
+- **Execution CRUD** — start, list, get, delete (terminal state only)
+- **Pre-flight editability check** (`GET /workflows/{id}/editable`)
 - **Domain event publishing** via `EventPublisher` hexagonal port + Spring Events adapter
-- **OpenAPI / Swagger UI** auto-generated docs at `/swagger-ui.html`
-- **Create workflow form** — define states, transitions, and initial state via UI
-- **Search/filter workflows** — client-side filtering by name
-- **Skeleton loading states** — shimmer placeholders during async data fetch
-- **Global error toast** — shell-level error notifications with auto-dismiss
+- **Webhook callbacks** — per-execution callback URL for external system integration
+- **API key authentication** via `X-API-Key` header
+- **Execution context** — optional JSON metadata on execution start
+
+### Observability
+- **Prometheus metrics** — `workflow_transitions_total` counter with `from_state` / `to_state` tags
+- **Structured JSON logging** via Logstash Logback Encoder (MDC: `executionId`, `fromState`, `toState`)
+- **Grafana dashboards** — Docker Compose configuration included
+- **Micrometer + Actuator** — `/actuator/prometheus` endpoint
+
+### Frontend (Angular Library + Shell Demo)
+- **Workflow list** with skeleton loading, search/filter, and selection
+- **Workflow detail** with states table, transitions list, and Start Execution button
+- **Workflow create form** — define states, transitions, and initial state
+- **Workflow edit form** — pre-filled with smart edit-constraint validation
+- **Execution detail** with current state, available transitions (pessimistic UI), and completion detection
+- **Execution history** — vertical/horizontal timeline modes
+- **Paginated execution list** per workflow + all-executions aggregation view
+- **Start Execution component** — button with loading state, optional context
+- **Reusable UI atoms** — skeleton cards, error banners, retry buttons, spinners
+- **Global error toast** — auto-dismiss notifications
+- **CSS Custom Properties theming** — `--we-*` design system, host app overridable
 
 ---
 
@@ -162,11 +188,11 @@ Pure domain service that:
 
 ### Profiles
 
-| Profile | Database | Persistence adapter | Event adapter | Use case |
-|---------|----------|---------------------|---------------|---------|
-| `dev-jpa` (default) | H2 (embedded, in-memory) | JPA (Spring Data) | Spring `ApplicationEventPublisher` | Fast unit tests, dev without Docker |
-| `dev-pg` | PostgreSQL 16 (Docker) | JPA (Spring Data) | Spring `ApplicationEventPublisher` | Local dev matching production |
-| `dev-memory` | None | In-memory HashMap | Logging | Controller/service tests without database |
+| Profile | Database | Persistence | Events | Metrics/Logging | Use case |
+|---------|----------|-------------|--------|-----------------|---------|
+| `dev-h2` (default) | H2 (embedded) | JPA (Spring Data) | Spring Events | Active | Fast dev, tests without Docker |
+| `dev-pg` | PostgreSQL 16 (Docker) | JPA (Spring Data) | Spring Events | Active | Local dev matching production |
+| `dev-memory` | None | In-memory HashMap | Logging only | Disabled | Controller/service tests |
 
 ### Start PostgreSQL (for dev-pg)
 
@@ -198,7 +224,7 @@ ng serve      # serves the shell demo app at http://localhost:4200
 cd backend
 ./gradlew test
 ```
-Tests use H2 by default (profile `dev-jpa`). The Testcontainers integration test (`WorkflowEnginePgIntegrationTest`) requires Docker Desktop running.
+Tests use H2 by default (profile `dev-h2`). The Testcontainers integration test (`WorkflowEnginePgIntegrationTest`) requires Docker Desktop running.
 
 #### Frontend tests
 ```bash
@@ -216,42 +242,45 @@ ng test shell             # shell app tests only
 
 ## Testing Strategy
 
-The system is designed for layered testing:
+The system is designed for layered testing with **22 backend test classes** (80+ test methods) and **28 frontend spec files**:
 
-### 1. Domain Tests (core logic)
-- WorkflowEngine transition rules
-- State validation
-- Event generation
+### Backend
 
-### 2. Use Case Tests
-- Use case orchestration
-- Mocked repositories
+| Layer | Framework | Scope |
+|-------|-----------|-------|
+| **Domain Tests** | JUnit 5 + AssertJ | WorkflowEngine transition rules, state validation, event generation |
+| **Use Case Tests** | JUnit 5 + Mockito | Command/query orchestration with mocked repositories |
+| **Controller Tests** | `@WebMvcTest` | REST endpoint behaviour, validation, error mapping |
+| **Persistence Adapter Tests** | `@DataJpaTest` + H2 | JPA adapter round-trips, Flyway migrations |
+| **PostgreSQL Integration** | Testcontainers | Full persistence layer against real PostgreSQL 16 |
+| **End-to-End Test** | `@SpringBootTest` + `TestRestTemplate` | Full HTTP lifecycle (create → start → transition → history) |
+| **Security Tests** | `@WebMvcTest` + MockMvc | API key authentication filter, permitted paths |
 
-### 3. Persistence Adapter Tests
-- JPA adapters (via @DataJpaTest + H2)
-- Flyway migrations validated in PostgreSQL profile
+### Frontend
 
-### 4. End-To-End Test
-- Full HTTP lifecycle (create workflow → start execution → transition → query history)
-
-### 5. PostgreSQL Integration Test
-- Testcontainers-based, validates persistence against real PostgreSQL
+| Layer | Framework | Scope |
+|-------|-----------|-------|
+| **Service Tests** | `HttpClientTestingController` | HTTP request/response for all API services |
+| **Component Tests** | TestBed + mocks | Rendering, loading/empty/error states, interaction |
+| **Fake Adapter Tests** | Jasmine | In-memory adapter implementations for offline testing |
+| **Model/Util Tests** | Jasmine | Pure function behaviour (state colors, async data util)
 
 ---
 
 ## Design Principles
 
 ### Backend (Java/Spring)
-- Domain-driven design (DDD)
-- Clean Architecture / Hexagonal Architecture
-- Reference-by-ID between aggregates
-- Engine as pure domain service
-- Use cases as system API
-- CQRS-light separation of reads and writes
-- Domain model independent from persistence
-- State modeled as Value Object with stable `code` identity
-- Persistence identity isolated in JPA entities
-- Schema managed by Flyway migrations (PostgreSQL), Hibernate DDL for H2 tests
+- **Domain-Driven Design (DDD)** — ubiquitous language, aggregates, domain services
+- **Hexagonal Architecture** — ports (interfaces) and adapters (JPA, in-memory, REST)
+- **CQRS-light** — separate command and query use cases
+- **Immutability** — `WorkflowExecution` is immutable; transitions produce new instances
+- **Reference-by-ID** — aggregates reference each other only by ID
+- **Pure domain service** — `WorkflowEngine` validates and applies transitions with zero infrastructure dependency
+- **Event-driven** — `StateChanged` events published via hexagonal `EventPublisher` port
+- **Value Objects** — State modeled with stable `code` identity, used as FK target
+- **Persistence ignorance** — domain model has no JPA annotations; mappers isolate entities
+- **Schema migrations** — Flyway for PostgreSQL, Hibernate DDL auto for H2 tests
+- **Pluggable profiles** — `dev-h2`, `dev-pg`, `dev-memory` for different environments
 
 ### Frontend (Angular)
 - **Library architecture**: reusable `workflow-engine` library + `shell` demo SPA
@@ -269,22 +298,34 @@ The system is designed for layered testing:
 ## Example Flow
 
 ### Via API (backend)
-1. Create workflow definition (POST /workflows)
-2. List available workflows (GET /workflows)
-3. Start workflow execution (POST /workflows/{id}/executions)
-4. Query available next states (GET /executions/{id}/next-states)
-5. Execute a transition (POST /executions/{id}/transition)
-6. Query execution history (GET /executions/{id}/history)
+1. **Create workflow definition** — `POST /workflows`
+2. **List available workflows** — `GET /workflows`
+3. **Update existing workflow** (if needed) — `PUT /workflows/{id}`
+4. **Check editability** — `GET /workflows/{id}/editable`
+5. **Delete workflow** (if no executions) — `DELETE /workflows/{id}`
+6. **Start workflow execution** (with optional context + callback URL) — `POST /workflows/{id}/executions`
+7. **List executions** (paginated) — `GET /workflows/{id}/executions?page=0&size=20`
+8. **Query available next states** — `GET /executions/{id}/next-states`
+9. **Execute a transition** — `POST /executions/{id}/transition`
+10. **Query execution history** — `GET /executions/{id}/history`
+11. **Inspect Prometheus metrics** — `GET /actuator/prometheus`
 
 ### Via UI (frontend)
 1. Open `http://localhost:4200` — see workflow list with skeleton loading, then cards
 2. Search/filter workflows by name using the search input
 3. Click **"+ New Workflow"** — fill form with states, transitions, initial state
 4. Click a workflow card — see states table + transitions list
-5. Click **"Start Execution"** — navigates to execution view
-6. See current state displayed prominently with available transitions
-7. Click a transition button — state updates + timeline refreshes
-8. Reach terminal state — see completion message
+5. Click **"Edit"** — pre-filled edit form with smart validation
+6. Click **"Start Execution"** (with optional context) — navigates to execution view
+7. See current state displayed prominently with available transitions
+8. Click a transition button — state updates + timeline refreshes (pessimistic UI)
+9. Reach terminal state — see completion message
+10. Browse all executions across workflows at `/executions`
+
+### Integration
+- **Webhook callbacks** — each execution can receive POST requests on every state change
+- **Prometheus + Grafana** — monitor transition counts, rates, and patterns
+- **Swagger UI** — interactive API documentation at `http://localhost:8080/swagger-ui.html`
 
 ---
 
@@ -303,11 +344,14 @@ But implemented in a minimal, educational form for portfolio and system design e
 
 | Layer | Technology |
 |-------|-----------|
-| **Backend** | Java 21 + Spring Boot 4 |
+| **Backend** | Java 21 + Spring Boot 4.0.6 |
 | **Persistence** | Spring Data JPA, PostgreSQL 16, Flyway, H2 (tests) |
 | **Backend Testing** | JUnit 5, Mockito, Testcontainers |
 | **API Documentation** | springdoc-openapi (Swagger UI) |
+| **Observability** | Micrometer, Prometheus, Grafana, Logstash Logback Encoder |
+| **Security** | API Key authentication (`X-API-Key` header) |
 | **Build** | Gradle Kotlin DSL |
-| **Frontend** | Angular 19, TypeScript 5.7, RxJS 7 |
+| **Frontend** | Angular 19.2, TypeScript 5.7, RxJS 7 |
+| **Frontend Architecture** | Standalone components, Signals, CSS Custom Properties |
 | **Frontend Testing** | Jasmine, Karma, HttpClientTestingController |
-| **UI Design** | CSS Custom Properties (`--we-*` system), standalone components |
+| **Infrastructure** | Docker Compose (PostgreSQL + Prometheus + Grafana) |

@@ -38,3 +38,7 @@ out/
 
 # Environment / secrets
 .env
+
+# Agent / IDE session history
+.cc-history/
+.opencode/
