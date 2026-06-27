@@ -79,7 +79,7 @@ class ExecutionControllerTest {
                 new WorkflowId(workflowId),
                 new State("created", "CREATED", false)
         );
-        when(startUseCase.execute(any(WorkflowId.class), any())).thenReturn(execution);
+        when(startUseCase.execute(any(WorkflowId.class), any(), any())).thenReturn(execution);
 
         // Act & Assert
         mockMvc.perform(
@@ -102,7 +102,7 @@ class ExecutionControllerTest {
                 new State("created", "CREATED", false),
                 context
         );
-        when(startUseCase.execute(any(WorkflowId.class), any())).thenReturn(execution);
+        when(startUseCase.execute(any(WorkflowId.class), any(), any())).thenReturn(execution);
 
         String requestBody = """
                 {

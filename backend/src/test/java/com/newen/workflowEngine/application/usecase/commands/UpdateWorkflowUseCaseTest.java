@@ -196,6 +196,7 @@ class UpdateWorkflowUseCaseTest {
                         new WorkflowExecutionId(UUID.randomUUID()),
                         workflow.getId(),
                         review, done, Instant.now())),
+                null,
                 null
         );
 
