@@ -7,6 +7,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -23,6 +25,18 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private static final String PROBLEM_DETAIL_JSON = "application/problem+json";
+
+    /**
+     * Empty {@link UserDetailsService} that prevents Spring Security from
+     * auto-generating a default user with a random password.
+     * <p>
+     * Our authentication is entirely API-key-based via {@link ApiKeyAuthFilter},
+     * so we don't need (or want) an in-memory user.
+     */
+    @Bean
+    public UserDetailsService userDetailsService() {
+        return new InMemoryUserDetailsManager();
+    }
 
     @Bean
     public ApiKeyAuthFilter apiKeyAuthFilter(ApiKeysProperties properties) {
