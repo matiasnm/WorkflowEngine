@@ -236,7 +236,7 @@ class ExecutionControllerTest {
         State stateCreated = new State("created", "CREATED", false);
         State stateReview = new State("review", "REVIEW", false);
         List<StateChanged> history = List.of(
-                new StateChanged(wfExecId, stateCreated, stateReview, now)
+                new StateChanged(wfExecId, new WorkflowId(UUID.randomUUID()), stateCreated, stateReview, now)
         );
         when(historyUseCase.execute(any(WorkflowExecutionId.class))).thenReturn(history);
 

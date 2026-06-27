@@ -26,6 +26,7 @@ public class WorkflowEngine {
 
         StateChanged event = new StateChanged(
                 execution.getId(),
+                workflow.getId(),
                 from,
                 target,
                 Instant.now()

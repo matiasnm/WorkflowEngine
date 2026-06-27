@@ -61,6 +61,7 @@ public class WorkflowExecutionMapper {
                 State to = context.state(h.getToStateCode());
                 return new StateChanged(
                     new WorkflowExecutionId(entity.getId()),
+                    workflow.getId(),
                     from,
                     to,
                     h.getTimestamp()

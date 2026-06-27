@@ -29,6 +29,7 @@ public class GetHistoryUseCaseTest {
     
         StateChanged event = new StateChanged(
                 execution.getId(),
+                execution.getWorkflowId(),
                 created,
                 review,
                 java.time.Instant.now()
