@@ -16,29 +16,48 @@ public class WorkflowExecution {
     private final State currentState;
     private final List<StateChanged> history;
     private final Map<String, Object> context;
+    private final String callbackUrl;
 
-    /**
-     * Simple constructor — for starting a new execution without context.
-     */
+
     public WorkflowExecution(
         WorkflowExecutionId id,
         WorkflowId workflowId,
         State currentState
     ) {
-        this(id, workflowId, currentState, new ArrayList<>(), null);
+        this(id, workflowId, currentState, new ArrayList<>(), null, null);
     }
 
-    /**
-     * Convenience constructor — for starting a new execution with context.
-     */
+
     public WorkflowExecution(
         WorkflowExecutionId id,
         WorkflowId workflowId,
         State currentState,
         Map<String, Object> context
     ) {
-        this(id, workflowId, currentState, new ArrayList<>(), context);
+        this(id, workflowId, currentState, new ArrayList<>(), context, null);
     }
+
+
+    public WorkflowExecution(
+        WorkflowExecutionId id,
+        WorkflowId workflowId,
+        State currentState,
+        Map<String, Object> context,
+        String callbackUrl
+    ) {
+        this(id, workflowId, currentState, new ArrayList<>(), context, callbackUrl);
+    }
+
+
+        public WorkflowExecution(
+        WorkflowExecutionId id,
+        WorkflowId workflowId,
+        State currentState,
+        String callbackUrl
+    ) {
+        this(id, workflowId, currentState, new ArrayList<>(), null, callbackUrl);
+    }
+
 
     /**
      * Full reconstruction constructor — for persistence mapping, testing, and
@@ -57,19 +76,22 @@ public class WorkflowExecution {
      * @param currentState the current state (not validated against workflow)
      * @param history     the full event history, in chronological order
      * @param context     arbitrary JSON metadata, or null/empty for none
+     * @param callbackUrl webhook callback url
      */
     public WorkflowExecution(
         WorkflowExecutionId id,
         WorkflowId workflowId,
         State currentState,
         List<StateChanged> history,
-        Map<String, Object> context
+        Map<String, Object> context,
+        String callbackUrl
     ) {
         this.id = id;
         this.workflowId = workflowId;
         this.currentState = currentState;
         this.history = new ArrayList<>(history);
         this.context = context != null ? Map.copyOf(context) : Map.of();
+        this.callbackUrl = callbackUrl;
     }
 
     public List<StateChanged> getHistory() {
@@ -90,6 +112,10 @@ public class WorkflowExecution {
 
     public Map<String, Object> getContext() {
         return context;
+    }
+
+    public String getCallbackUrl() { 
+        return callbackUrl;
     }
 
     /**
@@ -114,7 +140,7 @@ public class WorkflowExecution {
     public WorkflowExecution withTransition(State target, StateChanged event) {
        List<StateChanged> newHistory = new ArrayList<>(this.history);
        newHistory.add(event);
-       return new WorkflowExecution(this.id, this.workflowId, target, newHistory, this.context);
+       return new WorkflowExecution(this.id, this.workflowId, target, newHistory, this.context, this.callbackUrl);
    }
 
 }

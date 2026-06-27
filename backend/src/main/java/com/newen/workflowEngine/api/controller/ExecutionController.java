@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,8 +14,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-
-import org.springframework.http.HttpStatus;
 
 import com.newen.workflowEngine.api.dto.ExecutionPageResponse;
 import com.newen.workflowEngine.api.dto.ExecutionResponse;
@@ -94,8 +93,10 @@ public class ExecutionController {
             @RequestBody(required = false) StartExecutionRequest request
     ) {
         Map<String, Object> context = request != null ? request.context() : null;
+        String callbackUrl = request != null ? request.callbackUrl() : null;
         return new WorkflowExecutionCreatedResponse(
-            startUseCase.execute(new WorkflowId(workflowId), context).getId().value()
+            startUseCase.execute(new WorkflowId(workflowId), context, callbackUrl)
+                .getId().value()
         );
     }
 

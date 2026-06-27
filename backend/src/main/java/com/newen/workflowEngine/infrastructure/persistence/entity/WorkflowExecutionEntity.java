@@ -40,6 +40,10 @@ public class WorkflowExecutionEntity {
     @Column(name = "context", columnDefinition = "TEXT")
     private String context;
 
+    @Column(name = "callback_url", nullable = true, length = 2048)
+    private String callbackUrl;
+
+
     public UUID getId() {
         return id;
     }
@@ -78,5 +82,13 @@ public class WorkflowExecutionEntity {
 
     public void setContext(String context) {
         this.context = context;
+    }
+
+    public String getCallbackUrl() {
+        return callbackUrl;
+    }
+
+    public void setCallbackUrl(String callbackUrl) {
+        this.callbackUrl = callbackUrl;
     }
 }

@@ -38,6 +38,7 @@ public class WorkflowExecutionMapper {
         entity.setWorkflow(workflowEntity);
         entity.setCurrentStateCode(execution.getCurrentState().code());
         entity.setContext(serializeContext(execution.getContext()));
+        entity.setCallbackUrl(execution.getCallbackUrl());
         
         List<StateChangedEntity> historyEntities = execution.getHistory().stream()
             .map(event -> stateChangedMapper.toEntity(event, entity))
@@ -74,7 +75,8 @@ public class WorkflowExecutionMapper {
             workflow.getId(),
             current,
             history,
-            deserializeContext(entity.getContext())
+            deserializeContext(entity.getContext()),
+            entity.getCallbackUrl()
         );   
     }
 

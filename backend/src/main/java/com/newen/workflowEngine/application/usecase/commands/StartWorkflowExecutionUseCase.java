@@ -35,6 +35,7 @@ public class StartWorkflowExecutionUseCase {
         return execute(workflowId, null);
     }
 
+
     @Transactional
     public WorkflowExecution execute(
             WorkflowId workflowId,
@@ -44,8 +45,6 @@ public class StartWorkflowExecutionUseCase {
         Workflow workflow = workflowRepository.findById(workflowId)
         .orElseThrow(() -> new WorkflowNotFoundException("Workflow not found"));
 
-        // Porque new WorkflowExecutionId?
-        // La identidad de un agregado siempre la genera el sistema, no el exterior
         WorkflowExecution execution =
                 new WorkflowExecution(
                         new WorkflowExecutionId(UUID.randomUUID()),
@@ -58,4 +57,30 @@ public class StartWorkflowExecutionUseCase {
 
         return execution;
     }
+
+
+    @Transactional
+    public WorkflowExecution execute(
+        WorkflowId workflowId,
+        Map<String, Object> context,
+        String callbackUrl
+    ) {
+
+        Workflow workflow = workflowRepository.findById(workflowId)
+            .orElseThrow(() -> new WorkflowNotFoundException("Workflow not found"));
+
+        WorkflowExecution execution =
+            new WorkflowExecution(
+                new WorkflowExecutionId(UUID.randomUUID()),
+                workflow.getId(),
+                workflow.getInitialState(),
+                context,
+                callbackUrl
+            );
+        
+        executionRepository.save(execution);
+
+        return execution;
+    }
+
 }
