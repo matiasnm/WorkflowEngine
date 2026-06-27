@@ -1,13 +1,15 @@
 # WorkflowEngine
 
+![CI](https://img.shields.io/github/actions/workflow/status/matiasnm/WorkflowEngine/ci.yml?branch=main&label=CI)
+[![Release](https://img.shields.io/github/v/release/matiasnm/WorkflowEngine)](https://github.com/matiasnm/WorkflowEngine/releases)
 ![Java 21](https://img.shields.io/badge/Java-21-blue)
 ![Spring Boot 4](https://img.shields.io/badge/Spring_Boot-4.0.6-green)
 ![Angular 19](https://img.shields.io/badge/Angular-19-red)
 ![TypeScript 5.7](https://img.shields.io/badge/TypeScript-5.7-blue)
-![Architecture](https://img.shields.io/badge/Architecture-Hexagonal_+_DDD_+_CQRS-purple)
+![Architecture](https://img.shields.io/badge/Hexagonal-__-purple?label=Hexagonal+%2B+DDD+%2B+CQRS)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue)
 ![Prometheus](https://img.shields.io/badge/Metrics-Prometheus_+_Grafana-orange)
-![License](https://img.shields.io/badge/License-MIT-green)
+![License](https://img.shields.io/github/license/matiasnm/WorkflowEngine)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/matiasnm/WorkflowEngine)
 
 A lightweight **workflow orchestration engine** — inspired by [Temporal](https://temporal.io/), [Camunda](https://camunda.com/), and [AWS Step Functions](https://aws.amazon.com/step-functions/) — built with Domain-Driven Design, Hexagonal Architecture, and CQRS principles.
