@@ -294,9 +294,9 @@ export class AllExecutionsComponent {
 
     return forkJoin(
       workflows.map(wf =>
-        this.api.listExecutions(wf.id).pipe(
-          map(execs =>
-            execs.map(e => ({
+        this.api.listExecutions(wf.id, 0, 100).pipe(
+          map(page =>
+            page.content.map(e => ({
               id: e.id,
               workflowId: e.workflowId,
               workflowName: wf.name,

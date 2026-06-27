@@ -30,13 +30,19 @@ export interface NextStatesResponse {
   name: string;
 }
 
-export interface ExecutionPageResponse {
-  content: ExecutionResponse[];
+/**
+ * Generic paginated response matching the backend's page envelope.
+ */
+export interface Page<T> {
+  content: T[];
   page: number;
   size: number;
   totalElements: number;
   totalPages: number;
 }
+
+/** Backward-compatible alias for {@link Page}<{@link ExecutionResponse}>. */
+export type ExecutionPageResponse = Page<ExecutionResponse>;
 
 export interface AllExecutionResponse {
   id: string;

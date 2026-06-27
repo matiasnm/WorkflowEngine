@@ -1,6 +1,6 @@
 import { InjectionToken } from '@angular/core';
 import { Observable } from 'rxjs';
-import { ExecutionResponse, TransitionResponse, HistoryItem, NextStatesResponse, AllExecutionResponse } from '../models';
+import { ExecutionResponse, TransitionResponse, HistoryItem, NextStatesResponse, Page, AllExecutionResponse } from '../models';
 
 export abstract class ExecutionApiPort {
   abstract startExecution(workflowId: string, context?: Record<string, unknown>): Observable<{ executionId: string }>;
@@ -8,7 +8,7 @@ export abstract class ExecutionApiPort {
   abstract transition(executionId: string, targetStateCode: string): Observable<TransitionResponse>;
   abstract getNextStates(executionId: string): Observable<NextStatesResponse[]>;
   abstract getHistory(executionId: string): Observable<HistoryItem[]>;
-  abstract listExecutions(workflowId: string): Observable<ExecutionResponse[]>;
+  abstract listExecutions(workflowId: string, page?: number, size?: number): Observable<Page<ExecutionResponse>>;
   abstract listAllExecutions(): Observable<AllExecutionResponse[]>;
   abstract deleteExecution(id: string): Observable<void>;
 }

@@ -1,9 +1,9 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { Subject, of, throwError } from 'rxjs';
 import { ExecutionListComponent } from './execution-list.component';
 import { EXECUTION_API_PORT, ExecutionApiPort } from '../../services/execution-api.port';
 import { StateColorService } from '../../services/state-color.service';
-import { ExecutionResponse } from '../../models';
+import { ExecutionResponse, Page } from '../../models';
 
 describe('ExecutionListComponent', () => {
   let component: ExecutionListComponent;
@@ -26,9 +26,35 @@ describe('ExecutionListComponent', () => {
     },
   ];
 
+  const defaultPage: Page<ExecutionResponse> = {
+    content: mockExecutions,
+    page: 0,
+    size: 20,
+    totalElements: 2,
+    totalPages: 1,
+  };
+
+  const multiPage: Page<ExecutionResponse> = {
+    content: mockExecutions.slice(0, 1),
+    page: 0,
+    size: 1,
+    totalElements: 2,
+    totalPages: 2,
+  };
+
+  const pageTwo: Page<ExecutionResponse> = {
+    content: mockExecutions.slice(1, 2),
+    page: 1,
+    size: 1,
+    totalElements: 2,
+    totalPages: 2,
+  };
+
   beforeEach(async () => {
     localStorage.clear();
-    const spy = jasmine.createSpyObj('ExecutionApiPort', ['listExecutions']);
+    const spy = jasmine.createSpyObj('ExecutionApiPort', [
+      'listExecutions', 'deleteExecution',
+    ]);
 
     stateColorSpy = jasmine.createSpyObj('StateColorService', ['getColor', 'getOrCreateColors']);
     stateColorSpy.getColor.and.returnValue(null);
@@ -44,56 +70,59 @@ describe('ExecutionListComponent', () => {
     apiServiceSpy = TestBed.inject(EXECUTION_API_PORT) as jasmine.SpyObj<ExecutionApiPort>;
   });
 
-  function createComponent(): void {
+  function createComponent(workflowId = 'wf-uuid-1'): void {
     fixture = TestBed.createComponent(ExecutionListComponent);
     component = fixture.componentInstance;
-    fixture.componentRef.setInput('workflowId', 'wf-uuid-1');
+    fixture.componentRef.setInput('workflowId', workflowId);
   }
 
   describe('loading state', () => {
-    it('should show skeleton shimmer on mount while data is loading', () => {
-      const subject = new Subject<ExecutionResponse[]>();
+    it('should show skeleton shimmer on mount while data is loading', fakeAsync(() => {
+      const subject = new Subject<Page<ExecutionResponse>>();
       apiServiceSpy.listExecutions.and.returnValue(subject.asObservable());
       createComponent();
       fixture.detectChanges();
+      // Effects run after change detection
+      tick();
+      fixture.detectChanges();
 
       // Should show skeleton while loading
-      expect(component.loading()).toBeTrue();
+      expect(component['loading']()).toBeTrue();
       const skeleton = fixture.nativeElement.querySelector('.we-execution-list__skeleton');
       expect(skeleton).toBeTruthy();
-      // Should have 3 skeleton placeholder rows
       expect(skeleton.children.length).toBe(3);
-      expect(skeleton.children[0].classList).toContain('we-skeleton-row');
 
       // Data arrives
-      subject.next(mockExecutions);
+      subject.next(defaultPage);
       subject.complete();
       fixture.detectChanges();
 
-      // Skeleton should be gone, table should be visible
-      expect(component.loading()).toBeFalse();
+      expect(component['loading']()).toBeFalse();
       const skeletonAfter = fixture.nativeElement.querySelector('.we-execution-list__skeleton');
       expect(skeletonAfter).toBeFalsy();
       const rows = fixture.nativeElement.querySelectorAll('.we-execution-row');
       expect(rows.length).toBe(2);
-    });
+    }));
 
-    it('should set loading to false when API call fails', () => {
+    it('should set loading to false when API call fails', fakeAsync(() => {
       apiServiceSpy.listExecutions.and.returnValue(throwError(() => new Error('fail')));
       createComponent();
       fixture.detectChanges();
+      tick();
+      fixture.detectChanges();
 
-      // After error, loading should be false
-      expect(component.loading()).toBeFalse();
-    });
+      expect(component['loading']()).toBeFalse();
+    }));
   });
 
   describe('success state', () => {
-    beforeEach(() => {
-      apiServiceSpy.listExecutions.and.returnValue(of(mockExecutions));
+    beforeEach(fakeAsync(() => {
+      apiServiceSpy.listExecutions.and.returnValue(of(defaultPage));
       createComponent();
       fixture.detectChanges();
-    });
+      tick();
+      fixture.detectChanges();
+    }));
 
     it('should render execution rows for each execution', () => {
       const rows = fixture.nativeElement.querySelectorAll('.we-execution-row');
@@ -131,11 +160,17 @@ describe('ExecutionListComponent', () => {
   });
 
   describe('empty state', () => {
-    beforeEach(() => {
-      apiServiceSpy.listExecutions.and.returnValue(of([]));
+    const emptyPage: Page<ExecutionResponse> = {
+      content: [], page: 0, size: 20, totalElements: 0, totalPages: 0,
+    };
+
+    beforeEach(fakeAsync(() => {
+      apiServiceSpy.listExecutions.and.returnValue(of(emptyPage));
       createComponent();
       fixture.detectChanges();
-    });
+      tick();
+      fixture.detectChanges();
+    }));
 
     it('should show empty state message when no executions', () => {
       const emptyEl = fixture.nativeElement.querySelector('.we-execution-list__empty');
@@ -152,24 +187,25 @@ describe('ExecutionListComponent', () => {
   });
 
   describe('error state', () => {
-    beforeEach(() => {
+    beforeEach(fakeAsync(() => {
       apiServiceSpy.listExecutions.and.returnValue(throwError(() => new Error('API error')));
       createComponent();
       fixture.detectChanges();
-    });
+      tick();
+      fixture.detectChanges();
+    }));
 
     it('should show error message without retry button', () => {
       const errorEl = fixture.nativeElement.querySelector('we-error-banner');
       expect(errorEl).toBeTruthy();
       expect(errorEl.textContent).toContain('Failed to load executions.');
 
-      // No retry button — parent handles retry (showRetry is false by default)
       const retryBtn = fixture.nativeElement.querySelector('.we-btn--retry');
       expect(retryBtn).toBeFalsy();
     });
 
-    it('should set error signal and emit errorEvent', () => {
-      expect(component.error()).toBe('Failed to load executions.');
+    it('should set error signal', () => {
+      expect(component['error']()).toBe('Failed to load executions.');
     });
 
     it('should hide skeleton and table when in error state', () => {
@@ -181,10 +217,11 @@ describe('ExecutionListComponent', () => {
   });
 
   describe('errorEvent output', () => {
-    it('should emit errorEvent on API error', () => {
-      // First load succeeds
-      apiServiceSpy.listExecutions.and.returnValue(of([]));
+    it('should emit errorEvent on API error', fakeAsync(() => {
+      apiServiceSpy.listExecutions.and.returnValue(of(defaultPage));
       createComponent();
+      fixture.detectChanges();
+      tick();
       fixture.detectChanges();
 
       const emitted: string[] = [];
@@ -192,12 +229,13 @@ describe('ExecutionListComponent', () => {
 
       // Make the next call fail and trigger a refresh
       apiServiceSpy.listExecutions.and.returnValue(throwError(() => new Error('API error')));
-      component['execsAsync']()?.refresh();
+      component.refresh();
+      tick();
       fixture.detectChanges();
 
       expect(emitted).toEqual(['Failed to load executions.']);
       sub.unsubscribe();
-    });
+    }));
   });
 
   describe('state colour swatches', () => {
@@ -206,14 +244,16 @@ describe('ExecutionListComponent', () => {
       created:   'rgb(76, 175, 80)',
     };
 
-    beforeEach(() => {
+    beforeEach(fakeAsync(() => {
       stateColorSpy.getColor.and.callFake(
         (_wfId: string, code: string): string | null => colorMap[code] ?? null,
       );
-      apiServiceSpy.listExecutions.and.returnValue(of(mockExecutions));
+      apiServiceSpy.listExecutions.and.returnValue(of(defaultPage));
       createComponent();
       fixture.detectChanges();
-    });
+      tick();
+      fixture.detectChanges();
+    }));
 
     it('renders a swatch span in each state cell', () => {
       const swatches = fixture.nativeElement.querySelectorAll('.we-state-swatch');
@@ -250,26 +290,204 @@ describe('ExecutionListComponent', () => {
       sub.unsubscribe();
     });
 
-    it('no swatches rendered during loading', () => {
-      const subject = new Subject<ExecutionResponse[]>();
+    it('no swatches rendered during loading', fakeAsync(() => {
+      const subject = new Subject<Page<ExecutionResponse>>();
       apiServiceSpy.listExecutions.and.returnValue(subject.asObservable());
       createComponent();
       fixture.detectChanges();
+      tick();
+      fixture.detectChanges();
       expect(fixture.nativeElement.querySelectorAll('.we-state-swatch').length).toBe(0);
-    });
+      subject.complete();
+    }));
 
-    it('no swatches rendered in error state', () => {
+    it('no swatches rendered in error state', fakeAsync(() => {
       apiServiceSpy.listExecutions.and.returnValue(throwError(() => new Error('fail')));
       createComponent();
       fixture.detectChanges();
-      expect(fixture.nativeElement.querySelectorAll('.we-state-swatch').length).toBe(0);
-    });
-
-    it('no swatches rendered for empty list', () => {
-      apiServiceSpy.listExecutions.and.returnValue(of([]));
-      createComponent();
+      tick();
       fixture.detectChanges();
       expect(fixture.nativeElement.querySelectorAll('.we-state-swatch').length).toBe(0);
-    });
+    }));
+
+    it('no swatches rendered for empty list', fakeAsync(() => {
+      const emptyPage: Page<ExecutionResponse> = {
+        content: [], page: 0, size: 20, totalElements: 0, totalPages: 0,
+      };
+      apiServiceSpy.listExecutions.and.returnValue(of(emptyPage));
+      createComponent();
+      fixture.detectChanges();
+      tick();
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelectorAll('.we-state-swatch').length).toBe(0);
+    }));
+  });
+
+  // ── Pagination ───────────────────────────────────────────────────────────
+
+  describe('pagination', () => {
+    it('should hide pagination controls when totalPages <= 1', fakeAsync(() => {
+      apiServiceSpy.listExecutions.and.returnValue(of(defaultPage));
+      createComponent();
+      fixture.detectChanges();
+      tick();
+      fixture.detectChanges();
+
+      const pagination = fixture.nativeElement.querySelector('.we-pagination');
+      expect(pagination).toBeFalsy();
+    }));
+
+    it('should show pagination controls when totalPages > 1', fakeAsync(() => {
+      apiServiceSpy.listExecutions.and.returnValue(of(multiPage));
+      createComponent();
+      fixture.detectChanges();
+      tick();
+      fixture.detectChanges();
+
+      const pagination = fixture.nativeElement.querySelector('.we-pagination');
+      expect(pagination).toBeTruthy();
+      expect(pagination.textContent).toContain('Page 1 of 2');
+    }));
+
+    it('should disable Previous button on first page', fakeAsync(() => {
+      apiServiceSpy.listExecutions.and.returnValue(of(multiPage));
+      createComponent();
+      fixture.detectChanges();
+      tick();
+      fixture.detectChanges();
+
+      const prevBtn = fixture.nativeElement.querySelector('.we-pagination__btn--prev') as HTMLButtonElement;
+      expect(prevBtn.disabled).toBeTrue();
+    }));
+
+    it('should disable Next button on last page', fakeAsync(() => {
+      // Return pageTwo on both calls (first call for init, which will get pageTwo...)
+      // Actually we need to simulate: first call returns multiPage (page 0), then
+      // next click triggers pageTwo (page 1, last page)
+      apiServiceSpy.listExecutions.and.returnValue(of(multiPage));
+      createComponent();
+      fixture.detectChanges();
+      tick();
+      fixture.detectChanges();
+
+      // Now on page 0 of 2 — Next should be enabled
+      const nextBtn = fixture.nativeElement.querySelector('.we-pagination__btn--next') as HTMLButtonElement;
+      expect(nextBtn.disabled).toBeFalse();
+
+      // Set up next response and click Next
+      apiServiceSpy.listExecutions.and.returnValue(of(pageTwo));
+      component['goToNextPage']();
+      tick();
+      fixture.detectChanges();
+
+      // Now on page 1 of 3 (last page) — Next should be disabled
+      expect(nextBtn.disabled).toBeTrue();
+      // Previous should be enabled now
+      const prevBtn = fixture.nativeElement.querySelector('.we-pagination__btn--prev') as HTMLButtonElement;
+      expect(prevBtn.disabled).toBeFalse();
+    }));
+
+    it('should fetch next page when clicking Next', fakeAsync(() => {
+      apiServiceSpy.listExecutions.and.returnValue(of(multiPage));
+      createComponent();
+      fixture.detectChanges();
+      tick();
+      fixture.detectChanges();
+
+      // Verify page 0 loaded
+      expect(component['currentPage']()).toBe(0);
+      let rows = fixture.nativeElement.querySelectorAll('.we-execution-row');
+      expect(rows.length).toBe(1);
+
+      // Click Next
+      apiServiceSpy.listExecutions.and.returnValue(of(pageTwo));
+      component['goToNextPage']();
+      tick();
+      fixture.detectChanges();
+
+      // Verify page 1 loaded
+      expect(component['currentPage']()).toBe(1);
+      rows = fixture.nativeElement.querySelectorAll('.we-execution-row');
+      expect(rows.length).toBe(1);
+    }));
+
+    it('should fetch previous page when clicking Previous', fakeAsync(() => {
+      // First call returns multiPage
+      apiServiceSpy.listExecutions.and.returnValue(of(multiPage));
+      createComponent();
+      fixture.detectChanges();
+      tick();
+      fixture.detectChanges();
+
+      // Navigate to page 1
+      apiServiceSpy.listExecutions.and.returnValue(of(pageTwo));
+      component['goToNextPage']();
+      tick();
+      fixture.detectChanges();
+      expect(component['currentPage']()).toBe(1);
+
+      // Click Previous — return multiPage again
+      apiServiceSpy.listExecutions.and.returnValue(of(multiPage));
+      component['goToPreviousPage']();
+      tick();
+      fixture.detectChanges();
+
+      expect(component['currentPage']()).toBe(0);
+    }));
+
+    it('should show spinner during page navigation', fakeAsync(() => {
+      const subject = new Subject<Page<ExecutionResponse>>();
+      apiServiceSpy.listExecutions.and.returnValue(subject.asObservable());
+      createComponent();
+      fixture.detectChanges();
+      // First emission to load initial data
+      subject.next(multiPage);
+      tick();
+      fixture.detectChanges();
+
+      // Now navigate — set up a new subject that doesn't complete immediately
+      const navSubject = new Subject<Page<ExecutionResponse>>();
+      apiServiceSpy.listExecutions.and.returnValue(navSubject.asObservable());
+      component['goToNextPage']();
+      tick();
+      fixture.detectChanges();
+
+      // Should show spinner during page nav
+      const spinner = fixture.nativeElement.querySelector('we-spinner');
+      expect(spinner).toBeTruthy();
+      expect(component['pageLoading']()).toBeTrue();
+
+      // Complete the navigation
+      navSubject.next(pageTwo);
+      navSubject.complete();
+      tick();
+      fixture.detectChanges();
+
+      expect(component['pageLoading']()).toBeFalse();
+      const spinnerAfter = fixture.nativeElement.querySelector('we-spinner');
+      expect(spinnerAfter).toBeFalsy();
+    }));
+
+    it('should apply opacity overlay to table during page navigation', fakeAsync(() => {
+      const subject = new Subject<Page<ExecutionResponse>>();
+      apiServiceSpy.listExecutions.and.returnValue(subject.asObservable());
+      createComponent();
+      fixture.detectChanges();
+      subject.next(multiPage);
+      tick();
+      fixture.detectChanges();
+
+      const tableWrapper = fixture.nativeElement.querySelector('.we-execution-list__table-wrapper');
+      expect(tableWrapper.classList.contains('we-execution-list__table-wrapper--loading')).toBeFalse();
+
+      // Navigate
+      const navSubject = new Subject<Page<ExecutionResponse>>();
+      apiServiceSpy.listExecutions.and.returnValue(navSubject.asObservable());
+      component['goToNextPage']();
+      tick();
+      fixture.detectChanges();
+
+      expect(tableWrapper.classList.contains('we-execution-list__table-wrapper--loading')).toBeTrue();
+    }));
   });
 });

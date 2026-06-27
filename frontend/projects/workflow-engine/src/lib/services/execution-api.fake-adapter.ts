@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable, of, throwError } from 'rxjs';
-import { ExecutionResponse, TransitionResponse, HistoryItem, NextStatesResponse, AllExecutionResponse } from '../models';
+import { ExecutionResponse, TransitionResponse, HistoryItem, NextStatesResponse, Page, AllExecutionResponse } from '../models';
 import { ExecutionApiPort } from './execution-api.port';
 
 /**
@@ -155,14 +155,24 @@ export class ExecutionApiFakeAdapter implements ExecutionApiPort {
     return of([...execHistory]);
   }
 
-  listExecutions(workflowId: string): Observable<ExecutionResponse[]> {
-    const results: ExecutionResponse[] = [];
+  listExecutions(workflowId: string, page = 0, size = 20): Observable<Page<ExecutionResponse>> {
+    const allResults: ExecutionResponse[] = [];
     for (const execution of this.executions.values()) {
       if (execution.workflowId === workflowId) {
-        results.push(execution);
+        allResults.push(execution);
       }
     }
-    return of(results);
+    // Sort newest-first by currentStateSince
+    allResults.sort((a, b) => {
+      const dateA = a.currentStateSince ? new Date(a.currentStateSince).getTime() : 0;
+      const dateB = b.currentStateSince ? new Date(b.currentStateSince).getTime() : 0;
+      return dateB - dateA;
+    });
+    const totalElements = allResults.length;
+    const totalPages = totalElements === 0 ? 0 : Math.ceil(totalElements / size);
+    const start = page * size;
+    const content = allResults.slice(start, start + size);
+    return of({ content, page, size, totalElements, totalPages });
   }
 
   deleteExecution(id: string): Observable<void> {

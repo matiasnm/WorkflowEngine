@@ -4,7 +4,7 @@ import { AllExecutionsComponent } from './all-executions.component';
 import { EXECUTION_API_PORT, ExecutionApiPort } from '../../services/execution-api.port';
 import { WORKFLOW_API_PORT, WorkflowApiPort } from '../../services/workflow-api.port';
 import { StateColorService } from '../../services/state-color.service';
-import { ExecutionResponse, WorkflowSummary } from '../../models';
+import { ExecutionResponse, WorkflowSummary, Page } from '../../models';
 
 describe('AllExecutionsComponent', () => {
   let component: AllExecutionsComponent;
@@ -37,12 +37,22 @@ describe('AllExecutionsComponent', () => {
     },
   ];
 
+  function makePage(execs: ExecutionResponse[]): Page<ExecutionResponse> {
+    return {
+      content: execs,
+      page: 0,
+      size: 100,
+      totalElements: execs.length,
+      totalPages: execs.length === 0 ? 0 : 1,
+    };
+  }
+
   function setupApiSpies(): void {
     workflowApiSpy.listWorkflows.and.returnValue(of(mockWorkflows));
     execApiSpy.listExecutions.and.callFake((wfId: string) => {
-      if (wfId === 'wf-1') return of(wf1Executions);
-      if (wfId === 'wf-2') return of(wf2Executions);
-      return of([]);
+      if (wfId === 'wf-1') return of(makePage(wf1Executions));
+      if (wfId === 'wf-2') return of(makePage(wf2Executions));
+      return of(makePage([]));
     });
   }
 

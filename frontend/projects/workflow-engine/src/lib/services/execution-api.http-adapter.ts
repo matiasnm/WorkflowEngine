@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, map } from 'rxjs';
-import { ExecutionResponse, TransitionResponse, HistoryItem, NextStatesResponse, ExecutionPageResponse, AllExecutionResponse } from '../models';
+import { Observable } from 'rxjs';
+import { ExecutionResponse, TransitionResponse, HistoryItem, NextStatesResponse, Page, AllExecutionResponse } from '../models';
 import { WORKFLOW_ENGINE_CONFIG } from '../config/workflow-engine.config';
 import { ExecutionApiPort } from './execution-api.port';
 
@@ -46,10 +46,11 @@ export class ExecutionApiHttpAdapter implements ExecutionApiPort {
     );
   }
 
-  listExecutions(workflowId: string): Observable<ExecutionResponse[]> {
-    return this.http.get<ExecutionPageResponse>(
-      `${this.config.apiBaseUrl}/workflows/${workflowId}/executions`
-    ).pipe(map(page => page.content));
+  listExecutions(workflowId: string, page = 0, size = 20): Observable<Page<ExecutionResponse>> {
+    return this.http.get<Page<ExecutionResponse>>(
+      `${this.config.apiBaseUrl}/workflows/${workflowId}/executions`,
+      { params: { page: String(page), size: String(size) } }
+    );
   }
 
   listAllExecutions(): Observable<AllExecutionResponse[]> {

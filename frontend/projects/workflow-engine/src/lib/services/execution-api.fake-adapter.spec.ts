@@ -14,19 +14,36 @@ describe('ExecutionApiFakeAdapter', () => {
   });
 
   describe('listExecutions()', () => {
-    it('should return default seeded executions for a known workflow', (done) => {
+    it('should return paginated page with default seeded executions', (done) => {
       const workflowId = 'd290f1ee-6c54-4b01-90e6-d701748f0851';
-      adapter.listExecutions(workflowId).subscribe((executions) => {
-        expect(executions.length).toBe(2);
-        expect(executions[0].workflowId).toBe(workflowId);
-        expect(executions[1].workflowId).toBe(workflowId);
+      adapter.listExecutions(workflowId).subscribe((page) => {
+        expect(page.content.length).toBe(2);
+        expect(page.content[0].workflowId).toBe(workflowId);
+        expect(page.content[1].workflowId).toBe(workflowId);
+        expect(page.page).toBe(0);
+        expect(page.totalElements).toBe(2);
+        expect(page.totalPages).toBe(1);
         done();
       });
     });
 
-    it('should return empty array for unknown workflow', (done) => {
-      adapter.listExecutions('unknown-workflow').subscribe((executions) => {
-        expect(executions).toEqual([]);
+    it('should return empty content for unknown workflow', (done) => {
+      adapter.listExecutions('unknown-workflow').subscribe((page) => {
+        expect(page.content).toEqual([]);
+        expect(page.totalElements).toBe(0);
+        expect(page.totalPages).toBe(0);
+        done();
+      });
+    });
+
+    it('should respect page and size parameters', (done) => {
+      const workflowId = 'd290f1ee-6c54-4b01-90e6-d701748f0851';
+      // Page 0, size 1 — should return only the first execution
+      adapter.listExecutions(workflowId, 0, 1).subscribe((page) => {
+        expect(page.content.length).toBe(1);
+        expect(page.totalElements).toBe(2);
+        expect(page.totalPages).toBe(2);
+        expect(page.page).toBe(0);
         done();
       });
     });
@@ -98,8 +115,8 @@ describe('ExecutionApiFakeAdapter', () => {
       const workflowId = 'd290f1ee-6c54-4b01-90e6-d701748f0851';
 
       adapter.startExecution(workflowId).subscribe((response) => {
-        adapter.listExecutions(workflowId).subscribe((executions) => {
-          const created = executions.find((e) => e.id === response.executionId);
+        adapter.listExecutions(workflowId).subscribe((page) => {
+          const created = page.content.find((e) => e.id === response.executionId);
           expect(created).toBeTruthy();
           done();
         });

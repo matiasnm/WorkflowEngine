@@ -4,7 +4,7 @@ import { Subject, of, throwError } from 'rxjs';
 import { WorkflowDetailComponent } from './workflow-detail.component';
 import { WORKFLOW_API_PORT, WorkflowApiPort } from '../../services/workflow-api.port';
 import { EXECUTION_API_PORT, ExecutionApiPort } from '../../services/execution-api.port';
-import { WorkflowDetail } from '../../models';
+import { WorkflowDetail, Page, ExecutionResponse } from '../../models';
 
 describe('WorkflowDetailComponent', () => {
   let component: WorkflowDetailComponent;
@@ -48,8 +48,9 @@ describe('WorkflowDetailComponent', () => {
   });
 
   function createComponent(): void {
-    // Ensure child ExecutionListComponent has a valid observable return
-    executionApiSpy.listExecutions.and.returnValue(of([]));
+    // Ensure child ExecutionListComponent has a valid paginated return
+    const emptyPage: Page<ExecutionResponse> = { content: [], page: 0, size: 20, totalElements: 0, totalPages: 0 };
+    executionApiSpy.listExecutions.and.returnValue(of(emptyPage));
     fixture = TestBed.createComponent(WorkflowDetailComponent);
     component = fixture.componentInstance;
     fixture.componentRef.setInput('workflowId', 'uuid-1');

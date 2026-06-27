@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { ExecutionApiHttpAdapter } from './execution-api.http-adapter';
 import { WORKFLOW_ENGINE_CONFIG } from '../config/workflow-engine.config';
-import { ExecutionResponse, TransitionResponse, HistoryItem, NextStatesResponse, ExecutionPageResponse } from '../models';
+import { ExecutionResponse, TransitionResponse, HistoryItem, NextStatesResponse, Page } from '../models';
 
 describe('ExecutionApiHttpAdapter', () => {
   let service: ExecutionApiHttpAdapter;
@@ -209,9 +209,9 @@ describe('ExecutionApiHttpAdapter', () => {
       },
     ];
 
-    it('should call GET /workflows/{id}/executions and return ExecutionResponse[] from page content', () => {
+    it('should call GET /workflows/{id}/executions with default page/size and return Page', () => {
       const workflowId = 'wf-uuid-1';
-      const mockPageResponse: ExecutionPageResponse = {
+      const mockPage: Page<ExecutionResponse> = {
         content: mockExecutions,
         page: 0,
         size: 20,
@@ -220,18 +220,44 @@ describe('ExecutionApiHttpAdapter', () => {
       };
 
       service.listExecutions(workflowId).subscribe((response) => {
-        expect(response).toEqual(mockExecutions);
-        expect(response.length).toBe(2);
+        expect(response).toEqual(mockPage);
+        expect(response.content.length).toBe(2);
+        expect(response.page).toBe(0);
+        expect(response.totalElements).toBe(2);
       });
 
-      const req = httpMock.expectOne(`${apiBaseUrl}/workflows/${workflowId}/executions`);
+      const req = httpMock.expectOne(
+        (r) => r.url === `${apiBaseUrl}/workflows/${workflowId}/executions` && r.params.get('page') === '0' && r.params.get('size') === '20'
+      );
       expect(req.request.method).toBe('GET');
-      req.flush(mockPageResponse);
+      req.flush(mockPage);
     });
 
-    it('should return an empty array when no executions exist', () => {
+    it('should send custom page and size as query params', () => {
       const workflowId = 'wf-uuid-1';
-      const emptyPage: ExecutionPageResponse = {
+      const emptyPage: Page<ExecutionResponse> = {
+        content: [],
+        page: 2,
+        size: 10,
+        totalElements: 0,
+        totalPages: 0,
+      };
+
+      service.listExecutions(workflowId, 2, 10).subscribe((response) => {
+        expect(response.content.length).toBe(0);
+        expect(response.page).toBe(2);
+      });
+
+      const req = httpMock.expectOne(
+        (r) => r.url === `${apiBaseUrl}/workflows/${workflowId}/executions` && r.params.get('page') === '2' && r.params.get('size') === '10'
+      );
+      expect(req.request.method).toBe('GET');
+      req.flush(emptyPage);
+    });
+
+    it('should return an empty page when no executions exist', () => {
+      const workflowId = 'wf-uuid-1';
+      const emptyPage: Page<ExecutionResponse> = {
         content: [],
         page: 0,
         size: 20,
@@ -240,10 +266,13 @@ describe('ExecutionApiHttpAdapter', () => {
       };
 
       service.listExecutions(workflowId).subscribe((response) => {
-        expect(response).toEqual([]);
+        expect(response.content).toEqual([]);
+        expect(response.totalElements).toBe(0);
       });
 
-      const req = httpMock.expectOne(`${apiBaseUrl}/workflows/${workflowId}/executions`);
+      const req = httpMock.expectOne(
+        (r) => r.url === `${apiBaseUrl}/workflows/${workflowId}/executions` && r.params.get('page') === '0'
+      );
       expect(req.request.method).toBe('GET');
       req.flush(emptyPage);
     });
