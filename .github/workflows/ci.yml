@@ -19,6 +19,9 @@ jobs:
           distribution: 'temurin'
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+        working-directory: ./backend
       - name: Backend tests
         run: ./gradlew test
         working-directory: ./backend
@@ -42,9 +45,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
         working-directory: ./frontend
+      - name: Build library (workflow-engine)
+        run: npx ng build workflow-engine
+        working-directory: ./frontend
       - name: Frontend tests
         run: npx ng test --watch=false --browsers=ChromeHeadless
         working-directory: ./frontend
-      - name: Frontend build
-        run: npx ng build
+      - name: Build shell app
+        run: npx ng build shell
         working-directory: ./frontend
