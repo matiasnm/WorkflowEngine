@@ -10,8 +10,8 @@
     </appender>
   </springProfile>
 
-  <!-- Structured JSON for jpa / pg (CI, staging, production) -->
-  <springProfile name="jpa | pg">
+  <!-- Structured JSON for jpa / pg when NOT in dev mode (CI, staging, production) -->
+  <springProfile name="(h2 | pg) &amp; !dev">
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
       <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
     </appender>
