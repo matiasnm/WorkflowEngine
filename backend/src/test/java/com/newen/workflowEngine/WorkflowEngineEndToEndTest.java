@@ -19,10 +19,15 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 
 
-@SpringBootTest
+@SpringBootTest(properties = {
+    "workflow.security.api-keys[0]=sk-e2e-test-key"
+})
 @AutoConfigureMockMvc
-@ActiveProfiles("jpa")
+@ActiveProfiles("h2")
 class WorkflowEngineEndToEndTest {
+
+    private static final String API_KEY_HEADER = "X-API-Key";
+    private static final String TEST_API_KEY = "sk-e2e-test-key";
 
     @Autowired
     private MockMvc mockMvc;
@@ -72,6 +77,7 @@ class WorkflowEngineEndToEndTest {
         MvcResult workflowResult =
                 mockMvc.perform(
                         post("/workflows")
+                                .header(API_KEY_HEADER, TEST_API_KEY)
                                 .contentType("application/json")
                                 .content(workflowJson)
                 )
@@ -94,6 +100,7 @@ class WorkflowEngineEndToEndTest {
                 mockMvc.perform(
                         post("/workflows/{workflowId}/executions",
                                 workflowId)
+                                .header(API_KEY_HEADER, TEST_API_KEY)
                 )
                 .andExpect(status().isOk())
                 .andReturn();
@@ -119,6 +126,7 @@ class WorkflowEngineEndToEndTest {
         mockMvc.perform(
                 post("/executions/{executionId}/transition",
                         executionId)
+                        .header(API_KEY_HEADER, TEST_API_KEY)
                         .contentType("application/json")
                         .content(transitionJson)
         )
@@ -137,6 +145,7 @@ class WorkflowEngineEndToEndTest {
         mockMvc.perform(
                 get("/executions/{executionId}/history",
                         executionId)
+                        .header(API_KEY_HEADER, TEST_API_KEY)
         )
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.length()").value(1))
@@ -182,6 +191,7 @@ class WorkflowEngineEndToEndTest {
         MvcResult workflowResult =
                 mockMvc.perform(
                         post("/workflows")
+                                .header(API_KEY_HEADER, TEST_API_KEY)
                                 .contentType("application/json")
                                 .content(workflowJson)
                 )
@@ -207,6 +217,7 @@ class WorkflowEngineEndToEndTest {
         MvcResult executionResult =
                 mockMvc.perform(
                         post("/workflows/{workflowId}/executions", workflowId)
+                                .header(API_KEY_HEADER, TEST_API_KEY)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(startRequest)
                 )
@@ -221,6 +232,7 @@ class WorkflowEngineEndToEndTest {
         // GET EXECUTION AND VERIFY CONTEXT
         mockMvc.perform(
                 get("/executions/{executionId}", executionId)
+                        .header(API_KEY_HEADER, TEST_API_KEY)
         )
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.context.orderId").value("ORD-123"))
@@ -230,6 +242,7 @@ class WorkflowEngineEndToEndTest {
         // LIST EXECUTIONS AND VERIFY CONTEXT IN LIST
         mockMvc.perform(
                 get("/workflows/{workflowId}/executions", workflowId)
+                        .header(API_KEY_HEADER, TEST_API_KEY)
         )
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content[0].context.orderId").value("ORD-123"))

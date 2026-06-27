@@ -11,6 +11,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -21,6 +22,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.newen.workflowEngine.api.mapper.WorkflowRequestMapper;
 import com.newen.workflowEngine.api.mapper.WorkflowResponseMapper;
+import com.newen.workflowEngine.infrastructure.security.PermitAllSecurityConfig;
 import com.newen.workflowEngine.application.usecase.commands.CreateWorkflowUseCase;
 import com.newen.workflowEngine.application.usecase.commands.DeleteWorkflowUseCase;
 import com.newen.workflowEngine.application.usecase.commands.UpdateWorkflowUseCase;
@@ -33,6 +35,7 @@ import com.newen.workflowEngine.domain.model.workflow.Workflow;
 import com.newen.workflowEngine.domain.model.workflow.WorkflowId;
 
 @WebMvcTest(WorkflowController.class)
+@Import(PermitAllSecurityConfig.class)
 class WorkflowControllerTest {
 
     @Autowired

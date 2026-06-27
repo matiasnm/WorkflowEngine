@@ -35,11 +35,13 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 @RestController
 @Tag(name = "Workflows", description = "API to manage workflow definitions")
+@SecurityRequirement(name = "ApiKey")
 public class WorkflowController {
 
     private final CreateWorkflowUseCase createUseCase;

@@ -14,6 +14,9 @@ export * from './lib/services';
 // Utilities
 export * from './lib/util';
 
+// Interceptors
+export * from './lib/interceptors';
+
 // Components
 export * from './lib/components/workflow-list/workflow-list.component';
 export * from './lib/components/workflow-detail/workflow-detail.component';

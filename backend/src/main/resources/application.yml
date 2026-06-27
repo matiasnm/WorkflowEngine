@@ -25,6 +25,11 @@ springdoc:
     path: /swagger-ui.html
     operations-sorter: method
 
+workflow:
+  security:
+    api-keys:
+      - ${WORKFLOW_API_KEY_1:}
+
 management:
   endpoints:
     web:

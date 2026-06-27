@@ -71,7 +71,7 @@
 - [ ] Observability: Prometheus metrics + structured JSON logging + Grafana — [spec](features/v1/observability-and-webhooks.md)
 - [ ] Webhooks: per-execution callback URL — [spec](features/v1/observability-and-webhooks.md)
 - [x] Execution context (metadata) — [spec](features/v1/execution-context.md)
-- [ ] API key authentication — [spec](features/v1/api-key-auth.md)
+- [x] API key authentication — [spec](features/v1/api-key-auth.md)
 
 ---
 

@@ -2,3 +2,10 @@
 logging:
   level:
     root: INFO
+
+# Local development API key — overrides the env-var default from application.yml
+# so you don't need to set WORKFLOW_API_KEY_1 in your shell.
+workflow:
+  security:
+    api-keys:
+      - sk-dev-localonly-changeme

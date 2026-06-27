@@ -12,6 +12,7 @@ import static org.mockito.Mockito.when;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -24,6 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.newen.workflowEngine.api.dto.ExecutionResponse;
 import com.newen.workflowEngine.api.dto.StateResponse;
 import com.newen.workflowEngine.api.mapper.ExecutionResponseMapper;
+import com.newen.workflowEngine.infrastructure.security.PermitAllSecurityConfig;
 import com.newen.workflowEngine.application.usecase.commands.DeleteExecutionUseCase;
 import com.newen.workflowEngine.application.usecase.commands.ExecuteTransitionUseCase;
 import com.newen.workflowEngine.application.usecase.commands.StartWorkflowExecutionUseCase;
@@ -39,6 +41,7 @@ import com.newen.workflowEngine.domain.model.workflow.State;
 import com.newen.workflowEngine.domain.model.workflow.WorkflowId;
 
 @WebMvcTest(ExecutionController.class)
+@Import(PermitAllSecurityConfig.class)
 class ExecutionControllerTest {
 
     @Autowired
