@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 
 import com.newen.workflowEngine.domain.event.StateChanged;
 
-@Profile("!memory")
+@Profile({"!memory", "!dev-h2", "!dev"})
 @Component
 public class TransitionLoggingListener {
 

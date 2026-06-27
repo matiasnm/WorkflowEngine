@@ -14,7 +14,7 @@ import com.newen.workflowEngine.infrastructure.persistence.entity.WorkflowEntity
 import com.newen.workflowEngine.infrastructure.persistence.mapper.WorkflowMapper;
 import com.newen.workflowEngine.infrastructure.persistence.repository.jpa.JpaWorkflowRepository;
 
-@Profile({"jpa", "pg"})
+@Profile({"h2", "pg"})
 @Component
 public class JpaWorkflowPersistenceAdapter implements WorkflowRepository {
 

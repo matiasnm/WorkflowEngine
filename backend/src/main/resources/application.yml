@@ -3,10 +3,12 @@ spring:
     name: workflow-engine
 
   profiles:
+    active: dev-h2
+
     group:
-      dev-jpa:
+      dev-h2:
         - dev
-        - jpa
+        - h2
 
       dev-pg:
         - dev

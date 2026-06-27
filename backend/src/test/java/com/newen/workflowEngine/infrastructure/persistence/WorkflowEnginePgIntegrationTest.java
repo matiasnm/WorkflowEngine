@@ -54,7 +54,7 @@ import jakarta.persistence.EntityManager;
  * </ul>
  */
 @DataJpaTest
-@ActiveProfiles("jpa")
+@ActiveProfiles("pg")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Testcontainers
 @Import({

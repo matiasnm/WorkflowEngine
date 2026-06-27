@@ -2,7 +2,7 @@
 <configuration>
 
   <!-- Plain text for local development profiles -->
-  <springProfile name="memory | dev-jpa | dev-pg">
+  <springProfile name="memory | dev-h2 | dev-pg">
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
       <encoder>
         <pattern>%d{HH:mm:ss.SSS} %-5level [%logger{36}] %msg%n</pattern>

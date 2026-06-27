@@ -19,7 +19,7 @@ import com.newen.workflowEngine.infrastructure.persistence.mapper.WorkflowMapper
 
 
 @DataJpaTest
-@ActiveProfiles("jpa")
+@ActiveProfiles("h2")
 @Import({
         JpaWorkflowPersistenceAdapter.class,
         WorkflowMapper.class

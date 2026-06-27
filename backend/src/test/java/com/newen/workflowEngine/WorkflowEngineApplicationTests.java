@@ -5,7 +5,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
-@ActiveProfiles("jpa")
+@ActiveProfiles("h2")
 class WorkflowEngineApplicationTests {
 
 	@Test
