@@ -1,3 +1,11 @@
+# ── Git configuration ──────────────────────────────────
 /gradlew text eol=lf
 *.bat text eol=crlf
 *.jar binary
+
+# ── GitHub language stats ──────────────────────────────
+# Excluir HTML, CSS y tests Angular para que no se contabilicen
+# en las estadísticas de lenguaje del repositorio en GitHub.
+*.html     linguist-vendored
+*.css      linguist-vendored
+*.spec.ts  linguist-vendored
